@@ -16,7 +16,7 @@ django-filter==2.4.0
 django-haystack==3.0
 Pillow==9.0.0
 django-redis==5.0.0
-django-logging==0.1.0
+django-logging
 asgiref==3.5.0
 channels==3.0.4
 idna==3.3
