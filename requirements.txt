@@ -36,7 +36,7 @@ django-sslserver==0.22
 django-anymail==9.0.0
 
 # for pagination in Django, pagination is the process of dividing a large list of items into smaller pages
-django-bootstrap-pagination==1.10.0
+django-bootstrap-pagination==1.7.1
 
 # for filtering
 django-filter==2.4.0
