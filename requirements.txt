@@ -30,7 +30,7 @@ gunicorn==20.1.0
 django-crispy-forms==1.13.0
 
 # for security
-django-sslserver==0.27
+django-sslserver==0.22
 
 # for email
 django-anymail==9.0.0
