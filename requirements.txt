@@ -1,81 +1,29 @@
 Django==4.0.2
-# MySQL Database Connector
 mysqlclient==2.1.0
-# Docker
 docker==5.0.0
-# we are not allowed to use Django REST Framework
-
-# other dependencies
-requests==2.26.0 # for making HTTP requests
-
-# for testing
+requests==2.26.0
 pytest==7.0.1
-
-# for linting
 flake8==4.0.1
-
-# for formatting
 black==21.12b0
-
-# for type checking
-mypy==0.910 # for static type checking of Python code
-
-# for documentation
+mypy==0.910
 sphinx==4.3.0
-
-# for deployment
 gunicorn==20.1.0
-
-# for database migrations
 django-crispy-forms==1.13.0
-
-# for security
 django-sslserver==0.22
-
-# for email
 django-anymail==9.0.0
-
-# for pagination in Django, pagination is the process of dividing a large list of items into smaller pages
 django-bootstrap-pagination==1.7.1
-
-# for filtering
 django-filter==2.4.0
-
-# for search
 django-haystack==3.0
-
-# for image processing
-Pillow==9.0.0 # for image processing in Django
-
-# for caching
-django-redis==5.0.0 # for caching in Django applications using Redis as the backend cache
-
-nginx==1.27.0 # for serving static files and load balancing
-
-# for logging
+Pillow==9.0.0
+django-redis==5.0.0
 django-logging==0.1.0
-
-asgiref==3.5.0 # for ASGI support in Django
-
-# for websockets
+asgiref==3.5.0
 channels==3.0.4
-
-idna==3.3 # for handling internationalized domain names in Python
-
-# for handling timezone
-pytz==2021.3 # for handling timezone in Python
-
-# for handling dates and times
-python-dateutil==2.8.2 # for handling dates and times in Python
-
-# for handling JSON data
-simplejson==3.17.5 # for encoding and decoding JSON data in Python
-
-# for handling URLs
-urllib3==1.26.8 # for handling URLs in Python
-
-sqlparse==0.4.2 # for parsing SQL statements in Python
-
-PyYAML==6.0 # for parsing YAML files in Python
-
-typing_extensions==4.0.1 # for adding type hints to Python code
+idna==3.3
+pytz==2021.3
+python-dateutil==2.8.2
+simplejson==3.17.5
+urllib3==1.26.8
+sqlparse==0.4.2
+PyYAML==6.0
+typing_extensions==4.0.1
