@@ -50,7 +50,7 @@ Pillow==9.0.0 # for image processing in Django
 # for caching
 django-redis==5.0.0 # for caching in Django applications using Redis as the backend cache
 
-nginx==1.26.0 # for serving static files and load balancing
+nginx==1.27.0 # for serving static files and load balancing
 
 # for logging
 django-logging==0.1.0
