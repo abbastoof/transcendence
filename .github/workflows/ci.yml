@@ -1,29 +1,32 @@
+# Name of the workflow
 name: CI Pipeline
 
+# Events that trigger the workflow
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop ]  # Trigger on push to main and develop branches
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, develop ]  # Trigger on pull request to main and develop branches
 
+# Define jobs in the workflow
 jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2  # Checkout the repository code
 
-      # Set up Python
+      # Set up Python environment
       - name: Set up Python 3.11
         uses: actions/setup-python@v3
         with:
-          python-version: 3.11
+          python-version: 3.11  # Use Python version 3.11
 
-      # Install dependencies
+      # Install project dependencies
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip  # Upgrade pip
+          pip install -r requirements.txt  # Install dependencies from requirements.txt
 
   test:
     needs: setup
@@ -42,10 +45,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Run tests
+      # Run test suite
       - name: Run tests
         run: |
-          pytest
+          pytest  # Execute tests using pytest
 
   security:
     needs: setup
@@ -64,11 +67,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Check for security vulnerabilities
+      # Run security checks
       - name: Run security checks
         run: |
-          pip install bandit
-          bandit -r .
+          pip install bandit  # Install Bandit for security checks
+          bandit -r .  # Run Bandit on the codebase
 
   build:
     needs: [setup, test, security]
@@ -99,6 +102,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      # Log in to Docker Hub
       - name: Deploy to Docker Hub
         env:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
