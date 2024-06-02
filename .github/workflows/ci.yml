@@ -1,38 +1,42 @@
+# Name of the workflow
 name: CI Pipeline
 
+# Events that trigger the workflow
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop ]  # Trigger on push to main and develop branches
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, develop ]  # Trigger on pull request to main and develop branches
 
+# Define jobs in the workflow
 jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Upgrade setuptools
+        run: pip install --upgrade setuptools
 
+      - name: Checkout code
+        uses: actions/checkout@v3  # Checkout the repository code
+
+      # Set up Python environment
       - name: Set up Python 3.11
         uses: actions/setup-python@v3
         with:
-          python-version: 3.11
+          python-version: 3.11  # Use Python version 3.11
 
-      - name: Upgrade pip and setuptools
-        run: |
-          python -m pip install --upgrade pip setuptools==58.0.4
-
+      # Install project dependencies
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip  # Upgrade pip
+          pip install -r requirements.txt  # Install dependencies from requirements.txt
 
   test:
     needs: setup
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v3
@@ -44,16 +48,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # Run test suite
       - name: Run tests
         run: |
-          pytest
+          pytest  # Execute tests using pytest
 
   security:
     needs: setup
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v3
@@ -65,17 +70,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # Run security checks
       - name: Run security checks
         run: |
-          pip install bandit
-          bandit -r .
+          pip install bandit  # Install Bandit for security checks
+          bandit -r .  # Run Bandit on the codebase
 
   build:
     needs: [setup, test, security]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v3
@@ -87,6 +93,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # Build the Docker image
       - name: Build Docker image
         run: |
           docker build -t transcendence .
@@ -96,8 +103,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
+      # Log in to Docker Hub
       - name: Deploy to Docker Hub
         env:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
@@ -107,6 +115,7 @@ jobs:
           docker tag transcendence ${DOCKER_HUB_USERNAME}/transcendence:latest
           docker push ${DOCKER_HUB_USERNAME}/transcendence:latest
 
+      # Deploy to the server
       - name: Deploy to server
         run: |
           ssh user@server "docker pull ${DOCKER_HUB_USERNAME}/transcendence:latest && docker-compose up --build -d"
