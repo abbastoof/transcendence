@@ -34,4 +34,5 @@ su - postgres -c "pg_ctl stop -D /var/lib/postgresql/data"
 
 sleep 5
 # Start the PostgreSQL server as the postgres user, keeping it in the foreground
-exec su - postgres -c "postgres -D /var/lib/postgresql/data"
+su - postgres -c "pg_ctl start -D /var/lib/postgresql/data"
+sleep 5

@@ -1,11 +1,12 @@
 #! /bin/bash
 
 export PGPASSWORD='root'
+sh /app/init_database.sh
 source .env/bin/activate
 pip install -r requirements.txt
 pip install tzdata
 
-while ! psql -h "database" -U "$DB_USER" -d "postgres" -c '\q'; do
+while ! psql -U "$DB_USER" -d "postgres" -c '\q'; do
 	>&2 echo "Postgres is unavailable - sleeping"
 	sleep 5
 done

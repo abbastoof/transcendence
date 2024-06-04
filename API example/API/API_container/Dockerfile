@@ -4,7 +4,12 @@ ENV PYTHONUNBUFFERED=1
 ENV LANG=C.UTF-8
 
 # Update and install dependencies
-RUN apk update && apk add --no-cache python3 py3-pip postgresql-client
+RUN apk update && apk add --no-cache python3 py3-pip postgresql-client postgresql
+
+# Set work directory
+
+RUN mkdir /run/postgresql
+RUN chown postgres:postgres /run/postgresql
 
 # Set work directory
 WORKDIR /app/
@@ -18,6 +23,7 @@ COPY ./admin /app/admin
 
 # Copy and set permissions for the entrypoint script
 COPY ./API/API_container/tools.sh /app
-RUN chmod +x tools.sh
+COPY ./API/API_container/init_database.sh /app
+RUN chmod +x /app/tools.sh /app/init_database.sh
 
 ENTRYPOINT [ "sh", "./tools.sh" ]
