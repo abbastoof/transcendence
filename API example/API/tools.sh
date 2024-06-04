@@ -11,6 +11,6 @@ while ! psql -U "$DB_USER" -d "postgres" -c '\q'; do
 	sleep 5
 done
 
-python3 /app/admin/manage.py makemigrations
-python3 /app/admin/manage.py migrate
-python3 /app/admin/manage.py runserver 0.0.0.0:8000
+python3 /app/auth/manage.py makemigrations users
+python3 /app/auth/manage.py migrate
+python3 /app/auth/manage.py runserver 0.0.0.0:8000

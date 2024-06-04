@@ -1,19 +1,33 @@
 networks:
-  mynetwork:
-    name: mynetwork
+  transcendence_network:
+    name: transcendence_network
     driver: bridge
 
 services:
 
-  backend:
-    container_name: backend
-    image: backend
+  register_user:
+    container_name: register_user
+    image: register_user
     build:
       context: .
-      dockerfile: API/API_container/Dockerfile
+      dockerfile: API/Dockerfile
     env_file:
       - .env
     ports:
       - "8000:8000"
+    # depends_on:
+    #   - db
     networks:
-      - mynetwork
+      - transcendence_network
+    
+  # db:
+  #   container_name: db
+  #   image: db_register_user
+  #   build: 
+  #     context: .
+  #     dockerfile: API/Database_container/Dockerfile
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - transcendence_network
+  

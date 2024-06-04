@@ -1,6 +1,7 @@
 #! /bin/bash
 
 # Create necessary directories with appropriate permissions
+cd /
 mkdir -p /run/postgresql
 chown postgres:postgres /run/postgresql/
 
@@ -22,7 +23,7 @@ chown -R postgres:postgres /var/lib/postgresql/data
 exec su - postgres -c "postgres -D /var/lib/postgresql/data" &
 
 # Wait for PostgreSQL to start (you may need to adjust the sleep time)
-sleep 5
+sleep 2
 
 # Create a new PostgreSQL user and set the password
 su - postgres -c "psql -c \"CREATE USER $DB_USER WITH PASSWORD '$DB_PASS';\""
@@ -32,7 +33,6 @@ su - postgres -c "psql -c \"GRANT ALL PRIVILEGES ON DATABASE postgres TO $DB_USE
 # Stop the PostgreSQL server after setting the password
 su - postgres -c "pg_ctl stop -D /var/lib/postgresql/data"
 
-sleep 5
+sleep 1
 # Start the PostgreSQL server as the postgres user, keeping it in the foreground
 su - postgres -c "pg_ctl start -D /var/lib/postgresql/data"
-sleep 5
