@@ -98,8 +98,7 @@ a.out
 *.war
 
 # Ignore IDE specific files
+.DS_Store/
 .vscode/
 .idea/
 *.iml
-
-.DS_Store
