@@ -1,0 +1,19 @@
+networks:
+  transcendence_network:
+    name: transcendence_network
+    driver: bridge
+
+services:
+
+  user_service:
+    container_name: user_service
+    image: user_service
+    build:
+      context: .
+      dockerfile: Backend/user/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    networks:
+      - transcendence_network
