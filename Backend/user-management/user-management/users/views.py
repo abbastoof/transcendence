@@ -23,7 +23,7 @@ class UserViewSet(viewsets.ViewSet):
 		data = get_object_or_404(User, id=pk)
 		serializer = UserSerializer(data)
 		return Response(serializer.data)
-		pass
+
 
 	def update_user(self, request, pk = None):
 		data = get_object_or_404(User, id=pk)
@@ -31,17 +31,18 @@ class UserViewSet(viewsets.ViewSet):
 			return Response(status=status.HTTP_401_UNAUTHORIZED)
 		serializer = UserSerializer(instance=data, data=request.data, partial=True)
 		serializer.is_valid(raise_exception=True)
+		# if User updated Username should send message to all microservices to update the username related to this user using Kafka
 		serializer.save()
 		return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
-		pass
+
 	def destroy_user(self, request, pk = None):
 		data = get_object_or_404(User, id=pk)
 		if data != request.user and not request.user.is_superuser:
 			return Response(status=status.HTTP_401_UNAUTHORIZED)
-		# Should send message to all microservices to delete all data related to this user
+		# Should send message to all microservices to delete all data related to this user using Kafka
 		data.delete()
 		return Response(status=status.HTTP_204_NO_CONTENT)
-		pass
+
 
 
 class RegisterViewSet(viewsets.ViewSet):
