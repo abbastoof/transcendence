@@ -10,7 +10,7 @@ services:
     image: user_service
     build:
       context: .
-      dockerfile: Backend/user/Dockerfile
+      dockerfile: Backend/user-management/Dockerfile
     env_file:
       - .env
     ports:

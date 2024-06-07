@@ -1,4 +1,4 @@
-# Application dependencies
+# # Application dependencies
 Django==4.0.6
 djangorestframework==3.12.4
 fastapi==0.75.1
@@ -6,13 +6,13 @@ uvicorn==0.17.0
 mysqlclient==2.0.3
 requests==2.26.0
 
-# Testing dependencies
+# # Testing dependencies
 pytest==7.1.2
 
-# Security dependencies
+# # Security dependencies
 bandit==1.7.0
 
-# Other dependencies
+# # Other dependencies
 docker==5.0.3
 Pillow==9.0.0
 django-redis==5.0.0
@@ -31,5 +31,5 @@ django-rest-knox==4.1.0
 django-rest-auth==0.9.5
 django-allauth==0.47.0
 
-# Build dependencies
+# # Build dependencies
 setuptools==58.0.4
