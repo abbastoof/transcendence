@@ -1,14 +1,41 @@
-FROM python:3.11
+# FROM python:3.11
 
-ENV PYTHONUNBUFFERED 1
+# ENV PYTHONUNBUFFERED 1
 
-WORKDIR /usr/src/app
+# WORKDIR /usr/src/app
 
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+# COPY requirements.txt ./
+# RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# COPY . .
 
-EXPOSE 8000
+# EXPOSE 8000
 
-CMD ["gunicorn", "auth_service.wsgi:application", "--bind", "0.0.0.0:8000"]
+# CMD ["gunicorn", "auth_service.wsgi:application", "--bind", "0.0.0.0:8000"]
+
+FROM alpine:3.20
+
+ENV PYTHONUNBUFFERED=1
+ENV LANG=C.UTF-8
+
+# Update and install dependencies
+RUN apk update && apk add --no-cache python3 py3-pip postgresql-client postgresql
+
+# Set work directory
+RUN mkdir /run/postgresql
+RUN chown postgres:postgres /run/postgresql
+
+WORKDIR /app/
+
+COPY ./Backend/auth-service/requirements.txt .
+RUN python3.12 -m venv .env
+
+# Copy the rest of the application code
+COPY ./Backend/auth-service/auth-service /app/auth-service
+
+# Copy and set permissions for the entrypoint script
+COPY ./Backend/auth-service/tools.sh /app
+COPY ./Backend/auth-service/init_database.sh /app
+RUN chmod +x /app/tools.sh /app/init_database.sh
+
+ENTRYPOINT [ "sh", "./tools.sh" ]
