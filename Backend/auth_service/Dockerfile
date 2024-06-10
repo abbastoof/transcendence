@@ -27,15 +27,15 @@ RUN chown postgres:postgres /run/postgresql
 
 WORKDIR /app/
 
-COPY ./Backend/auth-service/requirements.txt .
+COPY ./Backend/auth_service/requirements.txt .
 RUN python3.12 -m venv .env
 
 # Copy the rest of the application code
-COPY ./Backend/auth-service/auth-service /app/auth-service
+COPY ./Backend/auth_service/auth_service /app/auth_service
 
 # Copy and set permissions for the entrypoint script
-COPY ./Backend/auth-service/tools.sh /app
-COPY ./Backend/auth-service/init_database.sh /app
+COPY ./Backend/auth_service/tools.sh /app
+COPY ./Backend/auth_service/init_database.sh /app
 RUN chmod +x /app/tools.sh /app/init_database.sh
 
 ENTRYPOINT [ "sh", "./tools.sh" ]
