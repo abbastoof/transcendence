@@ -4,29 +4,45 @@ networks:
     driver: bridge
 
 services:
-
-  user_service:
-    container_name: user_service
-    image: user_service
+  kafka:
+    container_name: kafka
+    image: kafka
     build:
       context: .
-      dockerfile: Backend/user_management/Dockerfile
+      dockerfile: Backend/kafka/Dockerfile
     env_file:
       - .env
     ports:
-      - "8000:8000"
+      - "9092:9092"
     networks:
       - transcendence_network
 
-  auth_service:
-    container_name: auth_service
-    image: auth_service
-    build:
-      context: .
-      dockerfile: Backend/auth_service/Dockerfile
-    env_file:
-      - .env
-    ports:
-      - "8001:8000"
-    networks:
-      - transcendence_network
+  # user_service:
+  #   container_name: user_service
+  #   image: user_service
+  #   build:
+  #     context: .
+  #     dockerfile: Backend/user_management/Dockerfile
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - "8000:8000"
+  #   networks:
+  #     - transcendence_network
+  #   depends_on:
+  #     - kafka
+
+  # auth_service:
+  #   container_name: auth_service
+  #   image: auth_service
+  #   build:
+  #     context: .
+  #     dockerfile: Backend/auth_service/Dockerfile
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - "8001:8000"
+  #   networks:
+  #     - transcendence_network
+  #   depends_on:
+  #     - kafka
