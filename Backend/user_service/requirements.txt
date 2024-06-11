@@ -1,5 +1,0 @@
-Django==4.2.8
-djangorestframework==3.12.4
-gunicorn==20.1.0
-django-environ==0.4.5 # for environment variables in Django
-psycopg2==2.9.2 # for PostgreSQL
