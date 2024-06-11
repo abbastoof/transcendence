@@ -4,16 +4,17 @@ networks:
     driver: bridge
 
 services:
-  kafka:
-    container_name: kafka
-    image: kafka
-    build:
-      context: .
-      dockerfile: Backend/kafka/Dockerfile
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq
     env_file:
       - .env
+    build:
+      context: .
+      dockerfile: Backend/rabbitmq/Dockerfile
     ports:
-      - "9092:9092"
+      - "15672:15672"
+      - "5672:5672"
     networks:
       - transcendence_network
 
@@ -30,7 +31,7 @@ services:
     networks:
       - transcendence_network
     depends_on:
-      - kafka
+      - rabbitmq
 
   auth_service:
     container_name: auth_service
@@ -45,4 +46,4 @@ services:
     networks:
       - transcendence_network
     depends_on:
-      - kafka
+      - rabbitmq
