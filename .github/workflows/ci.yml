@@ -22,6 +22,15 @@ jobs:
         with:
           python-version: 3.11  # Use Python version 3.11
 
+      # Cache dependencies
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       # Install build dependencies
       - name: Install build dependencies
         run: |
@@ -39,20 +48,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v3
-        with:
-          python-version: 3.11
-
-      # Install build dependencies
-      - name: Install build dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install setuptools==58.0.4 wheel
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
       # Run test suite
       - name: Run tests
         run: pytest  # Execute tests using pytest
@@ -63,20 +58,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v3
-        with:
-          python-version: 3.11
-
-      # Install build dependencies
-      - name: Install build dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install setuptools==58.0.4 wheel
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
 
       # Run security checks
       - name: Run security checks
@@ -90,20 +71,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v3
-        with:
-          python-version: 3.11
-
-      # Install build dependencies
-      - name: Install build dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install setuptools==58.0.4 wheel
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
 
       # Build the Docker image
       - name: Build Docker image
@@ -126,6 +93,11 @@ jobs:
           docker tag transcendence ${DOCKER_HUB_USERNAME}/transcendence:latest
           docker push ${DOCKER_HUB_USERNAME}/transcendence:latest
 
-      # Deploy to the server
+      # Conditional deployment based on branch
       - name: Deploy to server
+        if: github.ref == 'refs/heads/main'
         run: ssh user@server "docker pull ${DOCKER_HUB_USERNAME}/transcendence:latest && docker-compose up --build -d"
+
+      - name: Deploy to development server
+        if: github.ref == 'refs/heads/develop'
+        run: ssh user@dev-server "docker pull ${DOCKER_HUB_USERNAME}/transcendence:latest && docker-compose up --build -d"
