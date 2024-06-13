@@ -13,8 +13,8 @@ services:
       context: .
       dockerfile: Backend/rabbitmq/Dockerfile
     ports:
-      - "15672:15672"
       - "5672:5672"
+      - "15672:15672"
     networks:
       - transcendence_network
 
