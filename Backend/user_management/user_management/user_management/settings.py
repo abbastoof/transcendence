@@ -10,8 +10,14 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 from datetime import timedelta
+
+RABBITMQ_HOST = os.getenv('RABBITMQ_HOST')
+RABBITMQ_USER = os.getenv('RABBITMQ_USER')
+RABBITMQ_PASS = os.getenv('RABBITMQ_PASS')
+RABBITMQ_PORT = os.getenv('RABBITMQ_PORT')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

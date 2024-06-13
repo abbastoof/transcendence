@@ -6,7 +6,7 @@ class UserSerializer(serializers.ModelSerializer):
 	email = serializers.EmailField(validators=[UniqueValidator(queryset=User.objects.all())])
 	class Meta:
 		model = User
-		fields = ['username','email', 'password']
+		fields = ['id', 'username','email', 'password']
 		extra_kwargs = {'password': {'write_only': True}}
 
 	def create(self, validate_data):
