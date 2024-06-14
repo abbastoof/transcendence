@@ -1,6 +1,6 @@
 FROM alpine:3.20
 
-RUN apk add --no-cache erlang openssl
+RUN apk add --no-cache erlang openssl bash
 
 # Set environment variable for RabbitMQ installation directory
 ENV RABBITMQ_HOME=/usr/local/bin/rabbitmq_server-3.13.3

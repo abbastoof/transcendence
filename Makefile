@@ -23,8 +23,8 @@ down:
 	docker-compose -f $(COMPOSE_FILE) down
 
 # Restart all services
-.PHONY: restart
-restart: down up
+.PHONY:  re
+re: down up
 
 # Show logs for all services
 .PHONY: logs
@@ -58,7 +58,7 @@ help:
 	@echo "  build      - Build all services"
 	@echo "  up         - Start all services"
 	@echo "  down       - Stop all services"
-	@echo "  restart    - Restart all services"
+	@echo "  re         - Restart all services"
 	@echo "  logs       - Show logs for all services"
 	@echo "  pull       - Pull latest images for all services"
 	@echo "  clean      - Remove stopped containers and unused images, networks, and volumes"

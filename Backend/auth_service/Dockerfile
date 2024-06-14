@@ -19,7 +19,7 @@ ENV PYTHONUNBUFFERED=1
 ENV LANG=C.UTF-8
 
 # Update and install dependencies
-RUN apk update && apk add --no-cache python3 py3-pip postgresql-client postgresql
+RUN apk update && apk add --no-cache python3 py3-pip postgresql-client postgresql bash
 
 # Set work directory
 RUN mkdir /run/postgresql
