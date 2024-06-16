@@ -10,9 +10,10 @@ RUN wget https://github.com/rabbitmq/rabbitmq-server/releases/download/v3.13.3/r
     tar xvf rabbitmq-server-generic-unix-3.13.3.tar.xz -C /usr/local/bin/ && \
     rm rabbitmq-server-generic-unix-3.13.3.tar.xz
 
-# Add RabbitMQ binaries to PATH
+    # Add RabbitMQ binaries to PATH
 ENV PATH=$PATH:$RABBITMQ_HOME/sbin
 
+RUN rabbitmq-plugins enable rabbitmq_management
 # Expose ports used by RabbitMQ
 EXPOSE 5672 15672
 
