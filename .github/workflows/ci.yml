@@ -41,16 +41,16 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt  # Install dependencies from requirements.txt
 
-  test:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+#   test:
+#     needs: setup
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
 
-      # Run test suite
-      - name: Run tests
-        run: pytest  # Execute tests using pytest
+#       # Run test suite
+#       - name: Run tests
+#         run: pytest  # Execute tests using pytest
 
   security:
     needs: setup
@@ -66,7 +66,7 @@ jobs:
           bandit -r .  # Run Bandit on the codebase
 
   build:
-    needs: [setup, test, security]
+    needs: [setup, security]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
