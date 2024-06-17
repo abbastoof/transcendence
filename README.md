@@ -1,3 +1,5 @@
+Until we find a solution for environment variables, you can use "sample env" file. rename it to ".env".
+
 This project consists of two endpoints that allows users to view, add, update, and delete user records. The application is built using the Django framework in Python. Every endpoint is using Postgresql as a database and Django Rest Framework to serialize the data and return it in JSON format. 
 
 The address of the first endpoint user_management API is 
