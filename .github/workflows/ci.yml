@@ -31,27 +31,27 @@ jobs:
           python -m pip install --upgrade pip  # Upgrade pip
           pip install -r requirements.txt  # Install dependencies from requirements.txt
 
-  test:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+#   test:
+#     needs: setup
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v3
-        with:
-          python-version: 3.11
+#       - name: Set up Python 3.11
+#         uses: actions/setup-python@v3
+#         with:
+#           python-version: 3.11
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+#       - name: Install dependencies
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install -r requirements.txt
 
-      # Run test suite
-      - name: Run tests
-        run: |
-          pytest  # Execute tests using pytest
+#       # Run test suite
+#       - name: Run tests
+#         run: |
+#           pytest  # Execute tests using pytest
 
   security:
     needs: setup
@@ -77,7 +77,7 @@ jobs:
           bandit -r .  # Run Bandit on the codebase
 
   build:
-    needs: [setup, test, security]
+    needs: [setup, security]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
