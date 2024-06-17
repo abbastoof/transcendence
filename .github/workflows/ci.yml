@@ -4,9 +4,9 @@ name: CI Pipeline
 # Events that trigger the workflow
 on:
   push:
-    branches: [ main, develop ]  # Trigger on push to main and develop branches
+    branches: [ main, develop, mtoof ]  # Include mtoof branch
   pull_request:
-    branches: [ main, develop ]  # Trigger on pull request to main and develop branches
+    branches: [ main, develop, mtoof ]  # Include mtoof branch
 
 # Define jobs in the workflow
 jobs:
@@ -40,17 +40,6 @@ jobs:
       # Install project dependencies
       - name: Install dependencies
         run: pip install -r requirements.txt  # Install dependencies from requirements.txt
-
-#   test:
-#     needs: setup
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v4
-
-#       # Run test suite
-#       - name: Run tests
-#         run: pytest  # Execute tests using pytest
 
   security:
     needs: setup
