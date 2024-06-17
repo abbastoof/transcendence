@@ -49,8 +49,8 @@ class UserViewSet(viewsets.ViewSet):
 		data.delete()
 		return Response(status=status.HTTP_204_NO_CONTENT)
 
-	@staticmethod
-	@method_decorator(csrf_exempt)
+	@staticmethod # This method is static because it doesn't need to access any instance variables
+	@method_decorator(csrf_exempt) # This decorator is used to disable CSRF protection for this method because it is called by RabbitMQ and not by a browser
 	def handle_rabbitmq_request(ch, method, properties, body):
 		payload = json.loads(body)
 		username = payload.get('username')
@@ -61,7 +61,7 @@ class UserViewSet(viewsets.ViewSet):
 		
 		if user is not None:
 			# Check if the user is active
-			if user.is_active and not user.is_staff:
+			if user.is_active:
 				serializer = UserSerializer(user)
 				response_message = serializer.data
 			else:

@@ -9,6 +9,9 @@ class UserSerializer(serializers.ModelSerializer):
 		fields = ['id', 'username','email', 'password']
 		# extra_kwargs = {'password': {'write_only': True}}
 
+		### Password should be strong password, minimum 8 characters, at least one uppercase letter, one lowercase letter, one number and one special character
+
+
 	def create(self, validate_data):
 		password = validate_data.pop('password', None)
 		instance = self.Meta.model(**validate_data)
@@ -25,5 +28,3 @@ class UserSerializer(serializers.ModelSerializer):
 				setattr(instance, attr, value)
 		instance.save()
 		return instance
-
-
