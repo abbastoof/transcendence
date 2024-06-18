@@ -5,7 +5,7 @@ COMPOSE_FILE = docker-compose.yml
 
 # Default target
 .PHONY: all
-all: build up
+all: up
 
 # Build all services
 .PHONY: build
@@ -15,7 +15,7 @@ build:
 # Start all services
 .PHONY: up
 up:
-	docker-compose -f $(COMPOSE_FILE) up -d
+	docker-compose -f $(COMPOSE_FILE) up -d --build
 
 # Stop all services
 .PHONY: down
