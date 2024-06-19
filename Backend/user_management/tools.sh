@@ -1,6 +1,5 @@
 #! /bin/bash
 
-export PGPASSWORD='root'
 sh /app/init_database.sh
 source .env/bin/activate
 pip install -r requirements.txt
