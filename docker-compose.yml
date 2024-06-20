@@ -13,8 +13,8 @@ services:
       context: .
       dockerfile: Backend/rabbitmq/Dockerfile
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - 5672:5672
+      - 15672:15672
     networks:
       - transcendence_network
 
@@ -27,7 +27,7 @@ services:
     env_file:
       - .env
     ports:
-      - "8000:8000"
+      - 8000:8000
     networks:
       - transcendence_network
     depends_on:
@@ -42,8 +42,24 @@ services:
     env_file:
       - .env
     ports:
-      - "8001:8000"
+      - 8001:8000
     networks:
       - transcendence_network
     depends_on:
       - rabbitmq
+
+  frontend:
+    container_name: frontend
+    image: frontend
+    build:
+      context: .
+      dockerfile: Frontend/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - 3000:443
+    networks:
+      - transcendence_network
+    depends_on:
+      - user_service
+      - auth_service

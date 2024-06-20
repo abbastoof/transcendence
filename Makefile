@@ -1,7 +1,7 @@
 # Makefile for Docker Compose operations
 
 # Define the name of the Docker Compose file
-COMPOSE_FILE = docker-compose.yml
+# COMPOSE_FILE = docker-compose.yml
 
 # Default target
 .PHONY: all
@@ -10,31 +10,31 @@ all: up
 # Build all services
 .PHONY: build
 build:
-	docker-compose -f $(COMPOSE_FILE) build
+	docker compose build
 
 # Start all services
 .PHONY: up
 up:
-	docker-compose -f $(COMPOSE_FILE) up -d --build
+	docker compose up -d --build
 
 # Stop all services
 .PHONY: down
 down:
-	docker-compose -f $(COMPOSE_FILE) down
+	docker compose down
 
 # Restart all services
 .PHONY:  re
-re: down up
+re: down clean up
 
 # Show logs for all services
 .PHONY: logs
 logs:
-	docker-compose -f $(COMPOSE_FILE) logs -f
+	docker compose logs -f
 
 # Pull latest images for all services
 .PHONY: pull
 pull:
-	docker-compose -f $(COMPOSE_FILE) pull
+	docker compose pull
 
 # Remove stopped containers and unused images, networks, and volumes
 .PHONY: clean
@@ -46,7 +46,7 @@ clean:
 # Display the status of all services
 .PHONY: status
 status:
-	docker-compose -f $(COMPOSE_FILE) ps
+	docker compose ps
 
 # Display help
 .PHONY: help

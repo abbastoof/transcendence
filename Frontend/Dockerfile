@@ -1,15 +1,17 @@
 FROM alpine:3.20 AS frontend
 
-RUN apk update && apk add nginx openrc openssl openssh
+RUN apk update && apk add --no-cache nginx openrc openssl openssh
 
-RUN adduser -D -g 'www' www
-RUN mkdir /www
-RUN chown -R www:www /var/lib/nginx
-RUN chown -R www:www /www
-COPY Frontend/index.html /www/index.html
-COPY Frontend/tools.sh /tools.sh
+RUN addgroup -S www && adduser -D -S -G www www && \
+mkdir -p /www && \
+chown -R www:www /var/lib/nginx && \
+chown -R www:www /www && \
+mkdir -p /etc/nginx/ssl && \
+chown -R www:www /etc/nginx/ssl
+COPY --chown=www:www Frontend/index.html /www/index.html
+COPY --chown=www:www Frontend/tools.sh /tools.sh
 RUN chmod +x /tools.sh
-COPY Frontend/nginx.conf /etc/nginx/nginx.conf
-
-
+COPY --chown=www:www Frontend/nginx.conf /etc/nginx/nginx.conf
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD curl --fail http://localhost:443 || exit 1
+USER www
 CMD ["sh", "./tools.sh"]

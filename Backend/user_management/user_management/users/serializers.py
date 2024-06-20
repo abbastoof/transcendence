@@ -19,7 +19,7 @@ class UserSerializer(serializers.ModelSerializer):
 		try:
 			validate_password(validate_data['password'])
 		except ValidationError as err:
-			raise serializers.ValidationError({'password': err.messages})
+			raise serializers.ValidationError({'password': err.messages}) from err
 		password = validate_data.pop('password', None)
 		instance = self.Meta.model(**validate_data)
 		if password is not None:
@@ -38,7 +38,7 @@ class UserSerializer(serializers.ModelSerializer):
 					validator = CustomPasswordValidator()
 					validator.validate(value, user=instance)
 				except ValidationError as err:
-					raise serializers.ValidationError({'password': err.messages})
+					raise serializers.ValidationError({'password': err.messages}) from err
 				instance.set_password(value)
 			else:
 				setattr(instance, attr, value)

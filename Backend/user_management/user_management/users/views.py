@@ -1,7 +1,6 @@
 from rest_framework import viewsets
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-from django.http import Http404
 from .serializers import UserSerializer
 from rest_framework.response import Response
 from .models import User

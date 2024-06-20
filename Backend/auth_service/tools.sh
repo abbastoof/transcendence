@@ -1,7 +1,8 @@
 #! /bin/bash
 
 sh /app/init_database.sh
-source .env/bin/activate
+
+source venv/bin/activate
 pip install -r requirements.txt
 pip install tzdata
 
@@ -13,3 +14,4 @@ python3 /app/auth_service/manage.py makemigrations
 python3 /app/auth_service/manage.py migrate
 # echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('$DB_USER', 'admin@example.com', '$DB_USER')" | python3 /app/auth_service/manage.py shell && echo "Superuser created successfully."
 python3 /app/auth_service/manage.py runserver 0.0.0.0:8000
+# CMD ["gunicorn", "auth_service.wsgi:application", "--bind", "0.0.0.0:8000"]

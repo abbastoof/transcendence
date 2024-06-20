@@ -104,3 +104,6 @@ a.out
 .vscode/
 .idea/
 *.iml
+
+# Ignore Trunk specific files
+.trunk/

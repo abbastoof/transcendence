@@ -1,7 +1,7 @@
 #! /bin/bash
 
 sh /app/init_database.sh
-source .env/bin/activate
+source venv/bin/activate
 pip install -r requirements.txt
 pip install tzdata
 
