@@ -1,5 +1,10 @@
-# Name of the workflow
 name: CI Pipeline
+
+permissions:
+  pull-requests: read
+  contents: read
+  issues: read
+  deployments: read
 
 # Events that trigger the workflow
 on:
