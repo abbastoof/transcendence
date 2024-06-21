@@ -5,9 +5,9 @@ Until we find a solution for environment variables, you can use "sample env" fil
 This project consists of two endpoints that allows users to view, add, update, and delete user records. The application is built using the Django framework in Python. Every endpoint is using Postgresql as a database and Django Rest Framework to serialize the data and return it in JSON format.
 
 The address of the first endpoint user_management API is
-`http://127.0.0.1:8000/user/register` "create user record using POST method"
+`http://127.0.0.1:8000/user/register/` "create user record using POST method"
 `http://127.0.0.1:8000/user/` "retrieve all user records using GET method only super user or staff can access"
-`http://127.0.0.1:8000/user/<int:pk>` "without angel brackets" "retrieve, update and delete user record using GET, PUT and DELETE methods respectively"
+`http://127.0.0.1:8000/user/<int:pk>/` "without angel brackets" "retrieve, update and delete user record using GET, PUT and DELETE methods respectively"
 
 The address of the second endpoint user_auth API is `http://127.0.0.1:8000/auth/api/token/`
 

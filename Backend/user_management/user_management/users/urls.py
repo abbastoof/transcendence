@@ -5,7 +5,7 @@ urlpatterns = [
     path('user/register/', RegisterViewSet.as_view({
         'post': 'create_user',
     }), name='register-user'),
-    path('user', UserViewSet.as_view({
+    path('user/', UserViewSet.as_view({
         'get': 'users_list',
     }), name='users-list'),
     path('user/<int:pk>/', UserViewSet.as_view({
