@@ -2,7 +2,7 @@
 
 This is a simple authentication service that uses JWT to authenticate users.
 
-# Docker container configuration
+## Docker container configuration
 
 Every single REST API endpoint has their own database. The database is a PostgreSQL database. The database name for all the endpoints is `postgres`. The database user and password for all the endpoints is inside the env file. The database port for all the endpoints is `5432`.
 
@@ -12,26 +12,31 @@ The API runs inside a virtual environment. The virtual environment is created in
 
 The API runs on port 8000 and exposed to 8001.
 
-# Tutorial to use the auth_service
+## Tutorial to use the auth_service
 
 After running the makefile, you can access the API using the following url:
- - `http://127.0.0.1:8000/auth/api/token/`
+
+- `http://127.0.0.1:8000/auth/api/token/`
 
 You should send a JSON object with the following fields:
-```
+
+```JSON
 {
     "username": "username",
     "password": "password"
 }
 ```
+
 The API will send the JSON object to the user_service API through the RabbitMQ message broker. The user_service API will check if the username and password are correct.
 If the username and password are correct, the API will generate the refresh and access keys and return a JSON object with the following fields:
-```
+
+```JSON
 {
     "refresh": "refresh token"
     "access": "access token"
 }
 ```
+
 The access token is valid for 60 minutes. The refresh token is valid for 24 hours. The username and Token Data are stored in the UserTokens table.
 
 The UserTokens table consists of the following fields:

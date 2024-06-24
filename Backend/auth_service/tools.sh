@@ -2,14 +2,22 @@
 
 sh /app/init_database.sh
 
+# trunk-ignore(shellcheck/SC1091)
 source venv/bin/activate
 pip install -r requirements.txt
 pip install tzdata
 
-while ! psql -U "$DB_USER" -d "postgres" -c '\q'; do
-	>&2 echo "Postgres is unavailable - sleeping"
+# while ! psql -U "${DB_USER}" -d "postgres" -c '\q'; do
+# 	echo >&2 "Postgres is unavailable - sleeping"
+# 	sleep 5
+# done
+
+# Wait for PostgreSQL to be available
+while ! pg_isready -q -U "${DB_USER}" -d "postgres"; do
+	echo >&2 "Postgres is unavailable - sleeping"
 	sleep 5
 done
+
 python3 /app/auth_service/manage.py makemigrations
 python3 /app/auth_service/manage.py migrate
 # echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('$DB_USER', 'admin@example.com', '$DB_USER')" | python3 /app/auth_service/manage.py shell && echo "Superuser created successfully."
