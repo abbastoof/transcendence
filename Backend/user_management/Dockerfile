@@ -35,7 +35,7 @@ RUN chown -R postgres:postgres /etc/supervisor && \
     chmod +x /usr/bin/supervisord
 
 USER postgres
-
+EXPOSE 8001
 HEALTHCHECK --interval=30s --timeout=2s --start-period=5s --retries=3 CMD curl -sSf http://localhost:8000/user/register/ > /dev/null &&  echo "success" || echo "failure"
 
 ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

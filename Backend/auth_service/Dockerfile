@@ -27,7 +27,7 @@ COPY --chown=postgres:postgres ./Backend/auth_service/tools.sh /app
 COPY --chown=postgres:postgres ./Backend/auth_service/init_database.sh /app
 RUN chmod +x /app/tools.sh /app/init_database.sh && chown -R postgres:postgres /app/auth_service/user_auth/
 USER postgres
-
+EXPOSE 8000
 # Add HEALTHCHECK instruction with delay
 HEALTHCHECK --interval=30s --timeout=2s --start-period=60s --retries=3 CMD curl -sSf http://localhost:8000/auth/api/token/ > /dev/null &&  echo "success" || echo "failure"
 ENTRYPOINT [ "sh", "./tools.sh" ]
