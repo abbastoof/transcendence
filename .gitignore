@@ -106,4 +106,4 @@ a.out
 *.iml
 
 # Ignore Trunk specific files
-# .trunk/
+.trunk/
