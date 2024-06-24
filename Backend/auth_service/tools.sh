@@ -20,6 +20,6 @@ done
 
 python3 /app/auth_service/manage.py makemigrations
 python3 /app/auth_service/manage.py migrate
-# echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('$DB_USER', 'admin@example.com', '$DB_USER')" | python3 /app/auth_service/manage.py shell && echo "Superuser created successfully."
 python3 /app/auth_service/manage.py runserver 0.0.0.0:8000
+# echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('$DB_USER', 'admin@example.com', '$DB_USER')" | python3 /app/auth_service/manage.py shell && echo "Superuser created successfully."
 # CMD ["gunicorn", "auth_service.wsgi:application", "--bind", "0.0.0.0:8000"]
