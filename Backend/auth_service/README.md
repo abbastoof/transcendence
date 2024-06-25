@@ -16,7 +16,7 @@ The API runs on port 8000 and exposed to 8001.
 
 After running the makefile, you can access the API using the following url:
 
-- `http://127.0.0.1:8000/auth/api/token/`
+- `http://auth-service:8000/auth/api/token/`
 
 You should send a JSON object with the following fields:
 

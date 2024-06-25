@@ -14,13 +14,13 @@ The API runs inside a virtual environment. The virtual environment is created in
 
 The API runs on port 8000 and exposed to 8000.
 
-## Tutorial to use the auth_service
+## Tutorial to use the user_service
 
 After running the makefile, you can access the API using the following url:
 
-- `http://127.0.0.1:8000/user/register/` "create user record using POST method"
-- `http://127.0.0.1:8000/user/` "List users records using GET method"
-- `http://127.0.0.1:8000/user/<int:pk>/` "without angel brackets" "retrieve, update and delete user record using GET, PUT and DELETE methods respectively"
+- `http://user-service:8001/user/register/` "create user record using POST method"
+- `http://user-service:8001/user/` "List users records using GET method"
+- `http://user-service:8001/user/<int:pk>/` "without angel brackets" "retrieve, update and delete user record using GET, PUT and DELETE methods respectively"
 
 You should send a JSON object with the following fields:
 
