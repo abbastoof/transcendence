@@ -1,0 +1,36 @@
+.headerContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#logo {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: drawAndErase 10s linear infinite;
+    stroke-linecap: round;
+    fill-rule: evenodd;
+    font-size: 20pt;
+    stroke: #000;
+    stroke-width: 0.25mm;
+    fill: none;
+}
+
+@keyframes drawAndErase {
+    5% {
+        stroke-dashoffset: 1000;
+        fill: transparent;
+    }
+    20%, 50% {
+        stroke-dashoffset: 0;
+        fill: transparent;
+    }
+    50%, 75% {
+        stroke-dashoffset: 0;
+        fill: rgb(0, 0, 0);
+    }
+    90%, 100% {
+        stroke-dashoffset: 1000;
+        fill: transparent;
+    }
+}

@@ -1,0 +1,87 @@
+
+.buttons {
+    background-color: transparent;
+    border: none;
+    color: rgb(255, 255, 255);
+    text-decoration: none;
+    outline: none;
+    cursor: pointer;
+    font-family: "Teko", sans-serif;
+    font-size: 50px;
+    margin: -10px;
+    padding: 0.1px 5px;
+    box-shadow: none;
+    display: inline-block;
+    text-align: center;
+    text-shadow: -2px 0 black, 0 2px black, 1px 0 black, 0 -2px black;
+}
+
+.buttons:hover {
+    background-color: transparent;
+    color: rgb(0, 0, 0);
+    transform: scale(1.5);
+    transition: transform 0.3s ease-in-out;
+    text-shadow: none;
+}
+
+.buttons:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.buttonContainer {
+    position: relative;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    top: -100px;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.submit {
+    background-color: transparent;
+    border: none;
+    color: rgb(255, 255, 255);
+    outline: none;
+    font-family: "Teko", sans-serif;
+    font-size: 200%;
+}
+
+.submit:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.submit:hover {
+    background-color: transparent;
+    color: rgb(0, 0, 0);
+    text-shadow: -2px 0 rgb(251, 245, 245), 0 2px rgb(255, 255, 255), 1px 0 rgb(255, 255, 255), 0 -2px rgb(255, 255, 255);    
+}
+
+.close {
+    position: absolute;
+    top: 3%;
+    right: 2%;
+    border: none;
+    background: none;
+    color: white;
+    font-family: "Teko", sans-serif;
+    font-size: 220%;
+    text-shadow: -2px 0 black, 0 2px black, 1px 0 black, 0 -2px black;
+}
+
+.close:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.close:hover {
+    background-color: transparent;
+    color: rgb(0, 0, 0);
+    text-shadow: -2px 0 rgb(251, 245, 245), 0 2px rgb(255, 255, 255), 1px 0 rgb(255, 255, 255), 0 -2px rgb(255, 255, 255);    
+}
