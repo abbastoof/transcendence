@@ -7,10 +7,8 @@ body {
 }
 
 .aboutText {
-    display: block;
-    color: white;
-    text-align: center;
-    background-color: transparent;
+    display: flex;
+    justify-content: center;
     border: none;
     color: rgb(255, 255, 255);
     outline: none;
@@ -18,8 +16,6 @@ body {
     font-size: 25px;
     margin-bottom: -5px;
     box-shadow: none;
-    display: inline-block;
-    text-align: center;
     text-shadow: -2px 0 black, 0 2px black, 1px 0 black, 0 -2px black;
 }
 
@@ -33,7 +29,6 @@ body {
 .aboutTitle {
     display: block;
     color: white;
-    text-align: center;
     background-color: transparent;
     border: none;
     color: rgb(255, 255, 255);
@@ -45,4 +40,11 @@ body {
     display: inline-block;
     text-align: center;
     text-shadow: -2px 0 black, 0 2px black, 1px 0 black, 0 -2px black;
+}
+
+.font {
+    color: white;
+    display: flex;
+    text-align: right;
+    font-family: "Teko", sans-serif;
 }

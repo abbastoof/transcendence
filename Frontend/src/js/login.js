@@ -10,9 +10,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const username = document.getElementById('logInUsername').value;
         const password = document.getElementById('logInPassword').value;
 
-        // Do something with the collected data (e.g., send it to a server)
-        console.log('Log in - Username:', username);
-        console.log('Log in - Password:', password);
+        // Send data to the server
+        fetch('https://localhost:3000/auth/api/token/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Success:', data);
+            alert('Logged in successful!');
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('Log in failed!');
+        });
 
         // Close the modal using Bootstrap modal method
         logInModal.hide();

@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="css/svg.css">
     <link rel="stylesheet" href="css/body.css">
     <link rel="stylesheet" href="css/modal.css">
-
     <link rel="stylesheet" href="css/stars.css">
 </head>
 
@@ -184,11 +183,11 @@
     </div>
 
     <div class="buttonContainer col-md-12">
-        <button class="buttons">Play</button>
-        <button class="buttons">Tournament</button>
-        <button class="buttons" data-bs-toggle="modal" data-bs-target="#signUpModal">Sign up</button>
-        <button class="buttons" data-bs-toggle="modal" data-bs-target="#logInModal">Log in</button>
-        <button class="buttons" data-bs-toggle="modal" data-bs-target="#aboutModal">About</button>
+        <button type="button" class="buttons">Play</button>
+        <button type="button" class="buttons">Tournament</button>
+        <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#signUpModal">Sign up</button>
+        <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#logInModal">Log in</button>
+        <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#aboutModal">About</button>
     </div>
 
     <!-- Sign up Modal -->
@@ -256,22 +255,22 @@
                         <!-- Email field -->
                         <div class="form-group">
                             <label class="labelFont" for="signUpEmail">Email</label>
-                            <input type="email" class="form-control" id="signUpEmail" placeholder="Enter email">
+                            <input type="email" class="form-control" id="signUpEmail" placeholder="Enter email" required>
                         </div>
                         <!-- Username field -->
                         <div class="form-group">
                             <label class="labelFont" for="signUpUsername">Username</label>
-                            <input type="text" class="form-control" id="signUpUsername" placeholder="Enter username">
+                            <input type="text" class="form-control" id="signUpUsername" placeholder="Enter username"required>
                         </div>
                         <!-- Password field -->
                         <div class="form-group">
                             <label class="labelFont" for="signUpPassword">Password</label>
-                            <input type="password" class="form-control" id="signUpPassword" placeholder="Enter password">
+                            <input type="password" class="form-control" id="signUpPassword" placeholder="Enter password"required>
                         </div>
                         <!-- Re-enter Password field -->
                         <div class="form-group">
                             <label class="labelFont" for="signUpRePassword">Re-enter Password</label>
-                            <input type="password" class="form-control" id="signUpRePassword" placeholder="Re-enter password">
+                            <input type="password" class="form-control" id="signUpRePassword" placeholder="Re-enter password"required>
                         </div>
                         <button type="submit" class="submit">Sign up</button>
                     </form>
@@ -344,12 +343,12 @@
                         <!-- Username field -->
                         <div class="form-group">
                             <label class="labelFont" for="logInUsername">Username</label>
-                            <input type="text" class="form-control" id="logInUsername" placeholder="Enter username">
+                            <input type="text" class="form-control" id="logInUsername" placeholder="Enter username" required>
                         </div>
                         <!-- Password field -->
                         <div class="form-group">
                             <label class="labelFont" for="logInPassword">Password</label>
-                            <input type="password" class="form-control" id="logInPassword" placeholder="Enter password">
+                            <input type="password" class="form-control" id="logInPassword" placeholder="Enter password" required>
                         </div>
                         <button type="submit" class="submit">Log in</button>
                     </form>
@@ -358,7 +357,6 @@
         </div>
     </div>
 
-    
     <!-- About Modal -->
     <div class="modal fade" id="aboutModal" tabindex="-1" role="dialog" aria-labelledby="aboutModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -426,8 +424,6 @@
                     <div><a class="aboutText" href="https://github.com/trsctr">Otto</a></div>
                     <div><a class="aboutText" href="https://github.com/jhesso">Juho</a></div>
                     <div><a class="aboutText" href="https://github.com/fotogiorgo">Jorgo</a></div>
-
-    
                 </div>
             </div>
         </div>

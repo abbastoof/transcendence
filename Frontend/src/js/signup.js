@@ -55,21 +55,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Send data to the server
-        fetch('https://localhost/user/register/', {
+        fetch('https://localhost:3000/user/register/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ email, username, password }),
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+        })
         .then(data => {
             console.log('Success:', data);
             alert('Sign up successful!');
         })
-        .catch((error) => {
+        .catch(error => {
             console.error('Error:', error);
-            alert('Sign up failed!');
+            //alert('Sign up failed!');
         });
 
         // Close the modal using Bootstrap modal method
