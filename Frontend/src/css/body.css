@@ -45,6 +45,11 @@ body {
 .font {
     color: white;
     display: flex;
-    text-align: right;
+    justify-content: center;
     font-family: "Teko", sans-serif;
+    font-size: 20px;
+}
+
+.signup-link {
+    margin-left: 10px;
 }
