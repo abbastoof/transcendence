@@ -100,8 +100,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "auth_service.wsgi.application"
-
+ASGI_APPLICATION = "auth_service.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases

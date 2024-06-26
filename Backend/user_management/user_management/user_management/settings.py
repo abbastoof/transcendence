@@ -103,7 +103,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "user_management.wsgi.application"
+ASGI_APPLICATION = "user_management.asgi.application"
 
 
 # Database
