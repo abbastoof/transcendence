@@ -18,51 +18,51 @@ services:
     networks:
       - transcendence_network
 
-  user-service:
-    container_name: user-service
-    image: user-service
-    build:
-      context: .
-      dockerfile: Backend/user_management/Dockerfile
-    env_file:
-      - .env
-    # ports:
-    #   - 8001:8001
-    networks:
-      - transcendence_network
-    depends_on:
-      - rabbitmq
+  # user-service:
+  #   container_name: user-service
+  #   image: user-service
+  #   build:
+  #     context: .
+  #     dockerfile: Backend/user_management/Dockerfile
+  #   env_file:
+  #     - .env
+  #   # ports:
+  #   #   - 8001:8001
+  #   networks:
+  #     - transcendence_network
+  #   depends_on:
+  #     - rabbitmq
 
-  auth-service:
-    container_name: auth-service
-    image: auth-service
-    build:
-      context: .
-      dockerfile: Backend/auth_service/Dockerfile
-    env_file:
-      - .env
-    # ports:
-    #   - 8000:8000
-    networks:
-      - transcendence_network
-    depends_on:
-      - rabbitmq
+  # auth-service:
+  #   container_name: auth-service
+  #   image: auth-service
+  #   build:
+  #     context: .
+  #     dockerfile: Backend/auth_service/Dockerfile
+  #   env_file:
+  #     - .env
+  #   # ports:
+  #   #   - 8000:8000
+  #   networks:
+  #     - transcendence_network
+  #   depends_on:
+  #     - rabbitmq
 
-  frontend:
-    container_name: frontend
-    image: frontend
-    build:
-      context: .
-      dockerfile: Frontend/Dockerfile
-    env_file:
-      - .env
-    ports:
-      - 3000:443
-    networks:
-      - transcendence_network
-    depends_on:
-      - user-service
-      - auth-service
+  # frontend:
+  #   container_name: frontend
+  #   image: frontend
+  #   build:
+  #     context: .
+  #     dockerfile: Frontend/Dockerfile
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - 3000:443
+  #   networks:
+  #     - transcendence_network
+  #   depends_on:
+  #     - user-service
+  #     - auth-service
 
   game-server:
     container_name: game-server
