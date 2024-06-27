@@ -4,7 +4,10 @@ ENV PYTHONUNBUFFERED=1
 ENV LANG=C.UTF-8
 
 # Update and install dependencies
-RUN apk update && apk add --no-cache python3=3.12.3-r1 py3-pip=24.0-r2 postgresql16=16.3-r0 postgresql16-client=16.3-r0 bash=5.2.26-r0 supervisor=4.2.5-r5 curl=8.7.1-r0
+RUN apk update && apk add --no-cache \
+python3=3.12.3-r1 py3-pip=24.0-r2 \
+postgresql16=16.3-r0 postgresql16-client=16.3-r0 \
+bash=5.2.26-r0 supervisor=4.2.5-r5 curl=8.8.0-r0
 # Set work directory
 RUN mkdir /run/postgresql && \
     chown postgres:postgres /run/postgresql && \
