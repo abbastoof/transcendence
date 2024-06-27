@@ -1,6 +1,6 @@
 FROM alpine:3.20
 
-RUN apk add --no-cache erlang=26.2.5-r0 openssl=3.3.1-r0 bash=5.2.26-r0 curl=8.7.1-r0 xz=5.6.1-r3
+RUN apk add --no-cache erlang=26.2.5-r0 openssl=3.3.1-r0 bash=5.2.26-r0 curl=8.8.0-r0 xz=5.6.1-r3
 
 # Set environment variable for RabbitMQ installation directory
 RUN addgroup -S rabbitmq && adduser -S rabbitmq -G rabbitmq

@@ -10,7 +10,7 @@ RUN apk update && apk add --no-cache \
     py3-pip=24.0-r2 \
     postgresql16=16.3-r0 \
     postgresql16-client=16.3-r0 \
-    bash=5.2.26-r0 && \
+    bash=5.2.26-r0 curl=8.8.0-r0 && \
     mkdir /run/postgresql && \
     chown -R postgres:postgres /run/postgresql
 WORKDIR /app/
