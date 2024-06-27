@@ -64,7 +64,7 @@ class UserViewSet(viewsets.ViewSet):
             # Check if the user is active
             if user.is_active:
                 serializer = UserSerializer(user)
-                response_message = serializer.data
+                response_message = {"id": serializer.data["id"], "username": serializer.data["username"]}
             else:
                 response_message = {"error": "User is inactive or staff"}
         else:
