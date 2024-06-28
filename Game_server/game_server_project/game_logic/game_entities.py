@@ -1,10 +1,11 @@
 import math
+from game_defaults import *
 
 class Paddle:
-    def __init__(self, x_position, z_position, width, depth):
+    def __init__(self, x_position, z_position):
         self.position = {'x': x_position, 'y': 0, 'z': z_position}
-        self.width = width
-        self.depth = depth
+        self.width = PADDLE_WIDTH
+        self.depth = PADDLE_DEPTH
     
     @property
     def position(self):
@@ -137,7 +138,6 @@ class GameState:
         self.current_rally = 0
         self.longest_rally = 0
         
-
     @property
     def player1(self):
         return self._player1
