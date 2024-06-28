@@ -130,7 +130,7 @@ composer.addPass( outputPass );
 
 
 // Position the camera for an isometric view
-camera.position.set(400, 400, 400); // Adjust these values for your desired isometric angle
+camera.position.set(-400, 400, 400); // Adjust these values for your desired isometric angle
 camera.lookAt(0, 0, 0);
 
 // Adjust the zoom or scale as needed
@@ -329,10 +329,10 @@ document.addEventListener('keyup', function(event) {
 
 // Update function to move cubes based on keyboard input
 function update() {
-    if ((keys['q'] || keys['Q']) && !leftPaddle.intersectsWall(playingField.upperWall.boundingBox)) { // Q key
+    if ((keys['w'] || keys['W']) && !leftPaddle.intersectsWall(playingField.upperWall.boundingBox)) { // Q key
         leftPaddle.moveUp();
     }
-    if ((keys['a'] || keys['A']) && !leftPaddle.intersectsWall(playingField.lowerWall.boundingBox)) { // A key
+    if ((keys['s'] || keys['S']) && !leftPaddle.intersectsWall(playingField.lowerWall.boundingBox)) { // A key
         leftPaddle.moveDown();
     }
     if (keys['ArrowUp'] && !rightPaddle.intersectsWall(playingField.upperWall.boundingBox)) { // Up arrow key
