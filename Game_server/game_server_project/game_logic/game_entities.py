@@ -10,10 +10,9 @@ class Paddle:
     
     @position.setter
     def position(self, new_position):
+        ## TODO: make sure position can't be set out of playing field
         if 'x' in new_position:
             self._position['x'] = new_position['x']
-        if 'y' in new_position:
-            self._position['y'] = new_position['y']
         if 'z' in new_position:
             self._position['z'] = new_position['z']
 
@@ -23,6 +22,7 @@ class Paddle:
 
     @x.setter
     def x(self, value):
+        ## TODO: make sure position can't be set out of playing field
         self._position['x'] = value
 
     @property
@@ -31,9 +31,11 @@ class Paddle:
 
     @z.setter
     def z(self, value):
+        ## TODO: make sure position can't be set out of playing field
         self._position['z'] = value
     
     def move(self, delta_z):
+        ## TODO: make sure paddle doesn't move out of bounds
         self._position['z'] += delta_z
 
 class Player:
@@ -42,9 +44,18 @@ class Player:
         self.paddle = Paddle(x_position, z_position, width, height)
         self.score = 0
     
+    @property
+    def score(self):
+        return self._score
+    
+    @score.setter
+    def score(self, new_score):
+        self._score = new_score
+
     def move_paddle(self, delta_z):
         self.paddle.move(delta_z)
 
     def update_score(self):
-        self.score += 1
+        self._score += 1
+
 
