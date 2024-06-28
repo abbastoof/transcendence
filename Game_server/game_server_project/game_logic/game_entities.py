@@ -2,7 +2,7 @@ import math
 
 class Paddle:
     def __init__(self, x_position, z_position, width, depth):
-        self._position = {'x': x_position, 'y': 0, 'z': z_position}
+        self.position = {'x': x_position, 'y': 0, 'z': z_position}
         self.width = width
         self.depth = depth
     
@@ -124,4 +124,92 @@ class Ball:
         self._direction = (360 - self._direction) % 360
         # reflects the direction when ball bounces from wall
 
+    # def reset_ball(self):
+        # this would reset ball position to the centre 
 
+class GameState:
+    def __init__(self, player1, player2, ball):
+        self.player1 = player1
+        self.player2 = player2
+        self.ball = ball
+        # probably have to define class for walls and add them as well, or define a playing field with walls
+        self.time_remaining = 0 # need to figure out a value for that
+        self.current_rally = 0
+        self.longest_rally = 0
+        
+
+    @property
+    def player1(self):
+        return self._player1
+
+    @property
+    def player2(self):
+        return self._player2
+    
+    @property
+    def ball(self):
+        return self._ball
+    
+    @property
+    def time_remaining(self):
+        return self._time_remaining
+    
+    @property
+    def current_rally(self):
+        return self._current_rally
+    
+    @property
+    def longest_rally(self):
+        return self._longest_rally
+    
+    @longest_rally.setter
+    def longest_rally(self, new_value):
+        self._longest_rally = new_value
+
+    def get_player_score(self, player_id):
+        if player_id == self.player1.id:
+            return self.player1.score
+        elif player_id == self.player2.id:
+            return self.player2.score
+        else:
+            raise ValueError("Invalid player ID")
+
+    def update_player_score(self, player_id):
+        if player_id == self.player1.id:
+            self.player1.score += 1
+        elif player_id == self.player2.id:
+            self.player2.score += 1
+        else:
+            raise ValueError("Invalid player ID")
+
+    def increase_ball_speed(self, increment):
+        self.ball_speed_up(increment)
+
+    def handle_collisions(self):
+        if self.ball.check_collision(self.player1.paddle):
+            self.ball.bounce_from_paddle(self.player1.paddle)
+            pass
+        if self.ball.check_collision(self.player2.paddle):
+            self.ball.bounce_from_paddle(self.player2.paddle)
+            pass
+
+    # def check_goal(self):
+        # check if someone scored goal
+
+    #def reset_after_goal(self)
+        # self.ball.reset()
+        # self.ball.direction(calculate random direction)
+
+    def update_game_state(self):
+        self.handle_collisions()
+        self.ball.update_position()
+        # and more logic
+        # and movement handling?
+
+    # def reset_game(self):
+        # self.player1.score = 0
+        # self.player1.score = 0
+        # self.ball.reset()
+        # self.ball.direction(default direction)
+
+    # def send_game_state_to_client(self):
