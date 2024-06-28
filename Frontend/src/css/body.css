@@ -61,3 +61,9 @@ body {
 .signup-link {
     margin-left: 10px;
 }
+
+.Form {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}

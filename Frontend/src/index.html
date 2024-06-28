@@ -183,11 +183,66 @@
     </div>
 
     <div class="buttonContainer col-md-12">
-        <button type="button" class="buttons">Play</button>
-        <button type="button" class="buttons">Tournament</button>
+        <button type="button" class="buttons">Local Game</button>
+        <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#tournamentModal" >Local Tournament</button>
         <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#logInModal">Log in</button>
         <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#aboutModal">About</button>
+        <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#ProfileModal">Profile</button>
     </div>
+
+    <!-- Tournament Modal -->
+    <div class="modal fade" id="tournamentModal" tabindex="-1" role="dialog" aria-labelledby="tournamentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header row col-md-12">
+                    <div class="col-md-2"></div>
+                    <div class="col-md-8">
+                        <h2 style="text-align: center;" class="modal-title" id="signUpModalLabel">Tournament</h2>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" data-bs-dismiss="modal" class="close"; aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <form id="playerForm" class="Form">
+                        <div class="row row-cols-4">
+                            <div class="col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="playerCount" id="2vs2" value="4">
+                                    <label class="form-check-label font" for="2vs2">2vs2</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="playerCount" id="4vs4" value="8">
+                                    <label class="form-check-label font" for="4vs4">4vs4</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="playerCount" id="6vs6" value="12">
+                                    <label class="form-check-label font" for="6vs6">6vs6</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="playerCount" id="8vs8" value="16">
+                                    <label class="form-check-label font" for="8vs8">8vs8</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="playerAliasInputs" style="display: none;">
+                            <!-- Player alias inputs will be dynamically added here -->
+                        </div>
+                        <button type="submit" class="submit">Play</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Sign up Modal -->
     <div class="modal fade" id="signUpModal" tabindex="-1" role="dialog" aria-labelledby="signUpModalLabel" aria-hidden="true">
@@ -433,9 +488,34 @@
         </div>
     </div>
 
+    <!-- Profile Modal -->
+    <div class="modal fade" id="ProfileModal" tabindex="-1" role="dialog" aria-labelledby="ProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header row col-md-12">
+                    <div class="col-md-4"></div>
+                    <div class="col-md-4">
+                        <h2 style="text-align: center;" class="modal-title" id="ProfileModalLabel">Profile</h2>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="button" data-bs-dismiss="modal" class="close" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="stars">
+                    <div class="star"></div>
+                </div>
+                <div class="modal-body">
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/signup.js"></script>
     <script src="js/login.js"></script>
+    <script src="js/tournament.js"></script>
 
 
 
