@@ -38,7 +38,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     '[::1]',
     'user-service',
-    'user-service:8000',
+    'user-service:8001',
 ]
 
 
