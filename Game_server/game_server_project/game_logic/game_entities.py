@@ -168,13 +168,14 @@ class Ball:
 
 class GameState:
     def __init__(self, game_id, player1, player2, ball):
-        self.game_id = game_id
-        self.player1 = player1
-        self.player2 = player2
-        self.ball = ball
-        self.time_remaining = GAME_DURATION
-        self.current_rally = 0
-        self.longest_rally = 0
+        self._game_id = game_id
+        self._player1 = player1
+        self._player2 = player2
+        self._ball = ball
+        self._time_remaining = GAME_DURATION
+        self._current_rally = 0
+        self._longest_rally = 0
+        self._paused = True
     
     @property
     def game_id(self):
@@ -200,6 +201,10 @@ class GameState:
     def current_rally(self):
         return self._current_rally
     
+    @current_rally.setter
+    def current_rally(self, new_value):
+        self._current_rally = new_value
+    
     @property
     def longest_rally(self):
         return self._longest_rally
@@ -218,24 +223,41 @@ class GameState:
 
     def update_player_score(self, player_id):
         if player_id == self.player1.id:
-            self.player1.score += 1
+            self.player1.update_score()
         elif player_id == self.player2.id:
-            self.player2.score += 1
+            self.player2.update_score()
         else:
             raise ValueError("Invalid player ID")
+    
+    @property
+    def paused(self):
+        return self._paused
+    
+    @paused.setter
+    def paused(self, new_value):
+        self._paused = new_value
 
     def increase_ball_speed(self, increment):
         self.ball.speed_up(increment)
 
     def handle_collisions(self):
-        if self.ball.check_collision(self.player1.paddle):
-            self.ball.bounce_from_paddle(self.player1.paddle)
-            pass
-        if self.ball.check_collision(self.player2.paddle):
-            self.ball.bounce_from_paddle(self.player2.paddle)
-            pass
+        if self.ball.z == 0 or self.ball.z == 300:
+            self.ball.bounce_from_wall()
+        # if self.ball.check_collision(self.player1.paddle):
+        #     self.ball.bounce_from_paddle(self.player1.paddle)
+        #     pass
+        # if self.ball.check_collision(self.player2.paddle):
+        #     self.ball.bounce_from_paddle(self.player2.paddle)
+        #     pass
 
-    # def check_goal(self):
+    def check_goal(self):
+        if self.ball.x < 0:
+            self.update_player_score(self.player2.id)
+            return True
+        if self.ball.x > 400:
+            self.update_player_score(self.player1.id)
+            return True
+        return False
         # check if someone scored goal
 
     #def reset_after_goal(self)
@@ -243,9 +265,22 @@ class GameState:
         # self.ball.direction(here we get a random angle from a specified)
 
     def update_game_state(self):
-        self.handle_collisions()
+        self.current_rally += 1
         self.ball.update_position()
-        # and more logic
+        self.handle_collisions()
+        if self.check_goal() == True:
+            self.paused = True
+    
+    def run_rally(self): # reset ball position in this method? receive new angle as argument?
+        self.paused = False
+        while self.paused == False:
+            self.update_game_state()
+        for counter in range(60):
+            self.ball.update_position()
+        if self.current_rally > self.longest_rally:
+            self.longest_rally = self.current_rally
+        self.current_rally = 0
+        
         # and movement handling?
 
     # def reset_game(self):
