@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # URL of the Django application
-DJANGO_URL="http://user-service:8001/user/register/"
+DJANGO_URL="http://localhost:8001/user/register/"
 
 # Wait until Django server is available
 while ! curl -s "${DJANGO_URL}" >/dev/null; do

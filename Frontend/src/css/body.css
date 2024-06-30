@@ -50,6 +50,14 @@ body {
     font-size: 20px;
 }
 
+.ErrorMessage {
+    font-size: 20px;
+    font-family: "Teko", sans-serif;
+    color: red;
+    margin-top: -10px; /* Space between title and error message */
+    margin-bottom: -10px; /* Space between error message and body */
+}
+
 .signup-link {
     margin-left: 10px;
 }
