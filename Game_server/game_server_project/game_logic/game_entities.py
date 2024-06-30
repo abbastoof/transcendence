@@ -2,10 +2,10 @@ import math
 from game_defaults import *
 
 class Paddle:
-    def __init__(self, x_position, z_position):
-        self.position = {'x': x_position, 'y': 0, 'z': z_position}
-        self.width = PADDLE_WIDTH
-        self.depth = PADDLE_DEPTH
+    def __init__(self, x_position):
+        self._position = {'x': x_position, 'y': 0, 'z': FIELD_WIDTH / 2}
+        self._width = PADDLE_WIDTH
+        self._depth = PADDLE_DEPTH
     
     @property
     def position(self):
@@ -26,7 +26,7 @@ class Paddle:
     @x.setter
     def x(self, value):
         ## TODO: make sure position can't be set out of playing field
-        self._position['x'] = value
+        self.position['x'] = value
 
     @property
     def z(self):
@@ -37,16 +37,32 @@ class Paddle:
         ## TODO: make sure position can't be set out of playing field
         self._position['z'] = value
     
+    @property
+    def width(self):
+        return self._width
+
+    @property
+    def depth(self):
+        return self._depth
+
     def move(self, delta_z):
         ## TODO: make sure paddle doesn't move out of bounds
         self._position['z'] += delta_z
 
 class Player:
-    def __init__(self, id, x_position, z_position, width, height):
-        self.id = id
-        self.paddle = Paddle(x_position, z_position, width, height)
-        self.score = 0
+    def __init__(self, id, x_position):
+        self._id = id
+        self._paddle = Paddle(x_position)
+        self._score = 0
+
+    @property
+    def id(self):
+        return self._id
     
+    @property
+    def paddle(self):
+        return self._paddle
+
     @property
     def score(self):
         return self._score
@@ -63,10 +79,10 @@ class Player:
 
 class Ball:
     def __init__(self, x_position, z_position, radius, speed, direction):
-        self.position = {'x': x_position, 'y': 0, 'z': z_position}
-        self.radius = radius
-        self.speed = speed
-        self.direction = direction ## degrees or rads? i'd say degrees
+        self._position = {'x': x_position, 'y': 0, 'z': z_position}
+        self._radius = radius
+        self._speed = speed
+        self._direction = direction ## degrees or rads? i'd say degrees
     
     @property
     def position(self):
@@ -79,6 +95,24 @@ class Ball:
             self._position['x'] = new_position['x']
         if 'z' in new_position:
             self._position['z'] = new_position['z']
+
+    @property
+    def x(self):
+        return self._position['x']
+
+    @x.setter
+    def x(self, value):
+        ## TODO: make sure position can't be set out of playing field
+        self.position['x'] = value
+
+    @property
+    def z(self):
+        return self._position['z']
+
+    @z.setter
+    def z(self, value):
+        ## TODO: make sure position can't be set out of playing field
+        self._position['z'] = value
 
     @property
     def radius(self):
@@ -127,17 +161,25 @@ class Ball:
 
     # def reset_ball(self):
         # this would reset ball position to the centre 
+# class Wall:
+#     def __init__(self, x, z):
+
+
 
 class GameState:
-    def __init__(self, player1, player2, ball):
+    def __init__(self, game_id, player1, player2, ball):
+        self.game_id = game_id
         self.player1 = player1
         self.player2 = player2
         self.ball = ball
-        # probably have to define class for walls and add them as well, or define a playing field with walls
-        self.time_remaining = 0 # need to figure out a value for that
+        self.time_remaining = GAME_DURATION
         self.current_rally = 0
         self.longest_rally = 0
-        
+    
+    @property
+    def game_id(self):
+        return self._game_id
+
     @property
     def player1(self):
         return self._player1
@@ -183,7 +225,7 @@ class GameState:
             raise ValueError("Invalid player ID")
 
     def increase_ball_speed(self, increment):
-        self.ball_speed_up(increment)
+        self.ball.speed_up(increment)
 
     def handle_collisions(self):
         if self.ball.check_collision(self.player1.paddle):
@@ -198,7 +240,7 @@ class GameState:
 
     #def reset_after_goal(self)
         # self.ball.reset()
-        # self.ball.direction(calculate random direction)
+        # self.ball.direction(here we get a random angle from a specified)
 
     def update_game_state(self):
         self.handle_collisions()
@@ -211,5 +253,7 @@ class GameState:
         # self.player1.score = 0
         # self.ball.reset()
         # self.ball.direction(default direction)
+
+    # def handle_input(self, input)
 
     # def send_game_state_to_client(self):

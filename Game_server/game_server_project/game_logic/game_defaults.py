@@ -7,7 +7,10 @@ PADDLE_DEPTH = 16
 BALL_RADIUS = 6
 BALL_SPEED = 5.0
 
-GAME_DURATION = 300 #seconds
+GAME_DURATION = 300 # game duration in seconds
+                    # need to multiply this with something, set the result as gamestate.time_remaining
+                    # and then subtract from it on every loop
+                    # or maybe just convert it to a time format that can be shown in the frontend as well
 
 FIELD_DEPTH = 400 # or width if 2d, this is x axis
 FIELD_WIDTH = 300 # or height if 2d, this is z axis
@@ -18,5 +21,3 @@ PLAYER2_START_X = FIELD_DEPTH - PADDLE_DEPTH
 
 BALL_DEFAULT_X = FIELD_DEPTH / 2
 BALL_DEFAULT_Z = FIELD_WIDTH / 2
-
-
