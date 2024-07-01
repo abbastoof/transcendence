@@ -1,6 +1,7 @@
 FROM alpine:3.20 AS frontend
 
-RUN apk update && apk add --no-cache nginx=1.26.1-r0 openrc=0.54-r1 openssl=3.3.1-r1 openssh=9.7_p1-r3 curl=8.8.0-r0 bash=5.2.26-r0
+# trunk-ignore(hadolint/DL3018)
+RUN apk update && apk add --no-cache nginx openrc openssl openssh curl bash
 
 RUN addgroup -S www && adduser -D -S -G www www && \
 mkdir -p /www && \
