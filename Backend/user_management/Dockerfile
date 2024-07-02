@@ -4,10 +4,11 @@ ENV PYTHONUNBUFFERED=1
 ENV LANG=C.UTF-8
 
 # Update and install dependencies
-RUN apk update && apk add --no-cache \
-python3=3.12.3-r1 py3-pip=24.0-r2 \
-postgresql16=16.3-r0 postgresql16-client=16.3-r0 \
-bash=5.2.26-r0 supervisor=4.2.5-r5 curl=8.8.0-r0
+# trunk-ignore(hadolint/DL3018)
+RUN apk update && apk add --no-cache python3 py3-pip \
+postgresql16 postgresql16-client \
+bash supervisor curl openssl bash \
+build-base libffi-dev python3-dev
 # Set work directory
 RUN mkdir /run/postgresql && \
     chown postgres:postgres /run/postgresql && \
@@ -39,6 +40,6 @@ RUN chown -R postgres:postgres /etc/supervisor && \
 
 USER postgres
 
-HEALTHCHECK --interval=30s --timeout=2s --start-period=5s --retries=3 CMD curl -sSf http://localhost:8000/user/register/ > /dev/null &&  echo "success" || echo "failure"
+HEALTHCHECK --interval=30s --timeout=2s --start-period=5s --retries=3 CMD curl -sSf http://localhost:8001/user/register/ > /dev/null &&  echo "success" || echo "failure"
 
 ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

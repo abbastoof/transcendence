@@ -21,7 +21,7 @@ RABBITMQ_PORT = os.getenv("RABBITMQ_PORT")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+APPEND_SLASH = False
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -38,7 +38,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     '[::1]',
     'user-service',
-    'user-service:8000',
+    'user-service:8001',
 ]
 
 
@@ -103,7 +103,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "user_management.wsgi.application"
+ASGI_APPLICATION = "user_management.asgi.application"
 
 
 # Database
