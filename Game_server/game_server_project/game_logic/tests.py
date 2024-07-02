@@ -8,25 +8,24 @@ from game_defaults import *
 
 # Create your tests here.
 
+class TestPosition(unittest.TestCase):
+    def setUp(self):
+        self.position = Position(14, 21, 45)
+    
+    def test_initial_position(self):
+        self.assertEqual(self.position, Position(14, 21, 45))
+        
 class TestPaddle(unittest.TestCase):
     
     def setUp(self):
         self.paddle = Paddle(50)
     
     def test_initial_position(self):
-        self.assertEqual(self.paddle.position, {'x': 50, 'y': 0, 'z': 150})
+        self.assertEqual(self.paddle.position, Position(50, 0, 150))#{'x': 50, 'y': 0, 'z': 150})
 
     def test_move(self):
         self.paddle.move(5)
-        self.assertEqual(self.paddle.position, {'x': 50, 'y': 0, 'z': 155})
-
-    def test_attribute_z(self):
-        self.paddle.z = 42
-        self.assertEqual(self.paddle.z, 42)
-    
-    def test_attribute_x(self):
-        self.paddle.x = 1
-        self.assertEqual(self.paddle.x, 1)
+        self.assertEqual(self.paddle.position, Position(50, 0, 155))
     
     def test_width(self):
         self.assertEqual(self.paddle.width, 100)
@@ -60,7 +59,7 @@ class TestBall(unittest.TestCase):
         self.ball = Ball(BALL_DEFAULT_X, BALL_DEFAULT_Z, BALL_RADIUS, BALL_SPEED, 42)
 
     def test_initial_position(self):
-        self.assertEqual(self.ball.position, {'x': 200, 'y': 0, 'z': BALL_DEFAULT_Z})
+        self.assertEqual(self.ball.position, Position(200, 0, BALL_DEFAULT_Z))
 
     def test_initial_speed(self):
         self.assertEqual(self.ball.speed, 0.5)
@@ -84,8 +83,8 @@ class TestBall(unittest.TestCase):
         self.assertEqual(self.ball.radius, 4)
 
     def test_set_position(self):
-        self.ball.position = {'x': 150, 'z': 14}
-        self.assertEqual(self.ball.position, {'x': 150, 'y': 0, 'z': 14})
+        self.ball.position = (105,4,14)
+        self.assertEqual(self.ball.position, Position(105,4,14))
 
     def test_property_x(self):
         self.ball.x = 14
@@ -104,7 +103,7 @@ class TestBall(unittest.TestCase):
         expected_x = self.ball.x + math.cos(math.radians(self.ball.direction)) * self.ball.speed
         expected_z = self.ball.z + math.sin(math.radians(self.ball.direction)) * self.ball.speed
         self.ball.update_position()
-        self.assertEqual(self.ball.position, {'x': expected_x, 'y': 0, 'z': expected_z})
+        self.assertEqual(self.ball.position, Position(expected_x, 0,expected_z))
 
     def test_bounce_from_wall(self):
         expected_direction = (360 - self.ball.direction) % 360
@@ -167,7 +166,7 @@ class TestGameState(unittest.TestCase):
         expected_x = self.game_state.ball.x + math.cos(math.radians(self.game_state.ball.direction)) * self.game_state.ball.speed
         expected_z = self.game_state.ball.z + math.sin(math.radians(self.game_state.ball.direction)) * self.game_state.ball.speed
         self.game_state.update_game_state()
-        self.assertEqual(self.game_state.ball.position, {'x': expected_x, 'y': 0, 'z': expected_z})
+        self.assertEqual(self.game_state.ball.position, Position(expected_x, 0,expected_z))
 
     def test_goal_scoring(self):
         self.game_state.ball.x = 0
