@@ -33,7 +33,7 @@ def publish_message(queue_name, message):
             routing_key=queue_name,
             body=message,
             properties=pika.BasicProperties(delivery_mode=2),
-        )
+        ) # make message persistent in the queue (even if RabbitMQ server crashes) 
     except Exception as e:
         print(f"Error publishing message: {e}")
     finally:

@@ -27,5 +27,5 @@ RUN chmod +x /app/tools.sh /app/init_database.sh && chown -R postgres:postgres /
 USER postgres
 
 # Add HEALTHCHECK instruction with delay
-HEALTHCHECK --interval=30s --timeout=2s --start-period=60s --retries=3 CMD curl -sSf http://localhost:8000/auth/api/token/ > /dev/null &&  echo "success" || echo "failure"
+HEALTHCHECK --interval=30s --timeout=2s --start-period=60s --retries=3 CMD curl -sSf http://localhost:8000/auth/login/ > /dev/null &&  echo "success" || echo "failure"
 ENTRYPOINT [ "sh", "./tools.sh" ]
