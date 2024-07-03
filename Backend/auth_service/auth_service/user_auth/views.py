@@ -2,10 +2,17 @@ import json
 from rest_framework import status
 from auth_service import settings
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import IsAuthenticated
 from .rabbitmq_utils import consume_message, publish_message
-from .serializers import CustomTokenObtainPairSerializer
+from .serializers import CustomTokenObtainPairSerializer, UserTokenModelSerializer
+from django.core.exceptions import ObjectDoesNotExist
+
+from .models import UserTokens
 import jwt
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -70,8 +77,28 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             refresh = RefreshToken.for_user(user)
             access = refresh.access_token
             # Save the updated or newly created UserTokens entry
+            user_token_entry, created = UserTokens.objects.get_or_create(
+                id=user_data["id"], username=username
+            )
+            refresh = RefreshToken.for_user(user)
+            access = refresh.access_token
+            user_token_entry.token_data = {
+                "refresh": {
+                    "token": str(refresh),
+                    "exp": int(refresh["exp"]),  # Store expiration as integer
+                },
+                "access": {
+                    "token": str(access),
+                    "exp": int(access["exp"]),  # Store expiration as integer
+                },
+            }
+
+            # Save the updated or newly created UserTokens entry
+            user_token_entry.save()
+
             return Response(
                 {
+                    "id": user_data["id"],
                     "refresh": str(refresh),
                     "access": str(access),
                 },
@@ -105,18 +132,54 @@ class CustomTokenRefreshView(TokenRefreshView):
         try:
             refresh_token = bearer.split(' ')[1]
             is_valid_token = ValidateToken.validate_token(refresh_token)
-            if not is_valid_token:
-                return Response({"error": "Session has expired"}, status=status.HTTP_401_UNAUTHORIZED)
+            if is_valid_token:
             # If token is valid, generate a new access token
-            refresh = RefreshToken(refresh_token)
-            access_token = str(refresh.access_token)
-            
-            return Response({"access": access_token}, status=status.HTTP_200_OK)
+                refresh = RefreshToken(refresh_token)
+                access_token = str(refresh.access_token)
+                
+                return Response({"access": access_token}, status=status.HTTP_200_OK)
         
+        except jwt.ExpiredSignatureError:
+            return Response({"error": "Session has expired"}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
         except Exception as err:
-            return Response({"error": "Could not generate tokens", "details": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": "Could not logout", "details": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        
+class CustomLogoutView(TokenRefreshView):
+    def post(self, request, *args, **kwargs) -> Response:
+        """
+            Post method to logout the user.
+
+            This method logs out the user by deleting the refresh token from the database.
+            It validates the refresh token and deletes the token from the database.
+
+            Args:
+                request: The request object.
+
+            Returns:
+                Response: The response object containing the message that the user has been logged out.    
+        """
+        bearer = request.headers.get("Authorization")
+        if not bearer or not bearer.startswith('Bearer '):
+            return Response(
+                {"error": "Refresh token is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            refresh_token = bearer.split(' ')[1]
+            # Decode the refresh token to find its value
+            validate = ValidateToken.validate_token(refresh_token)
+            if validate:
+                item = get_object_or_404(UserTokens, token_data__refresh__token=refresh_token)
+                item.delete()
+                return Response({"message": "User logged out successfully"}, status=status.HTTP_200_OK)
+        except jwt.ExpiredSignatureError:
+            return Response({"error": "Session has expired"}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as err:
+            return Response({"error": "Could not logout", "details": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
 class ValidateToken():
     @staticmethod
     def validate_token(refresh_token) -> bool:
