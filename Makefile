@@ -40,7 +40,8 @@ clean:
 	docker volume prune -f
 	docker network prune -f
 
-# Free up the port if it's already allocated
+
+# # Free up the port if it's already allocated
 # .PHONY: free-port
 # free-port:
 # 	@echo "Checking for allocated port 15672..."

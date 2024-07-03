@@ -16,8 +16,7 @@ class RabbitMQManager:
     def _create_connection(cls):
         credentials = pika.PlainCredentials(settings.RABBITMQ_USER, settings.RABBITMQ_PASS)
         parameters = pika.ConnectionParameters(
-            settings.RABBITMQ_HOST, settings.RABBITMQ_PORT, "/", credentials
-        )
+            settings.RABBITMQ_HOST, settings.RABBITMQ_PORT, "/", credentials=credentials)
         return pika.BlockingConnection(parameters)
 
 
