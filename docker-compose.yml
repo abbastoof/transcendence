@@ -63,3 +63,18 @@ services:
     depends_on:
       - user-service
       - auth-service
+
+  game-server:
+    container_name: game-server
+    image: game-server
+    build:
+      context: .
+      dockerfile: Game_server/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - 8002:8002
+    networks:
+      - transcendence_network
+    depends_on:
+      - rabbitmq
