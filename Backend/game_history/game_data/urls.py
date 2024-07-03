@@ -1,5 +1,4 @@
 from django.urls import path
-
 from .views import GameHistoryViewSet
 
 urlpatterns = [
@@ -7,7 +6,8 @@ urlpatterns = [
         "game-history/",
         GameHistoryViewSet.as_view(
             {
-                "get": "game_history_list",
+                "get": "list",
+                "post": "create"
             }
         ),
         name="game-history-list",
@@ -16,9 +16,9 @@ urlpatterns = [
         "game-history/<int:pk>/",
         GameHistoryViewSet.as_view(
             {
-                "get": "retrieve_game_history",
-                "put": "update_game_history",
-                "delete": "destroy_game_history",
+                "get": "retrieve",
+                "put": "update",
+                "delete": "destroy",
             }
         ),
         name="game-history-detail",

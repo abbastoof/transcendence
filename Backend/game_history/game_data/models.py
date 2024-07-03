@@ -1,17 +1,13 @@
-# game_data/models.py
-
+# models.py
 from django.db import models
 
 class GameHistory(models.Model):
-    GameID = models.AutoField(primary_key=True)
-    player1ID = models.IntegerField(unique=True)
-    player2ID = models.IntegerField(unique=True)
-    winner = models.CharField(max_length=255)
-    score = models.CharField(max_length=50)
-    match_date = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        app_label = 'game_data'
+    game_id = models.AutoField(primary_key=True)
+    player1_id = models.IntegerField()  # Reference to UserID in UserDB
+    player2_id = models.IntegerField()  # Reference to UserID in UserDB
+    winner_id = models.IntegerField()  # Reference to UserID in UserDB
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.player1} vs {self.player2} - Winner: {self.winner} - Score: {self.score}"
+        return f"Game {self.game_id}: {self.player1_id} vs {self.player2_id} - Winner: {self.winner_id}"
