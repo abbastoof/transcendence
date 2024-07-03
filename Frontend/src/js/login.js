@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const password = document.getElementById('logInPassword').value;
 
         // Send data to the server
-        fetch('https://localhost:3000/auth/api/token/', {
+        fetch('https://localhost:3000/auth/login/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Success:', data);
             logInModal.hide(); // Close the modal on success
             this.reset(); // Reset form fields
-            localStorage.setItem('userData', JSON.stringify({ username, token: data.access }));
+            localStorage.setItem('userData', JSON.stringify({ id: data.id, token: data.access }));
         })
         .catch(error => {
             console.error('Error:', error);

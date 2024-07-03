@@ -1,19 +1,39 @@
-const userData = JSON.parse(localStorage.getItem('userData'));
-fetch(`/user/${userData.username}`, {
-    method: 'GET',
-    headers: {
-        'Authorization': `Bearer ${userData.token}`
+document.addEventListener('DOMContentLoaded', function() {
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    console.log('UserData:', userData); // Debugging line
+    if (!userData || !userData.id || !userData.token) {
+        console.error('UserData is missing or incomplete');
+        return;
     }
-})
-    .then(response => response.json())
-    .then(data => {
-        // Store all JSON fields of the response
-        // You can access the fields using the 'data' variable
-        // For example, if the response has a field called 'name', you can access it like this:
-        const name = data.name;
-        // Store the other fields in a similar way
+
+    fetch(`/user/${userData.id}/`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${userData.token}`
+        }
     })
-    .catch(error => {
-        // Handle any errors that occur during the request
-        console.error('Error:', error);
-    });
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Fetched Data:', data); // Debugging line
+            const userProfileContainer = document.getElementById('userProfile');
+            if (!userProfileContainer) {
+                console.error('UserProfile container not found');
+                return;
+            }
+            const htmlContent = `
+                <h1>${data.username}</h1>
+                <p>Email: ${data.email}</p>
+                <div>What'sup biatch</div>
+            `;
+            userProfileContainer.innerHTML = htmlContent;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+});
+    // avatar, username, friends, dm, email, change password

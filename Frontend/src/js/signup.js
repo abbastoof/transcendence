@@ -151,6 +151,3 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
-
-
-
