@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Success:', data);
             logInModal.hide(); // Close the modal on success
             this.reset(); // Reset form fields
+            localStorage.setItem('userData', JSON.stringify({ username, token: data.access }));
         })
         .catch(error => {
             console.error('Error:', error);

@@ -47,3 +47,64 @@
   margin-bottom: 10px;
   width: 200px;
 }
+
+/* ABOUT */
+.aboutTitle {
+  display: block;
+  color: white;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  font-family: "Teko", sans-serif;
+  font-size: 40px;
+  margin-bottom: -5px;
+  box-shadow: none;
+  display: inline-block;
+  text-align: center;
+  text-shadow: -2px 0 black, 0 2px black, 1px 0 black, 0 -2px black;
+}
+
+.aboutText {
+  display: flex;
+  justify-content: center;
+  border: none;
+  color: rgb(255, 255, 255);
+  outline: none;
+  font-family: "Teko", sans-serif;
+  font-size: 25px;
+  margin-bottom: -5px;
+  box-shadow: none;
+  text-shadow: -2px 0 black, 0 2px black, 1px 0 black, 0 -2px black;
+}
+
+.aboutText:hover {
+  background-color: transparent;
+  transform: scale(1.5);
+  transition: transform 0.3s ease-in-out;
+  text-shadow: none;
+}
+
+/* Profile */
+.profileTitle {
+  display: flex;
+  justify-content: left;
+  color: lightsalmon;
+  font-family: "Teko", sans-serif;
+  font-size: 40px;
+  margin-bottom: -5px;
+  box-shadow: none;
+  display: inline-block;
+  text-align: left;
+  text-shadow: -2px 0 black, 0 2px black, 1px 0 black, 0 -2px black;
+}
+
+.profileText {
+  display: flex;
+  justify-content: left;
+  border: none;
+  color: lightgray;
+  font-family: "Teko", sans-serif;
+  font-size: 25px;
+  margin-bottom: -5px;
+  text-shadow: -2px 0 black, 0 2px black, 1px 0 black, 0 -2px black;
+}
