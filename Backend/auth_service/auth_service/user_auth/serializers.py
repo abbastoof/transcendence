@@ -1,4 +1,6 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework import serializers
+from .models import UserTokens
 import asyncio
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -20,3 +22,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
         token["custom_claims"] = {"username": user.username, "password": user.password}
         return token
+    
+class UserTokenModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserTokens
+        fields = "__all__"
