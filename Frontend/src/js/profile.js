@@ -28,18 +28,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
             const htmlContent = `
-                <div class="container mt-4">
+            <div class="container mt-4">
+                <div class="profile-header d-flex align-items-center">
+                    <img id="avatar" src="../assets/images/avatar.jpg" alt="User Profile Image" class="img-thumbnail mb-4 mr-3" width="80" height="80">
                     <h1 id="username" class="display-4">${data.username}</h1>
-                    <p class="lead">Email: ${data.email}</p>
-                    <img id="avatar" src="../assets/images/avatar.jpg" alt="User Profile Image" class="img-thumbnail mb-4" width="60" height="60">
-                    <form id="imageUploadForm">
-                        <div class="form-group">
-                            <label for="imageInput" class="submit">Choose file</label>
-                            <input type="file" id="imageInput" class="form-control-file" accept="image/*" hidden>
-                        </div>
-                        <button type="submit" class="submit">Submit</button>
-                    </form>
                 </div>
+                <p class="lead">Email: ${data.email}</p>
+                <form id="imageUploadForm">
+                    <div class="form-group">
+                        <label for="imageInput" class="submit">Choose file</label>
+                        <input type="file" id="imageInput" class="form-control-file" accept="image/*" hidden>
+                    </div>
+                    <button type="submit" class="submit">Submit</button>
+                </form>
+            </div>
             `;
             userProfileContainer.innerHTML = htmlContent;
             // <img src="${data.imageUrl}" alt="User Profile Image">
@@ -81,5 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         console.error('Error uploading image:', error);
                     });
             });
-        })
-});
+        });
+    });
+// history
+// friends

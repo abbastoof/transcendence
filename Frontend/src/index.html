@@ -266,7 +266,6 @@
                     </div>
                 </div>
                 <div id="signupstars" class="stars">
-                    <script src="js/stars.js"></script>
                     <script>
                         document.addEventListener('DOMContentLoaded', () => {
                             generateStars('#signupstars', 20);
@@ -325,7 +324,6 @@
                     </div>
                 </div>
                 <div id="loginstars" class="stars">
-                    <script src="js/stars.js"></script>
                     <script>
                         document.addEventListener('DOMContentLoaded', () => {
                             generateStars('#loginstars', 20);
@@ -377,7 +375,6 @@
                     </div>
                 </div>
                 <div id="aboutstars" class="stars">
-                    <script src="js/stars.js"></script>
                     <script>
                         document.addEventListener('DOMContentLoaded', () => {
                             generateStars('#aboutstars', 20);
@@ -399,43 +396,19 @@
             </div>
         </div>
     </div>
-
-    <!-- Profile Modal -->
-    <div class="modal fade" id="ProfileModal" tabindex="-1" role="dialog" aria-labelledby="ProfileModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header row col-md-12">
-                    <div class="col-md-4"></div>
-                    <div class="col-md-4">
-                        <h2 style="text-align: center;" class="modal-title" id="ProfileModalLabel">Profile</h2>
-                    </div>
-                    <div class="col-md-4">
-                        <button type="button" data-bs-dismiss="modal" class="close" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div id="profilestars" class="stars">
-                        <script src="js/stars.js"></script>
-                        <script>
-                            document.addEventListener('DOMContentLoaded', () => {
-                                generateStars('#profilestars', 20);
-                            });
-                        </script>
-                    </div>
-                    <div id="userProfile"></div>
-                    <div>poopie</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Profile Modal -->
+     <div>
+        <script src="js/createModal.js"></script>
+        <script src="js/profile.js"></script>
+        <script>createModal('Profile')</script>
+     </div>
+
     <script src="js/signup.js"></script>
     <script src="js/login.js"></script>
     <script src="js/tournament.js"></script>
     <script src="js/stars.js"></script>
-    <script src="js/profile.js"></script>
 </body>
 
 </html>
