@@ -3,7 +3,11 @@
 import unittest
 import math
 
-from game_entities import *
+from entities.position import Position
+from entities.paddle import Paddle
+from entities.player import Player
+from entities.ball import Ball
+from entities.gamestate import GameState
 from game_defaults import *
 
 # Create your tests here.
@@ -14,6 +18,35 @@ class TestPosition(unittest.TestCase):
     
     def test_initial_position(self):
         self.assertEqual(self.position, Position(14, 21, 45))
+
+    def test_set_position(self):
+        self.position = Position(42, 42, 42)
+        self.assertEqual(self.position, Position(42, 42, 42))
+    
+    def test_get_x(self):
+        self.assertEqual(self.position.x, 14)
+
+    def test_set_x(self):
+        self.position.x = 42
+        self.assertEqual(self.position.x, 42)
+    
+    def test_get_y(self):
+        self.assertEqual(self.position.y, 21)
+    
+    def test_set_y(self):
+        self.position.y = 42
+        self.assertEqual(self.position.y, 42)
+
+    def test_get_z(self):
+        self.assertEqual(self.position.z, 45)
+
+    def test_set_z(self):
+        self.position.z = 42
+        self.assertEqual(self.position.z, 42)
+
+    def test_as_tuple(self):
+        x, y, z = self.position.as_tuple()
+        self.assertEqual((x, y, z), (14, 21, 45))
         
 class TestPaddle(unittest.TestCase):
     
