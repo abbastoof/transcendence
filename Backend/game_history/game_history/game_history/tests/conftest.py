@@ -13,8 +13,8 @@ if not settings.configured:
             "default": {
                 "ENGINE": "django.db.backends.postgresql",
                 "NAME": "postgres",
-                "USER": "postgres",
-                "PASSWORD": "postgres",
+                "USER": "root",
+                "PASSWORD": "root",
                 "PORT": "5432",
                 "HOST": "localhost",
                 "ATOMIC_REQUESTS": True,
@@ -29,7 +29,6 @@ if not settings.configured:
             'django.contrib.staticfiles',
             'rest_framework',
             'corsheaders',
-            'game_history',
             'game_data',
         ],
         MIDDLEWARE=[
