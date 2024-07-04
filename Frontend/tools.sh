@@ -13,7 +13,7 @@ while ! curl -s "${USER_SERVICE_URL}" >/dev/null; do
 	sleep 5
 done
 
-AUTH_SERVICE_URL="http://auth-service:8000/auth/api/token/"
+AUTH_SERVICE_URL="http://auth-service:8000/"
 
 # Wait until Django server is available
 while ! curl -s "${AUTH_SERVICE_URL}" >/dev/null; do

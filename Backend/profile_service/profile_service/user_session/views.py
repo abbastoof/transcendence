@@ -1,15 +1,18 @@
-from django.shortcuts import render
-from rest_framework.viewsets import ViewSet
+from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
-from rabbitmq_utils import publish_message, consume_message
+from django.shortcuts import get_object_or_404
+from .rabbitmq_utils import publish_message, consume_message
 from rest_framework_simplejwt.tokens import RefreshToken
+from .serializers import UserTokenModelSerializer
 from .models import UserTokens
+from profile_service import settings
+import jwt
 import json
 
 # Create your views here.
-class LoginViewClass(ViewSet):
-    def post(self, request, *args, **kwargs) -> Response:
+class UserSessionViewClass(viewsets.ViewSet):
+    def login(self, request, *args, **kwargs) -> Response:
         """
             Post method to generate tokens for the user.
 
@@ -29,7 +32,7 @@ class LoginViewClass(ViewSet):
 
         # Send request to user service
         publish_message(
-            "user_request_queue",
+            "login_request_queue",
             json.dumps({"username": username, "password": password}),
         )
 
@@ -43,47 +46,92 @@ class LoginViewClass(ViewSet):
             ch.stop_consuming()
 
         # Start consuming the response
-        consume_message("auth_response_queue", handle_response)
+        consume_message("login_response_queue", handle_response)
 
         # Wait for the response to be processed
         if "error" in user_data:
             return Response(
                 {"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED
             )
+    
+        publish_message("user_token_request_queue", json.dumps({"username": username}))
+
+        user_token_data = {}
+
+        def handle_token_response(ch, method, properties, body):
+            nonlocal user_token_data
+            user_token_data.update(json.loads(body))
+            ch.stop_consuming()
+        
+        consume_message("user_token_response_queue", handle_token_response)
+
+        if "error" in user_token_data:
+            return Response(
+                {"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        response_messsage = {"id": user_data["id"], 
+                        "refresh":user_token_data["refresh"],
+                        "access":user_token_data["access"]}
+
+        serializer = UserTokenModelSerializer(data={
+            "id": user_data["id"],
+            "username": username,
+            "token_data": {
+            "refresh": user_token_data["refresh"],
+            "access": user_token_data["access"]}
+        })
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(response_messsage, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+
+    def logout(self, request, *args, **kwargs) -> Response:
+        """
+            Post method to delete the user tokens.
+
+            This method deletes the user tokens from the database.
+
+            Args:
+                request: The request object.
+            
+            Returns:
+                Response: The response object containing the message.
+        """
+        if not request.data.get("id"):
+            return Response(
+                {"error": "User id is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        user_id = request.data.get("id")
+        user = get_object_or_404(UserTokens, id=user_id)
+        user.delete()
+        return Response({"message": "User logged out successfully"}, status=status.HTTP_200_OK)
+    
+
+class ValidateToken():
+    @staticmethod
+    def validate_token(refresh_token) -> bool:
+        """
+            Validate the refresh token.
+
+            This method validates the refresh token by decoding the token and checking if it is expired.
+            If the token is expired or invalid, it returns False, otherwise it returns True.
+
+            Args:
+                refresh_token: The refresh token to validate.
+            
+            Returns:
+                bool: True if the token is valid, False otherwise.
+        """
         try:
-            user = type("User", (object,), user_data)  # Mock user object with user_data
-            refresh = RefreshToken.for_user(user)
-            access = refresh.access_token
-            # Save the updated or newly created UserTokens entry
-            user_token_entry, created = UserTokens.objects.get_or_create(
-                id=user_data["id"], username=username
-            )
-            refresh = RefreshToken.for_user(user)
-            access = refresh.access_token
-            user_token_entry.token_data = {
-                "refresh": {
-                    "token": str(refresh),
-                    "exp": int(refresh["exp"]),  # Store expiration as integer
-                },
-                "access": {
-                    "token": str(access),
-                    "exp": int(access["exp"]),  # Store expiration as integer
-                },
-            }
-
-            # Save the updated or newly created UserTokens entry
-            user_token_entry.save()
-
-            return Response(
-                {
-                    "id": user_data["id"],
-                    "refresh": str(refresh),
-                    "access": str(access),
-                },
-                status=status.HTTP_200_OK,
-            )
-        except Exception as e:
-            return Response(
-                {"error": "Could not generate tokens", "details": str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+            decoded_token = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=["HS256"], options={"verify_signature": True})
+            return True
+        except jwt.ExpiredSignatureError:
+            print("expired token")
+            return False
+        except jwt.InvalidTokenError:
+            print("invalid token")
+            return False

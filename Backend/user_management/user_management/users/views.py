@@ -118,7 +118,7 @@ class UserViewSet(viewsets.ViewSet):
     @method_decorator(
         csrf_exempt
     )  # This decorator is used to disable CSRF protection for this method because it is called by RabbitMQ and not by a browser
-    def handle_rabbitmq_request(ch, method, properties, body) -> None:
+    def handle_login_request(ch, method, properties, body) -> None:
         """
             Method to handle the RabbitMQ request.
             
@@ -151,10 +151,10 @@ class UserViewSet(viewsets.ViewSet):
         else:
             response_message = {"error": "Invalid username or password"}
         print(f"Response message: {response_message}")
-        publish_message("auth_response_queue", json.dumps(response_message))
+        publish_message("login_response_queue", json.dumps(response_message))
 
     def start_consumer(self) -> None:
-        consume_message("user_request_queue", self.handle_rabbitmq_request)
+        consume_message("login_request_queue", self.handle_login_request)
 
 
 class RegisterViewSet(viewsets.ViewSet):

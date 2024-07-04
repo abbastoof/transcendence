@@ -5,9 +5,6 @@ cd /
 mkdir -p /run/postgresql
 chown postgres:postgres /run/postgresql/
 
-# Initialize the database
-initdb -D /var/lib/postgresql/data
-
 # Switch to the postgres user and run the following commands
 mkdir -p /var/lib/postgresql/data
 initdb -D /var/lib/postgresql/data
@@ -22,11 +19,8 @@ sed -i "/^unix_socket_directories = /d" /var/lib/postgresql/data/postgresql.conf
 # Ensure the postgres user owns the data directory
 chown -R postgres:postgres /var/lib/postgresql/data
 
-# # Start the PostgreSQL server as the postgres user, keeping it in the foreground
-# exec postgres -D /var/lib/postgresql/data &
-
-# Start PostgreSQL server
-pg_ctl start -D /var/lib/postgresql/data
+# Start the PostgreSQL server as the postgres user, keeping it in the foreground
+exec postgres -D /var/lib/postgresql/data &
 
 # Wait for PostgreSQL to start (you may need to adjust the sleep time)
 sleep 5
@@ -39,6 +33,6 @@ psql -c "GRANT ALL PRIVILEGES ON DATABASE postgres TO ${DB_USER};"
 # Stop the PostgreSQL server after setting the password
 pg_ctl stop -D /var/lib/postgresql/data
 
-# sleep 1
+sleep 5
 # Start the PostgreSQL server as the postgres user, keeping it in the foreground
 pg_ctl start -D /var/lib/postgresql/data

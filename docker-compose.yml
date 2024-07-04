@@ -18,6 +18,21 @@ services:
     networks:
       - transcendence_network
 
+  profile-service:
+    container_name: profile-service
+    image: profile-service
+    build:
+      context: .
+      dockerfile: Backend/profile_service/Dockerfile
+    env_file:
+      - .env
+    # ports:
+    #   - 8001:8001
+    networks:
+      - transcendence_network
+    depends_on:
+      - rabbitmq
+  
   user-service:
     container_name: user-service
     image: user-service
@@ -63,3 +78,4 @@ services:
     depends_on:
       - user-service
       - auth-service
+      - profile-service

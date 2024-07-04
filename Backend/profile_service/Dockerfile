@@ -33,6 +33,6 @@ RUN chown -R postgres:postgres /app && \
 
 USER postgres
 
-HEALTHCHECK --interval=30s --timeout=2s --start-period=5s --retries=3 CMD curl -sSf http://localhost:8001/user/register/ > /dev/null &&  echo "success" || echo "failure"
+HEALTHCHECK --interval=30s --timeout=2s --start-period=5s --retries=3 CMD curl -sSf http://localhost:8004/api/login/ > /dev/null &&  echo "success" || echo "failure"
 
 ENTRYPOINT ["sh", "./tools.sh"]
