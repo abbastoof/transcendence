@@ -16,6 +16,13 @@
 </head>
 
 <body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/createModal.js"></script>
+    <script src="js/profile.js"></script>
+    <script src="js/signup.js"></script>
+    <script src="js/login.js"></script>
+    <script src="js/tournament.js"></script>
+    <script src="js/stars.js"></script>
 
     <div class="headerContainer">
         <svg width="1000" height="150" viewBox="0 -30 506 120" xmlns="http://www.w3.org/2000/svg">
@@ -359,56 +366,24 @@
     </div>
 
     <!-- About Modal -->
-    <div class="modal fade" id="aboutModal" tabindex="-1" role="dialog" aria-labelledby="aboutModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header row col-md-12">
-                    <div class="col-md-4"></div>
-                    <div class="col-md-4">
-                        <h2 style="text-align: center;" class="modal-title" id="aboutModalLabel">About</h2>
-                    </div>
-                    <div class="col-md-4">
-                        <button type="button" data-bs-dismiss="modal" class="close" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                </div>
-                <div id="aboutstars" class="stars">
-                    <script>
-                        document.addEventListener('DOMContentLoaded', () => {
-                            generateStars('#aboutstars', 20);
-                        });
-                    </script>
-                </div>
-                <div class="modal-body">
-                    <p class="aboutTitle">Creators</p>
-                    <div><a class="aboutText" href="https://github.com/vmustone">Ville</a></div>
-                    <div><a class="aboutText" href="https://github.com/mtoof/mtoof?tab=readme-ov-file">Mojtaba</a></div>
-                    <div><a class="aboutText" href="https://github.com/abbastoof">Abbas</a></div>
-                    <div><a class="aboutText" href="https://github.com/Sir-Eli">Elina</a></div>
-                    <div><a class="aboutText" href="https://github.com/trsctr">Otto</a></div>
-                    <div><a class="aboutText" href="https://github.com/jhesso">Juho</a></div>
-                    <div><a class="aboutText" href="https://github.com/fotogiorgo">Jorgo</a></div>
-                    <div><a class="aboutText" href="https://github.com/nicktvdd">Nick</a></div>
-
-                </div>
-            </div>
-        </div>
-    </div>
     
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Profile Modal -->
-     <div>
-        <script src="js/createModal.js"></script>
-        <script src="js/profile.js"></script>
-        <script>createModal('Profile')</script>
-     </div>
+    <script>
+        createModal('about', `
+            <div class="modal-body">
+                <p class="aboutTitle">Creators</p>
+                <div><a class="aboutText" href="https://github.com/vmustone">Ville</a></div>
+                <div><a class="aboutText" href="https://github.com/mtoof/mtoof?tab=readme-ov-file">Mojtaba</a></div>
+                <div><a class="aboutText" href="https://github.com/abbastoof">Abbas</a></div>
+                <div><a class="aboutText" href="https://github.com/Sir-Eli">Elina</a></div>
+                <div><a class="aboutText" href="https://github.com/trsctr">Otto</a></div>
+                <div><a class="aboutText" href="https://github.com/jhesso">Juho</a></div>
+                <div><a class="aboutText" href="https://github.com/fotogiorgo">Jorgo</a></div>
+                <div><a class="aboutText" href="https://github.com/nicktvdd">Nick</a></div>
+            </div>`);
+        </script>    <!-- Profile Modal -->
+    <script>createModal('Profile', '<div id="userProfile"></div>')</script>
+    
 
-    <script src="js/signup.js"></script>
-    <script src="js/login.js"></script>
-    <script src="js/tournament.js"></script>
-    <script src="js/stars.js"></script>
 </body>
 
 </html>

@@ -50,7 +50,8 @@
 
 /* ABOUT */
 .aboutTitle {
-  display: block;
+  display: flex;
+  justify-content: center;
   color: white;
   background-color: transparent;
   border: none;
@@ -59,7 +60,6 @@
   font-size: 40px;
   margin-bottom: -5px;
   box-shadow: none;
-  display: inline-block;
   text-align: center;
   text-shadow: -2px 0 black, 0 2px black, 1px 0 black, 0 -2px black;
 }

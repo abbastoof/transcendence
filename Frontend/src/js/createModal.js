@@ -1,4 +1,4 @@
-function createModal(modalId) {
+function createModal(modalId, content) {
     const modalHTML = `
         <div class="modal fade" id="${modalId}Modal" tabindex="-1" role="dialog" aria-labelledby="${modalId}ModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
@@ -13,7 +13,7 @@ function createModal(modalId) {
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
-                        <div id="userProfile"></div>
+                        ${content}
                     </div>
                 </div>
             </div>
