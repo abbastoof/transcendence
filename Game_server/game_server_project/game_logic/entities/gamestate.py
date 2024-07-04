@@ -204,7 +204,7 @@ class GameState:
         # Print the field
         print('+', '-' * 160, '+', sep='')
         for row in field:
-            print('|', ''.join(row), '|', sep='')
+            print(' ', ''.join(row), ' ', sep='')
         print('+', '-' * 160, '+', sep='')
 
         # Print the game state information
