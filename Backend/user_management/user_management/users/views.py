@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.core.exceptions import ValidationError
 from rest_framework import status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -49,11 +50,16 @@ class UserViewSet(viewsets.ViewSet):
             Returns:
                 Response: The response object containing the list of users.
         """
-        if not request.user.is_staff or not request.user.is_superuser:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        users = User.objects.all()
-        serializer = UserSerializer(users, many=True)
-        return Response(serializer.data)
+        try:
+            self.send_data_to_user_service(request)
+            if not request.user.is_staff or not request.user.is_superuser:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+            users = User.objects.all()
+            serializer = UserSerializer(users, many=True)
+            return Response(serializer.data)
+        except Exception as err:
+            return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
+                
 
     def retrieve_user(self, request, pk=None) -> Response:
         """
@@ -68,9 +74,13 @@ class UserViewSet(viewsets.ViewSet):
             Returns:
                 Response: The response object containing the user data.
         """
-        data = get_object_or_404(User, id=pk)
-        serializer = UserSerializer(data)
-        return Response(serializer.data)
+        try:
+            self.send_data_to_user_service(request)
+            data = get_object_or_404(User, id=pk)
+            serializer = UserSerializer(data)
+            return Response(serializer.data)
+        except Exception as err:
+            return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
 
     def update_user(self, request, pk=None) -> Response:
         """
@@ -85,14 +95,18 @@ class UserViewSet(viewsets.ViewSet):
             Returns:
                 Response: The response object containing the updated user data.
         """
-        data = get_object_or_404(User, id=pk)
-        if data != request.user and not request.user.is_superuser:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        serializer = UserSerializer(instance=data, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        # if User updated Username should send message to all microservices to update the username related to this user using Kafka
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        try:
+            self.send_data_to_user_service(request)
+            data = get_object_or_404(User, id=pk)
+            if data != request.user and not request.user.is_superuser:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+            serializer = UserSerializer(instance=data, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            # if User updated Username should send message to all microservices to update the username related to this user using Kafka
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        except Exception as err:
+            return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy_user(self, request, pk=None) -> Response:
         """
@@ -107,12 +121,38 @@ class UserViewSet(viewsets.ViewSet):
             Returns:
                 Response: The response object containing the status of the deletion.
         """
-        data = get_object_or_404(User, id=pk)
-        if data != request.user and not request.user.is_superuser:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        # Should send message to all microservices to delete all data related to this user using Kafka
-        data.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        try:
+            self.send_data_to_user_service(request)
+            data = get_object_or_404(User, id=pk)
+            if data != request.user and not request.user.is_superuser:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+            # Should send message to all microservices to delete all data related to this user using Kafka
+            data.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Exception as err:
+            return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
+
+    def send_data_to_user_service(self, request) -> None:
+        bearer = request.headers.get("Authorization")
+        if not bearer or not bearer.startswith('Bearer '):
+            raise ValidationError({"error": "Access token is required"})
+        access_token = bearer.split(' ')[1]
+        publish_message("validate_token_request_queue", json.dumps({"access": access_token}))
+
+        response_data = {}
+
+        def handle_response(ch, method, properties, body):
+            nonlocal response_data
+            response_data.update(json.loads(body))
+            ch.stop_consuming()
+
+        consume_message("validate_token_response_queue", handle_response)
+
+        if "error" in response_data:
+            raise ValidationError(
+                {"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+
 
     @staticmethod  # This method is static because it doesn't need to access any instance variables
     @method_decorator(
