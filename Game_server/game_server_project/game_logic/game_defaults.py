@@ -1,11 +1,11 @@
 # default settings for game entities
 # values are based on what is in the threejs prototype, but we will find sweet spots later
 
-PADDLE_WIDTH = 100
+PADDLE_WIDTH = 50
 PADDLE_DEPTH = 16
 
 BALL_RADIUS = 6
-BALL_SPEED = 0.5
+BALL_SPEED = 2
 
 GAME_DURATION = 300 # game duration in seconds
                     # need to multiply this with something, set the result as gamestate.time_remaining
@@ -21,3 +21,4 @@ PLAYER2_START_X = FIELD_DEPTH - PADDLE_DEPTH
 
 BALL_DEFAULT_X = FIELD_DEPTH / 2
 BALL_DEFAULT_Z = FIELD_WIDTH / 2
+BALL_DEFAULT_DIRECTION = 0 # angle in degrees

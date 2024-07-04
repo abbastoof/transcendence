@@ -97,7 +97,7 @@ class Ball:
     # checks if the ball has collided with a given object
     def check_collision(self, object):
         # collision checking algorithm, can be wall or paddle
-        return True # (or False)
+        return False # (or False)
  
     # def bounce_from_paddle(self, paddle):
         # determine new direction for the ball when it hits the paddle. see game design doc
@@ -107,6 +107,7 @@ class Ball:
     # reflects the direction of the ball when it bounces from a wall
     def bounce_from_wall(self) -> None:
         self._direction = (360 - self._direction) % 360
+        print("boing")
         # reflects the direction when ball bounces from wall
 
     # def reset_ball(self):
