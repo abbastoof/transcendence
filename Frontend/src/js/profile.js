@@ -28,19 +28,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
             const htmlContent = `
-            <h1>${data.username}</h1>
-            <p>Email: ${data.email}</p>
-            <form id="form">What'sup biatch</form>
+                <div class="container mt-4">
+                    <h1 id="username" class="display-4">${data.username}</h1>
+                    <p class="lead">Email: ${data.email}</p>
+                    <img id="avatar" src="../assets/images/avatar.jpg" alt="User Profile Image" class="img-thumbnail mb-4" width="60" height="60">
+                    <form id="imageUploadForm">
+                        <div class="form-group">
+                            <label for="imageInput" class="submit">Choose file</label>
+                            <input type="file" id="imageInput" class="form-control-file" accept="image/*" hidden>
+                        </div>
+                        <button type="submit" class="submit">Submit</button>
+                    </form>
+                </div>
             `;
             userProfileContainer.innerHTML = htmlContent;
-        
-            // Now that the form is guaranteed to exist, modify it and add the event listener
-            const form = document.getElementById('form');
-            form.innerHTML += `
-                <input type="file" id="imageInput" accept="image/*">
-                <button type="submit">Submit</button>
-            `;
-        
+            // <img src="${data.imageUrl}" alt="User Profile Image">
+
+            const form = document.getElementById('imageUploadForm');
             form.addEventListener('submit', (event) => {
                 event.preventDefault();
                 const imageInput = document.getElementById('imageInput');
@@ -51,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 const formData = new FormData();
                 formData.append('image', file);
-        
+
                 // Send the image data to the server
                 fetch(`/user/${userData.id}/image`, {
                     method: 'POST',
