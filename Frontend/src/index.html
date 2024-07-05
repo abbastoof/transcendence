@@ -192,8 +192,10 @@
 
     <div class="buttonContainer col-md-12">
         <button type="button" class="buttons">Local Game</button>
-        <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#tournamentModal">Local Tournament</button>
-        <button type="button" class="buttons" id="authButton" data-bs-toggle="modal" data-bs-target="#logInModal">Log in</button>
+        <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#tournamentModal">Local
+            Tournament</button>
+        <button type="button" class="buttons" id="authButton" data-bs-toggle="modal" data-bs-target="#logInModal">Log
+            in</button>
         <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#aboutModal">About</button>
     </div>
 
@@ -231,15 +233,13 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="playerCount" id="6vs6"
-                                        value="6">
+                                    <input class="form-check-input" type="radio" name="playerCount" id="6vs6" value="6">
                                     <label class="form-check-label font" for="6vs6">6</label>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="playerCount" id="8vs8"
-                                        value="8">
+                                    <input class="form-check-input" type="radio" name="playerCount" id="8vs8" value="8">
                                     <label class="form-check-label font" for="8vs8">8</label>
                                 </div>
                             </div>
@@ -391,11 +391,15 @@
                 <div><a class="aboutText" href="https://github.com/fotogiorgo">Jorgo</a></div>
                 <div><a class="aboutText" href="https://github.com/nicktvdd">Nick</a></div>
             </div>`);
-        </script>    
-        
+    </script>
+
     <!-- Profile Modal -->
-    <script>createModal('Profile', '<div id="userProfile"></div>')</script>
-    
+    <script>
+        if (localStorage.getItem('isLoggedIn') === 'true') {
+            createModal('Profile', '<div id="userProfile"></div>')
+        };
+    </script>
+
 
 </body>
 

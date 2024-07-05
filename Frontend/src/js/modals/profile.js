@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
+    updateUserProfile();
+});
+
+function updateUserProfile() {
     // Check if the user is logged in
     const userData = JSON.parse(localStorage.getItem('userData'));
     console.log('UserData:', userData); // Debugging line
@@ -83,7 +87,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         console.error('Error uploading image:', error);
                     });
             });
+        })
+        .catch(error => {
+            console.error('Error fetching user data:', error);
         });
-    });
-// history
-// friends
+};
