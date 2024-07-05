@@ -77,7 +77,7 @@ services:
       - transcendence_network
     depends_on:
       - user-service
-      - auth-service
+      - token-service
 
   game-server:
     container_name: game-server
