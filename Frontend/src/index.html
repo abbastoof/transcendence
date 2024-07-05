@@ -18,10 +18,10 @@
 <body>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/createModal.js"></script>
-    <script src="js/profile.js"></script>
-    <script src="js/signup.js"></script>
-    <script src="js/login.js"></script>
-    <script src="js/tournament.js"></script>
+    <script src="js/modals/profile.js"></script>
+    <script src="js/modals/signup.js"></script>
+    <script src="js/modals/login.js"></script>
+    <script src="js/modals/tournament.js"></script>
     <script src="js/stars.js"></script>
 
     <div class="headerContainer">
@@ -366,7 +366,7 @@
 
 
     <!-- Logout Confirmation Modal -->
-    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <!-- <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="logoutModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header row col-md-12">
@@ -397,7 +397,17 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
+    <script>
+        createModal('logout', `
+            <div class="modal-body">
+                <p class="ErrorMessage">Are you sure you want to log out?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="submit" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="submit" onclick="confirmLogout()">Yes, Log out</button>
+            </div>`);
+    </script>
 
     <!-- About Modal -->
     
