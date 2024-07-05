@@ -20,12 +20,12 @@ WORKDIR /app/
 RUN python3 -m venv venv && chown -R postgres:postgres venv
 
 # Copy application code and adjust permissions
-COPY --chown=postgres:postgres ./Backend/user_management/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY --chown=postgres:postgres ./Backend/user_management/requirements.txt .
-COPY --chown=postgres:postgres ./Backend/user_management/user_management /app/user_management
-COPY --chown=postgres:postgres ./Backend/user_management/tools.sh /app
-COPY --chown=postgres:postgres ./Backend/user_management/init_database.sh /app
-COPY --chown=postgres:postgres ./Backend/user_management/run_consumer.sh /app
+COPY --chown=postgres:postgres ./Backend/user_service/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY --chown=postgres:postgres ./Backend/user_service/requirements.txt .
+COPY --chown=postgres:postgres ./Backend/user_service/user_service /app/user_service
+COPY --chown=postgres:postgres ./Backend/user_service/tools.sh /app
+COPY --chown=postgres:postgres ./Backend/user_service/init_database.sh /app
+COPY --chown=postgres:postgres ./Backend/user_service/run_consumer.sh /app
 RUN chmod +x /app/tools.sh /app/init_database.sh /app/run_consumer.sh
 
 # Ensure supervisord and scripts are executable and owned by postgres
@@ -35,7 +35,7 @@ RUN chown -R postgres:postgres /etc/supervisor && \
     chown -R postgres:postgres /app && \
     chown -R postgres:postgres /var/log && \
     chown -R postgres:postgres /app/venv && \
-    chown -R postgres:postgres /app/user_management && \
+    chown -R postgres:postgres /app/user_service && \
     chmod +x /usr/bin/supervisord
 
 USER postgres

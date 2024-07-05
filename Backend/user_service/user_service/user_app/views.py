@@ -58,7 +58,7 @@ class UserViewSet(viewsets.ViewSet):
             serializer = UserSerializer(users, many=True)
             return Response(serializer.data)
         except Exception as err:
-            return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
                 
 
     def retrieve_user(self, request, pk=None) -> Response:
@@ -80,7 +80,7 @@ class UserViewSet(viewsets.ViewSet):
             serializer = UserSerializer(data)
             return Response(serializer.data)
         except Exception as err:
-            return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
     def update_user(self, request, pk=None) -> Response:
         """
@@ -106,7 +106,7 @@ class UserViewSet(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         except Exception as err:
-            return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy_user(self, request, pk=None) -> Response:
         """
@@ -130,7 +130,7 @@ class UserViewSet(viewsets.ViewSet):
             data.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Exception as err:
-            return Response({"error": err}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
     def send_data_to_user_service(self, request) -> None:
         bearer = request.headers.get("Authorization")

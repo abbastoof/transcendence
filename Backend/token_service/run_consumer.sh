@@ -11,6 +11,6 @@ done
 
 # trunk-ignore(shellcheck/SC1091)
 source venv/bin/activate
-python3 auth_service/consumer.py
+python3 token_service/consumer.py
 echo "Django server is up at ${DJANGO_URL}"
 exec "$@"

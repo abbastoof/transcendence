@@ -13,11 +13,19 @@ while ! curl -s "${USER_SERVICE_URL}" >/dev/null; do
 	sleep 5
 done
 
-AUTH_SERVICE_URL="http://auth-service:8000/"
+AUTH_SERVICE_URL="http://token-service:8000/"
 
 # Wait until Django server is available
 while ! curl -s "${AUTH_SERVICE_URL}" >/dev/null; do
 	echo "Waiting for Django server at ${AUTH_SERVICE_URL}..."
+	sleep 5
+done
+
+PROFILE_SERVICE_URL="http://profile-service:8004/"
+
+# Wait until Django server is available
+while ! curl -s "${PROFILE_SERVICE_URL}" >/dev/null; do
+	echo "Waiting for Django server at ${PROFILE_SERVICE_URL}..."
 	sleep 5
 done
 

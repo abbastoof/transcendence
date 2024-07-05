@@ -2,12 +2,12 @@ import os
 
 import django
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "auth_service.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "token_service.settings")
 django.setup()
 
 
 def start_consumer():
-    from user_auth.views import CustomTokenObtainPairView
+    from token_app.views import CustomTokenObtainPairView
 
     CustomTokenObtainPairView().start_consumer()
 

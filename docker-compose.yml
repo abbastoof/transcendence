@@ -38,7 +38,7 @@ services:
     image: user-service
     build:
       context: .
-      dockerfile: Backend/user_management/Dockerfile
+      dockerfile: Backend/user_service/Dockerfile
     env_file:
       - .env
     # ports:
@@ -48,12 +48,12 @@ services:
     depends_on:
       - rabbitmq
 
-  auth-service:
-    container_name: auth-service
-    image: auth-service
+  token-service:
+    container_name: token-service
+    image: token-service
     build:
       context: .
-      dockerfile: Backend/auth_service/Dockerfile
+      dockerfile: Backend/token_service/Dockerfile
     env_file:
       - .env
     # ports:
@@ -77,5 +77,5 @@ services:
       - transcendence_network
     depends_on:
       - user-service
-      - auth-service
+      - token-service
       - profile-service

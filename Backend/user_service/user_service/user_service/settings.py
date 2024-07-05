@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "users",
+    "user_app",
     "rest_framework",
     "rest_framework_simplejwt",
     "corsheaders",
@@ -85,7 +85,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
 ]
 
-ROOT_URLCONF = "user_management.urls"
+ROOT_URLCONF = "user_service.urls"
 
 TEMPLATES = [
     {
@@ -103,7 +103,7 @@ TEMPLATES = [
     },
 ]
 
-ASGI_APPLICATION = "user_management.asgi.application"
+ASGI_APPLICATION = "user_service.asgi.application"
 
 
 # Database
@@ -138,7 +138,7 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
     {
-        "NAME": "users.validators.CustomPasswordValidator",
+        "NAME": "user_app.validators.CustomPasswordValidator",
         "OPTIONS": {
             "minlength": 8,
             "minlower": 1,
@@ -172,4 +172,4 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ORIGIN_ALLOW_ALL = True
-AUTH_USER_MODEL = "users.User"
+AUTH_USER_MODEL = "user_app.User"

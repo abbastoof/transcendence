@@ -2,12 +2,12 @@ import os
 
 import django
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "user_management.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "user_service.settings")
 django.setup()
 
 
 def start_consumer():
-    from users.views import UserViewSet
+    from user_app.views import UserViewSet
 
     UserViewSet().start_consumer()
 

@@ -134,10 +134,8 @@ class ValidateToken():
             decoded_token = jwt.decode(access_token, settings.SECRET_KEY, algorithms=["HS256"], options={"verify_signature": True})
             return True
         except jwt.ExpiredSignatureError:
-            print("expired token")
             return False
         except jwt.InvalidTokenError:
-            print("invalid token")
             return False
     
     def validate_token_request_queue(self, ch, method, properties, body):
@@ -156,12 +154,19 @@ class ValidateToken():
         data = json.loads(body)
         access_token = data.get("access")
         try:
-            is_valid = self.validate_token(access_token)
-            user = get_object_or_404(UserTokens, token_data__access=access_token)
-            response = {"access token is valid": is_valid}
-            publish_message("validate_token_response_queue", json.dumps(response))
-        except Exception as e:
-            publish_message("validate_token_response_queue", json.dumps({"error": str(e)}))
+            if ValidateToken.validate_token(access_token):
+                user = get_object_or_404(UserTokens, token_data__access=access_token)
+                response = {"access_token": "Valid token"}
+            else:
+                response = {"error": "Invalid token"}
+        except jwt.ExpiredSignatureError:
+            response = {"error": "token is expired"}
+        except jwt.InvalidTokenError:
+            response = {"error": "Invalid token"}
+        except Exception as err:
+            response = {"error": "Invalid token"}
+
+        publish_message("validate_token_response_queue", json.dumps(response))
 
     def start_consumer(self) -> None:
         consume_message("validate_token_request_queue", self.validate_token_request_queue)
