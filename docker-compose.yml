@@ -60,6 +60,19 @@ services:
       - 8002:8002
     networks:
       - transcendence_network
+
+  game-stats-service:
+    container_name: game-stats-service
+    image: game-stats-service
+    build:
+      context: .
+      dockerfile: Backend/game_stats_service/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - 8003:8003
+    networks:
+      - transcendence_network
     depends_on:
       - rabbitmq
 
