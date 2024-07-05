@@ -5,9 +5,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Check localStorage for login state and tokens
     var isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    var userId = localStorage.getItem('userId');
-    var refreshToken = localStorage.getItem('refreshToken');
-    var accessToken = localStorage.getItem('accessToken');
 
     // Function to create and add the profile button
     function addProfileButton() {
@@ -59,18 +56,12 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             console.log('Success:', data);
             // Store all tokens and user ID
-            userId = data.id;
-            refreshToken = data.refresh;
-            accessToken = data.access;
-
-            localStorage.setItem('userId', userId);
-            localStorage.setItem('refreshToken', refreshToken);
-            localStorage.setItem('accessToken', accessToken);
-
+            localStorage.setItem('userData', JSON.stringify({ id: data.id, token: data.access, refresh: data.refresh }));
+            localStorage.setItem('isLoggedIn', 'true'); // Save login state to localStorage ! change this to variable in backend
+            
             logInModal.hide(); // Close the modal on success
             document.getElementById('logInForm').reset(); // Reset form fields
-            isLoggedIn = true;
-            localStorage.setItem('isLoggedIn', 'true'); // Save login state to localStorage
+            isLoggedIn = true; // Update login state
             updateAuthButton();
             addProfileButton(); // Add profile button on login
         })
@@ -143,12 +134,10 @@ document.addEventListener('DOMContentLoaded', function() {
         userId = null; // Clear user ID
         refreshToken = null; // Clear refresh token
         accessToken = null; // Clear access token
+        
+        localStorage.clear('userData'); // Clear all localStorage items
 
-        localStorage.removeItem('userId'); // Remove user ID from localStorage
-        localStorage.removeItem('refreshToken'); // Remove refresh token from localStorage
-        localStorage.removeItem('accessToken'); // Remove access token from localStorage
-
-        isLoggedIn = false;
+        isLoggedIn = false; // Update login state
         localStorage.setItem('isLoggedIn', 'false'); // Save login state to localStorage
         updateAuthButton();
         logoutModal.hide();
