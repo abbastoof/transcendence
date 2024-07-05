@@ -23,6 +23,7 @@ body {
     color: red;
     margin-top: -10px; /* Space between title and error message */
     margin-bottom: -10px; /* Space between error message and body */
+    text-align: center;
 }
 
 .signup-link {
