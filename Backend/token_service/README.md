@@ -1,6 +1,7 @@
-# Auth_service
+# Token_service
 
-This is a simple authentication service that uses JWT to authenticate users.
+The token service is responsible for generating the refresh and access tokens. The token service receives the username then generates the refresh and access tokens, You can achieve this through the login url in profile-service.
+Also the token service is responsible for refreshing the access token.
 
 ## Docker container configuration
 
@@ -12,54 +13,7 @@ The API runs inside a virtual environment. The virtual environment is created in
 
 The API runs on port 8000 and exposed to 8001.
 
-## Tutorial to use the auth_service
+## Tutorial to use the token_service
 
-After running the makefile, you can access the API using the following url:
+You can use the token_service by sending a POST request to the https://localhost:3000/auth/token/refresh/ endpoint with the refresh token in the header as a Bearer token and it will return a new access token.
 
-- `http://auth-service:8000/auth/api/token/`
-
-You should send a JSON object with the following fields:
-
-```JSON
-{
-    "username": "username",
-    "password": "password"
-}
-```
-
-The API will send the JSON object to the user_service API through the RabbitMQ message broker. The user_service API will check if the username and password are correct.
-If the username and password are correct, the API will generate the refresh and access keys and return a JSON object with the following fields:
-
-```JSON
-{
-    "refresh": "refresh token"
-    "access": "access token"
-}
-```
-
-The access token is valid for 60 minutes. The refresh token is valid for 24 hours. The username and Token Data are stored in the UserTokens table.
-
-The UserTokens table consists of the following fields:
-
-| Field Name | Data Type | Description |
-| ---------- | --------- | ----------- |
-| username   | String    | User Name   |
-| token_data | JSON      | Token Data  |
-
-token_data is a JSON object that consists of two dictionaries:
-
-1. refresh: Refresh Token
-
-| Field Name | Data Type | Description   |
-| ---------- | --------- | ------------- |
-| token      | String    | Refresh Token |
-| exp        | Integer   | Expiry Time   |
-
-2. access: Access Token
-
-| Field Name | Data Type | Description  |
-| ---------- | --------- | ------------ |
-| token      | String    | Access Token |
-| exp        | Integer   | Expiry Time  |
-
-Later I will limit the access to the API using nginx reverse proxy and only the frontend will be able to access the API.

@@ -1,6 +1,8 @@
 # User_service
 
-This is a simple API that allows users to view, add, update, and delete user records. The application is built using the Django framework in Python. The API is using Postgresql as a database and Django Rest Framework to serialize the data and return it in JSON format.
+The user service is responsible for creating, reading, updating and deleting user records. The user service receives the username, email and password then stores them in the User table. The username and email are unique and the password is hashed and write-only.
+
+Upon GET,PUT and DELETE requests for a user record, the user service will retrieve the access token from the request header and send it to the profile service to check if the access token exists in the UserTokens table. If the access token exists, the user service will process the request for the user record if the user record exists in the User table.
 
 ## Docker container configuration
 
