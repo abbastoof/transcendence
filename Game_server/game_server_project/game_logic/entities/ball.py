@@ -11,9 +11,13 @@ from entities.position import Position
 class Ball:
     def __init__(self, x: float, z: float, radius: float, speed: float, direction: float):
         self._position: Position = Position(x, 0, z)
+        self._delta_x: float = 0
+        self._delta_z: float = 0
         self._radius: float = radius
         self._speed: float = speed
         self._direction: float = direction ## degrees or rads? i'd say degrees
+        self.set_deltas()
+
 
     # getter for position    
     @property
@@ -70,6 +74,7 @@ class Ball:
     @speed.setter
     def speed(self, value: float) -> None:
         self._speed = value
+        self.set_deltas()
 
     # getter for direction
     @property
@@ -80,18 +85,23 @@ class Ball:
     @direction.setter
     def direction(self, value: float) -> None:
         self._direction = value
+        self.set_deltas()
 
+    def set_deltas(self) -> None:
+        radians: float = math.radians(self._direction)
+        self._delta_x = math.cos(radians) * self._speed
+        self._delta_z = math.sin(radians) * self._speed
+    
     # speed_up method
     # increases the speed of the ball by the given increment
     def speed_up(self, increment: float) -> None:
-        self._speed += increment
+        self.speed += increment
 
     # update_position method
     # updates the position of the ball based on its speed and direction
     def update_position(self) -> None:
-        radians: float = math.radians(self._direction)
-        self._position.x += math.cos(radians) * self._speed
-        self._position.z += math.sin(radians) * self._speed
+        self._position.x += self._delta_x
+        self._position.z += self._delta_z
     
     # check_collision method
     # checks if the ball has collided with a given object
@@ -106,8 +116,7 @@ class Ball:
     # bounce_from_wall method
     # reflects the direction of the ball when it bounces from a wall
     def bounce_from_wall(self) -> None:
-        self._direction = (360 - self._direction) % 360
-        print("boing")
+        self.direction = (360 - self._direction) % 360
         # reflects the direction when ball bounces from wall
 
     # def reset_ball(self):
