@@ -112,8 +112,7 @@ class UserSessionViewClass(viewsets.ViewSet):
         user_id = request.data.get("id")
         user = get_object_or_404(UserTokens, id=user_id)
         user.delete()
-        return Response({"message": "User logged out successfully"}, status=status.HTTP_200_OK)
-    
+        return Response({'detail': 'Successfully logged out'}, status=status.HTTP_200_OK)    
 
 class ValidateToken():
     @staticmethod
