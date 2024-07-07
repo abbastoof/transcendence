@@ -8,7 +8,7 @@ ENV LANG=C.UTF-8
 RUN apk update && apk add --no-cache python3 py3-pip \
 postgresql16 postgresql16-client \
 bash supervisor curl openssl bash \
-build-base libffi-dev python3-dev
+build-base libffi-dev python3-dev nano
 # Set work directory
 RUN mkdir /run/postgresql && \
     chown postgres:postgres /run/postgresql && \

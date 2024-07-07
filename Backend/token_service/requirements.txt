@@ -23,3 +23,4 @@ daphne
 twisted[http2,tls]
 pytest
 pytest-django
+pytest-mock
