@@ -11,7 +11,7 @@ ENV PYTHONUNBUFFERED 1
 COPY ./requirements.txt /requirements.txt
 RUN python -m pip install --upgrade pip
 RUN pip install setuptools==58.0.4 wheel
-RUN pip --timeout=1000 install -r /requirements.txt
+RUN pip install -r /requirements.txt
 
 WORKDIR /app
 

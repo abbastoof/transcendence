@@ -11,7 +11,7 @@ ENV PYTHONUNBUFFERED 1
 COPY ./requirements.txt /requirements.txt
 RUN python -m pip install --upgrade pip
 RUN pip install setuptools==58.0.4 wheel
-RUN pip --timeout=1000 install -r /requirements.txt
+RUN pip install flake8
 
 WORKDIR /app
 
@@ -22,6 +22,4 @@ RUN addgroup -S www-data && adduser -S www-data -G www-data && \
 
 USER www-data
 
-EXPOSE 8000
-
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["flake8", "."]

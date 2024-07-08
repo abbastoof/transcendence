@@ -130,7 +130,8 @@ name: CI Pipeline
 on:
   push:
     branches:
-        - feature/015-game-history-microservice
+      - feature/*
+      - develop
 
 jobs:
   lint-project:
@@ -156,7 +157,7 @@ jobs:
         run: |
           echo "[flake8]" > .flake8
           echo "exclude = venv/*" >> .flake8
-          echo "max-line-length = 79" >> .flake8
+          echo "max-line-length = 99" >> .flake8
 
       - name: Verify installed packages
         run: |
@@ -167,9 +168,37 @@ jobs:
         run: |
           . venv/bin/activate
           flake8 .
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  run-tests:
+    needs: lint-project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          . venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          . venv/bin/activate
+          pytest --maxfail=1 --disable-warnings
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-test-image:
-    needs: lint-project
+    needs: run-tests
     runs-on: ubuntu-latest
     steps:
       - name: Set up QEMU
@@ -188,5 +217,24 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
+          context: .
+          file: ./Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository }}:feature/015-game-history-microservice
+
+  merge-develop:
+    runs-on: ubuntu-latest
+    needs: publish-test-image
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Fetch all branches
+        run: git fetch --all
+
+      - name: Merge branches into develop
+        run: |
+          git checkout develop
+          git merge feature/015-game-history-microservice
+          # Add other branches as needed
+          git push origin develop
