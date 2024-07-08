@@ -135,15 +135,15 @@ class GameState:
     # and updates the ball's direction and player's hitcount accordingly
     def handle_collisions(self):
         if self.ball.x < 0 or self.ball.x > 400:
-            pass
+            return
         if self.ball.z <= 0 or self.ball.z >= 300:
             self.ball.bounce_from_wall()
         elif self.ball.check_collision(self.player1.paddle):
             self.player1.add_hit()
-            self.ball.bounce_from_wall()
+            self.ball.bounce_from_paddle(self.player1.paddle)
         elif self.ball.check_collision(self.player2.paddle):
             self.player2.add_hit()
-            self.ball.bounce_from_wall()
+            self.ball.bounce_from_paddle(self.player2.paddle)
             
     # check_goal method
     # checks if the ball has scored a goal
@@ -188,18 +188,25 @@ class GameState:
         field = [[' ' for _ in range(160)] for _ in range(40)]
 
         # Set the ball and paddles in the field, scaling down their positions to fit the terminal window
-        ball_z = int(self._ball.z * 40 / 300)
+        ball_z = 39 - int(self._ball.z * 40 / 300)  # Invert the ball's z-position
         ball_x = int(self._ball.x * 160 / 400)
         if 0 <= ball_z < 40 and 0 <= ball_x < 160:
             field[ball_z][ball_x] = 'O'
-        paddle1_top = int(self._player1.paddle.z * 40 / 300 - self._player1.paddle.width * 40 / 300)
-        paddle1_bottom = int(self._player1.paddle.z * 40 / 300 + self._player1.paddle.width * 40 / 300)
-        for z in range(paddle1_top, paddle1_bottom):
-            field[z][0] = '|'
-        paddle2_top = int(self._player2.paddle.z * 40 / 300 - self._player2.paddle.width * 40 / 300)
-        paddle2_bottom = int(self._player2.paddle.z * 40 / 300 + self._player2.paddle.width * 40 / 300)
-        for z in range(paddle2_top, paddle2_bottom):
-            field[z][159] = '|'
+        # Correctly calculate the top and bottom positions of paddle1
+        paddle1_top = 39 - int(self._player1.paddle.z * 40 / 300 - self._player1.paddle.width * 40 / 300 / 2)
+        paddle1_bottom = 39 - int(self._player1.paddle.z * 40 / 300 + self._player1.paddle.width * 40 / 300 / 2)
+        # Ensure the loop correctly iterates from bottom to top for paddle1
+        for z in range(paddle1_bottom, paddle1_top + 1):  # Include paddle1_top in the range
+            if 0 <= z < 40:
+                field[z][0] = '|'
+
+        # Correctly calculate the top and bottom positions of paddle2
+        paddle2_top = 39 - int(self._player2.paddle.z * 40 / 300 - self._player2.paddle.width * 40 / 300 / 2)
+        paddle2_bottom = 39 - int(self._player2.paddle.z * 40 / 300 + self._player2.paddle.width * 40 / 300 / 2)
+        # Ensure the loop correctly iterates from bottom to top for paddle2
+        for z in range(paddle2_bottom, paddle2_top + 1):  # Include paddle2_top in the range
+            if 0 <= z < 40:
+                field[z][159] = '|'
 
         # Print the field
         print('+', '-' * 160, '+', sep='')
@@ -212,18 +219,23 @@ class GameState:
         print(f"Current Rally: {self.current_rally}")
         print(f"Longest Rally: {self.longest_rally}")
         print(f"Ball direction: {self.ball.direction}")
+        print(f"Ball speed: {self.ball.speed}")
+        print(f"Ball delta x: {self.ball.delta_x}")
+        print(f"Ball delta z: {self.ball.delta_z}")
+        print(f"Ball pos: {self.ball.x}, {self.ball.z}")
         print(f"Game Paused: {self._paused}")
         print(f"Game In Progress: {self._in_progress}")
+        print(f"Player1 hits: {self.player1.hits}")
+        print(f"Player2 hits: {self.player2.hits}")
         frame_time = time.time() - start_time
         if frame_time < 1/60:
             time.sleep(1/60 - frame_time)
-        
     # reset_ball method
     # resets the ball to the center of the field
     # and gives it a random direction
     def reset_ball(self):
         if self.ball.x < 0:
-            self.ball.direction = random.randrange(-70, 70) #random direction towards player 2
+            self.ball.direction = random.randrange(-70, 70) #random direction towards player 2 
         elif self.ball.x > 400:                             # THIS NEEDS TO BESWAPPED
             self.ball.direction = random.randrange(110, 250)  #random direction towards player 1
         else:
@@ -231,6 +243,7 @@ class GameState:
                 self.ball.direction = random.randrange(-70, 70)
             else:
                 self.ball.direction = random.randrange(110, 250)
+        #self.ball.direction = 0
         # print("Ball reset to angle " + str(self.ball.direction))
         self.ball.position = BALL_DEFAULT_X, 0, BALL_DEFAULT_Z
 
