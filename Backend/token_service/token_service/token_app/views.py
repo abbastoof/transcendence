@@ -23,7 +23,8 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             start_consumer: Method to start the RabbitMQ consumer.
     """
     serializer_class = CustomTokenObtainPairSerializer
-
+    @staticmethod
+    @method_decorator(csrf_exempt)
     def handle_token_request(ch, method, properties, body):
         """
             Method to handle the token request.
