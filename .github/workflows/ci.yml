@@ -1,126 +1,240 @@
+# name: CI Pipeline
+
+# permissions:
+#   pull-requests: read
+#   contents: read
+#   issues: read
+#   deployments: read
+
+# # Events that trigger the workflow
+# on:
+#   push:
+#     branches: [main, develop] # Trigger on push to main and develop branches
+#   pull_request:
+#     branches: [main, develop] # Trigger on pull request to main and develop branches
+
+# # Define jobs in the workflow
+# jobs:
+#   setup:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Upgrade setuptools
+#         run: pip install --upgrade setuptools
+
+#       - name: Checkout code
+#         uses: actions/checkout@v3 # Checkout the repository code
+
+#       # Set up Python environment
+#       - name: Set up Python 3.11
+#         uses: actions/setup-python@v3
+#         with:
+#           python-version: 3.11 # Use Python version 3.11
+
+#       # Install project dependencies
+#       - name: Install dependencies
+#         run: |
+#           python -m pip install --upgrade pip  # Upgrade pip
+#           pip install -r requirements.txt  # Install dependencies from requirements.txt
+
+#   #   test:
+#   #     needs: setup
+#   #     runs-on: ubuntu-latest
+#   #     steps:
+#   #       - name: Checkout code
+#   #         uses: actions/checkout@v3
+
+#   #       - name: Set up Python 3.11
+#   #         uses: actions/setup-python@v3
+#   #         with:
+#   #           python-version: 3.11
+
+#   #       - name: Install dependencies
+#   #         run: |
+#   #           python -m pip install --upgrade pip
+#   #           pip install -r requirements.txt
+
+#   #       # Run test suite
+#   #       - name: Run tests
+#   #         run: |
+#   #           pytest  # Execute tests using pytest
+
+#   security:
+#     needs: setup
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+
+#       - name: Set up Python 3.11
+#         uses: actions/setup-python@v3
+#         with:
+#           python-version: 3.11
+
+#       - name: Install dependencies
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install -r requirements.txt
+
+#       # Run security checks
+#       - name: Run security checks
+#         run: |
+#           pip install bandit  # Install Bandit for security checks
+#           bandit -r .  # Run Bandit on the codebase
+
+#   build:
+#     needs: [setup, security]
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+
+#       - name: Set up Python 3.11
+#         uses: actions/setup-python@v3
+#         with:
+#           python-version: 3.11
+
+#       - name: Install dependencies
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install -r requirements.txt
+
+#       # Build the Docker image
+#       - name: Build Docker image
+#         run: |
+#           docker build -t transcendence .
+
+#   deploy:
+#     needs: build
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+
+#       # Log in to Docker Hub
+#       - name: Deploy to Docker Hub
+#         env:
+#           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+#           DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
+#         run: |
+#           echo "${DOCKER_HUB_PASSWORD}" | docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin
+#           docker tag transcendence ${DOCKER_HUB_USERNAME}/transcendence:latest
+#           docker push ${DOCKER_HUB_USERNAME}/transcendence:latest
+
+#       # Deploy to the server
+#       - name: Deploy to server
+#         run: |
+#           ssh user@server "docker pull ${DOCKER_HUB_USERNAME}/transcendence:latest && docker-compose up --build -d"
+
 name: CI Pipeline
 
-permissions:
-  pull-requests: read
-  contents: read
-  issues: read
-  deployments: read
-
-# Events that trigger the workflow
 on:
   push:
-    branches: [main, develop] # Trigger on push to main and develop branches
-  pull_request:
-    branches: [main, develop] # Trigger on pull request to main and develop branches
+    branches:
+      - feature/*
+      - develop
 
-# Define jobs in the workflow
 jobs:
-  setup:
+  lint-project:
     runs-on: ubuntu-latest
     steps:
-      - name: Upgrade setuptools
-        run: pip install --upgrade setuptools
+      - name: Check out code
+        uses: actions/checkout@v2
 
-      - name: Checkout code
-        uses: actions/checkout@v3 # Checkout the repository code
-
-      # Set up Python environment
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v3
+      - name: Set up Python
+        uses: actions/setup-python@v2
         with:
-          python-version: 3.11 # Use Python version 3.11
-
-      # Install project dependencies
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip  # Upgrade pip
-          pip install -r requirements.txt  # Install dependencies from requirements.txt
-
-  #   test:
-  #     needs: setup
-  #     runs-on: ubuntu-latest
-  #     steps:
-  #       - name: Checkout code
-  #         uses: actions/checkout@v3
-
-  #       - name: Set up Python 3.11
-  #         uses: actions/setup-python@v3
-  #         with:
-  #           python-version: 3.11
-
-  #       - name: Install dependencies
-  #         run: |
-  #           python -m pip install --upgrade pip
-  #           pip install -r requirements.txt
-
-  #       # Run test suite
-  #       - name: Run tests
-  #         run: |
-  #           pytest  # Execute tests using pytest
-
-  security:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v3
-        with:
-          python-version: 3.11
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
+          python -m venv venv
+          . venv/bin/activate
           python -m pip install --upgrade pip
+          pip install setuptools==58.0.4 wheel
           pip install -r requirements.txt
-
-      # Run security checks
-      - name: Run security checks
+          pip install flake8
+      - name: Create flake8 configuration file
         run: |
-          pip install bandit  # Install Bandit for security checks
-          bandit -r .  # Run Bandit on the codebase
+          echo "[flake8]" > .flake8
+          echo "exclude = venv/*" >> .flake8
+          echo "max-line-length = 99" >> .flake8
 
-  build:
-    needs: [setup, security]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v3
-        with:
-          python-version: 3.11
-
-      - name: Install dependencies
+      - name: Verify installed packages
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          . venv/bin/activate
+          pip check
 
-      # Build the Docker image
-      - name: Build Docker image
+      - name: Run linters
         run: |
-          docker build -t transcendence .
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # Log in to Docker Hub
-      - name: Deploy to Docker Hub
+          . venv/bin/activate
+          flake8 .
         env:
-          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-          DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
-        run: |
-          echo "${DOCKER_HUB_PASSWORD}" | docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin
-          docker tag transcendence ${DOCKER_HUB_USERNAME}/transcendence:latest
-          docker push ${DOCKER_HUB_USERNAME}/transcendence:latest
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Deploy to the server
-      - name: Deploy to server
+  run-tests:
+    needs: lint-project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
         run: |
-          ssh user@server "docker pull ${DOCKER_HUB_USERNAME}/transcendence:latest && docker-compose up --build -d"
+          python -m venv venv
+          . venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          . venv/bin/activate
+          pytest --maxfail=1 --disable-warnings
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-test-image:
+    needs: run-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: abbastoof
+          password: ${{ secrets.GH_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository }}:feature/015-game-history-microservice
+
+  merge-develop:
+    runs-on: ubuntu-latest
+    needs: publish-test-image
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Fetch all branches
+        run: git fetch --all
+
+      - name: Merge branches into develop
+        run: |
+          git checkout develop
+          git merge feature/015-game-history-microservice
+          # Add other branches as needed
+          git push origin develop
