@@ -6,14 +6,17 @@ RUN apk add --no-cache python3 py3-pip
 # Set the working directory
 WORKDIR /app
 
-# Copy the application code
-COPY . /app
+# Copy the project requirements file
+COPY ./requirements.txt /app/requirements.txt
 
 # Create and activate a virtual environment, then install dependencies
 RUN python3 -m venv /app/venv
 RUN /app/venv/bin/pip install --upgrade pip
 RUN /app/venv/bin/pip install setuptools==58.0.4 wheel
-RUN /app/venv/bin/pip install -r /requirements.txt
+RUN /app/venv/bin/pip install -r /app/requirements.txt
+
+# Copy the rest of the application code
+COPY . /app
 
 # Set permissions and user
 RUN addgroup -S www-data && adduser -S www-data -G www-data && \
