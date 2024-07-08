@@ -3,6 +3,8 @@ import django
 from django.conf import settings
 import pytest
 from datetime import timedelta
+from django.core.management import call_command
+
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'game_history.settings')
 
@@ -12,7 +14,7 @@ if not settings.configured:
         DATABASES={
             "default": {
                 "ENGINE": "django.db.backends.postgresql",
-                "NAME": "postgres",
+                "NAME": "test_game_history_db",
                 "USER": "root",
                 "PASSWORD": "root",
                 "PORT": "5432",
@@ -93,10 +95,11 @@ django.setup()
 def django_db_setup():
     settings.DATABASES['default'] = {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
+        'NAME': 'test_game_history_db',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
         'HOST': 'localhost',
         'PORT': '5432',
         'ATOMIC_REQUESTS': True,
     }
+    call_command('migrate')
