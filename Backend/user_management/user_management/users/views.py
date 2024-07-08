@@ -24,7 +24,7 @@ class UserViewSet(viewsets.ViewSet):
         Attributes:
             authentication_classes: The list of authentication classes to use for the view.
             permission_classes: The list of permission classes to use for the view.
-        
+
         Methods:
             users_list: Method to get the list of users.
             retrieve_user: Method to retrieve a user.
@@ -32,7 +32,7 @@ class UserViewSet(viewsets.ViewSet):
             destroy_user: Method to delete a user.
             handle_rabbitmq_request: Method to handle the RabbitMQ request.
             start_consumer: Method to start the RabbitMQ consumer.
-    
+
     """
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -40,9 +40,9 @@ class UserViewSet(viewsets.ViewSet):
     def users_list(self, request) -> Response:
         """
             Method to get the list of users.
-            
+
             This method gets the list of users from the database and returns the list of users.
-            
+
             Args:
                 request: The request object.
 
@@ -64,7 +64,7 @@ class UserViewSet(viewsets.ViewSet):
             Args:
                 request: The request object.
                 pk: The primary key of the user.
-            
+
             Returns:
                 Response: The response object containing the user data.
         """
@@ -75,13 +75,13 @@ class UserViewSet(viewsets.ViewSet):
     def update_user(self, request, pk=None) -> Response:
         """
             Method to update a user.
-            
+
             This method updates a user in the database using the user id and the data in the request.
-            
+
             Args:
                 request: The request object containing the user data.
                 pk: The primary key of the user.
-                
+
             Returns:
                 Response: The response object containing the updated user data.
         """
@@ -97,13 +97,13 @@ class UserViewSet(viewsets.ViewSet):
     def destroy_user(self, request, pk=None) -> Response:
         """
             Method to delete a user.
-            
+
             This method deletes a user from the database using the user id.
-            
+
             Args:
                 request: The request object.
                 pk: The primary key of the user.
-                
+
             Returns:
                 Response: The response object containing the status of the deletion.
         """
@@ -121,18 +121,18 @@ class UserViewSet(viewsets.ViewSet):
     def handle_rabbitmq_request(ch, method, properties, body) -> None:
         """
             Method to handle the RabbitMQ request.
-            
+
             This method handles the RabbitMQ request by authenticating the user and sending the response message.
-            
+
             Args:
                 ch: The channel object.
                 method: The method object.
                 properties: The properties object.
                 body: The body of the message.
-                
+
             Returns:
                 None
-            
+
         """
         payload = json.loads(body)
         username = payload.get("username")
@@ -160,7 +160,7 @@ class UserViewSet(viewsets.ViewSet):
 class RegisterViewSet(viewsets.ViewSet):
     """
         RegisterViewSet class to handle user registration.
-        
+
         This class inherits from ViewSet. It defines the method to handle user registration.
 
         Attributes:
@@ -179,7 +179,6 @@ class RegisterViewSet(viewsets.ViewSet):
 
             Args:
                 request: The request object containing the user data.
-            
             Returns:
                 Response: The response object containing the user data.
         """
