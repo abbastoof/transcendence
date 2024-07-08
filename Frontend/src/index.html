@@ -21,7 +21,6 @@
     <script src="js/modals/profile.js"></script>
     <script src="js/modals/signup.js"></script>
     <script src="js/modals/login.js"></script>
-    <script src="js/modals/tournament.js"></script>
     <script src="js/stars.js"></script>
 
     <div class="headerContainer">
@@ -201,40 +200,14 @@
 
     <!-- Tournament Modal -->
     <script>
-        createModal('tournament',
-                    `<form id="playerForm" class="Form">
-                        <p class="font">Select number of players:</p>
-                        <div class="row justify-content-center">
-                            <div class="col-md-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="playerCount" id="2vs2" value="2">
-                                    <label class="form-check-label font" for="2vs2">2</label>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="playerCount" id="4vs4" value="4">
-                                    <label class="form-check-label font" for="4vs4">4</label>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="playerCount" id="6vs6" value="6">
-                                    <label class="form-check-label font" for="6vs6">6</label>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="playerCount" id="8vs8" value="8">
-                                    <label class="form-check-label font" for="8vs8">8</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="playerAliasInputs" style="display: none;">
-                            <!-- Player alias inputs will be dynamically added here -->
-                        </div>
-                        <button type="submit" class="submit">Play</button>
-                    </form>`);
+        fetch('tournamentModal.html')
+            .then(response => response.text())
+            .then(html => {
+                createModal('tournament', html);
+            })
+            .catch(error => {
+                console.error('Error loading the tournament modal:', error);
+            });
     </script>
 
 
@@ -335,7 +308,7 @@
     <!-- About Modal -->
     <script>
         createModal('about', `
-                <div class="modal-body">
+                <div>
                     <p class="aboutTitle">Creators</p>
                     <div><a class="aboutText" href="https://github.com/vmustone">Ville</a></div>
                     <div><a class="aboutText" href="https://github.com/mtoof/mtoof?tab=readme-ov-file">Mojtaba</a></div>
@@ -355,7 +328,7 @@
         };
     </script>
 
-
+<script src="js/modals/tournament.js"></script>
 </body>
 
 </html>
