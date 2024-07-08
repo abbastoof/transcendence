@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,7 +16,7 @@
 </head>
 
 <body>
-    
+
     <div class="headerContainer">
         <svg width="1000" height="150" viewBox="0 -30 506 120" xmlns="http://www.w3.org/2000/svg">
             <g id="logo" vector-effect="non-scaling-stroke">
@@ -177,20 +178,80 @@
             0 164.497 15.888 A 0.641 0.641 0 0 0 164.844 15.381 Z M 196.631 41.211 L 195.654 43.018 L 200.635 42.676 Q 201.345 39.498 201.769 36.95 A 66.041 66.041 0 0 0 202.002 35.449 A 
             1.02 1.02 0 0 0 201.96 35.243 Q 201.69 34.427 200.051 36.367 A 20.196 20.196 0 0 0 199.78 36.694 A 45.839 45.839 0 0 0 198.418 38.458 Q 197.8 39.303 197.312 40.068 A 20.554 
             20.554 0 0 0 196.631 41.211 Z M 258.936 20.605 Q 262.061 20.264 262.207 14.99 Q 261.361 15.079 260.252 15.959 A 9.448 9.448 0 0 0 260.034 16.138 A 3.174 3.174 0 0 0 259.11 
-            17.496 Q 258.789 18.365 258.789 19.58 A 3.55 3.55 0 0 0 258.936 20.605 Z"/>
+            17.496 Q 258.789 18.365 258.789 19.58 A 3.55 3.55 0 0 0 258.936 20.605 Z" />
             </g>
         </svg>
     </div>
 
     <div class="buttonContainer col-md-12">
-        <button type="button" class="buttons">Play</button>
-        <button type="button" class="buttons">Tournament</button>
+        <button type="button" class="buttons">Local Game</button>
+        <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#tournamentModal">Local
+            Tournament</button>
         <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#logInModal">Log in</button>
         <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#aboutModal">About</button>
+        <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#ProfileModal">Profile</button>
     </div>
 
+    <!-- Tournament Modal -->
+    <div class="modal fade" id="tournamentModal" tabindex="-1" role="dialog" aria-labelledby="tournamentModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header row col-md-12">
+                    <div class="col-md-2"></div>
+                    <div class="col-md-8">
+                        <h2 style="text-align: center;" class="modal-title" id="signUpModalLabel">Tournament</h2>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" data-bs-dismiss="modal" class="close" ; aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <form id="playerForm" class="Form">
+                        <div class="row row-cols-4">
+                            <div class="col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="playerCount" id="2vs2" value="4">
+                                    <label class="form-check-label font" for="2vs2">2vs2</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="playerCount" id="4vs4" value="8">
+                                    <label class="form-check-label font" for="4vs4">4vs4</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="playerCount" id="6vs6"
+                                        value="12">
+                                    <label class="form-check-label font" for="6vs6">6vs6</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="playerCount" id="8vs8"
+                                        value="16">
+                                    <label class="form-check-label font" for="8vs8">8vs8</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="playerAliasInputs" style="display: none;">
+                            <!-- Player alias inputs will be dynamically added here -->
+                        </div>
+                        <button type="submit" class="submit">Play</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Sign up Modal -->
-    <div class="modal fade" id="signUpModal" tabindex="-1" role="dialog" aria-labelledby="signUpModalLabel" aria-hidden="true">
+    <div class="modal fade" id="signUpModal" tabindex="-1" role="dialog" aria-labelledby="signUpModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header row col-md-12">
@@ -199,53 +260,18 @@
                         <h2 style="text-align: center;" class="modal-title" id="signUpModalLabel">Sign up</h2>
                     </div>
                     <div class="col-md-4">
-                        <button type="button" data-bs-dismiss="modal" class="close"; aria-label="Close">
+                        <button type="button" data-bs-dismiss="modal" class="close" ; aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                 </div>
-                <div class="stars">
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>    
+                <div id="signupstars" class="stars">
+                    <script src="js/stars.js"></script>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', () => {
+                            generateStars('#signupstars', 20);
+                        });
+                    </script>
                 </div>
 
                 <div class="modal-body">
@@ -254,22 +280,26 @@
                         <!-- Email field -->
                         <div class="form-group">
                             <label class="labelFont" for="signUpEmail">Email</label>
-                            <input type="email" class="form-control" id="signUpEmail" placeholder="Enter email" required>
+                            <input type="email" class="form-control" id="signUpEmail" placeholder="Enter email"
+                                required>
                         </div>
                         <!-- Username field -->
                         <div class="form-group">
                             <label class="labelFont" for="signUpUsername">Username</label>
-                            <input type="text" class="form-control" id="signUpUsername" placeholder="Enter username"required>
+                            <input type="text" class="form-control" id="signUpUsername" placeholder="Enter username"
+                                required>
                         </div>
                         <!-- Password field -->
                         <div class="form-group">
                             <label class="labelFont" for="signUpPassword">Password</label>
-                            <input type="password" class="form-control" id="signUpPassword" placeholder="Enter password"required>
+                            <input type="password" class="form-control" id="signUpPassword" placeholder="Enter password"
+                                required>
                         </div>
                         <!-- Re-enter Password field -->
                         <div class="form-group">
                             <label class="labelFont" for="signUpRePassword">Re-enter Password</label>
-                            <input type="password" class="form-control" id="signUpRePassword" placeholder="Re-enter password"required>
+                            <input type="password" class="form-control" id="signUpRePassword"
+                                placeholder="Re-enter password" required>
                         </div>
                         <button type="submit" class="submit">Sign up</button>
                     </form>
@@ -279,7 +309,8 @@
     </div>
 
     <!-- Login Modal -->
-    <div class="modal fade" id="logInModal" tabindex="-1" role="dialog" aria-labelledby="logInModalLabel" aria-hidden="true">
+    <div class="modal fade" id="logInModal" tabindex="-1" role="dialog" aria-labelledby="logInModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header row col-md-12">
@@ -293,48 +324,13 @@
                         </button>
                     </div>
                 </div>
-                <div class="stars">
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
+                <div id="loginstars" class="stars">
+                    <script src="js/stars.js"></script>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', () => {
+                            generateStars('#loginstars', 20);
+                        });
+                    </script>
                 </div>
                 <div class="modal-body">
                     <!-- Login Form -->
@@ -342,18 +338,21 @@
                         <!-- Username field -->
                         <div class="form-group">
                             <label class="labelFont" for="logInUsername">Username</label>
-                            <input type="text" class="form-control" id="logInUsername" placeholder="Enter username" required>
+                            <input type="text" class="form-control" id="logInUsername" placeholder="Enter username"
+                                required>
                         </div>
                         <!-- Password field -->
                         <div class="form-group">
                             <label class="labelFont" for="logInPassword">Password</label>
-                            <input type="password" class="form-control" id="logInPassword" placeholder="Enter password" required>
+                            <input type="password" class="form-control" id="logInPassword" placeholder="Enter password"
+                                required>
                         </div>
                         <button type="submit" class="submit">Log in</button>
                     </form>
                     <div class="row mt-3 text-center">
                         <p class="font">
-                            Don't have an account? <a href="#" class="signup-link" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#signUpModal">Sign up</a>
+                            Don't have an account? <a href="#" class="signup-link" data-bs-dismiss="modal"
+                                data-bs-toggle="modal" data-bs-target="#signUpModal">Sign up</a>
                         </p>
                     </div>
                 </div>
@@ -362,7 +361,8 @@
     </div>
 
     <!-- About Modal -->
-    <div class="modal fade" id="aboutModal" tabindex="-1" role="dialog" aria-labelledby="aboutModalLabel" aria-hidden="true">
+    <div class="modal fade" id="aboutModal" tabindex="-1" role="dialog" aria-labelledby="aboutModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header row col-md-12">
@@ -376,48 +376,13 @@
                         </button>
                     </div>
                 </div>
-                <div class="stars">
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
-                    <div class="star"></div>
+                <div id="aboutstars" class="stars">
+                    <script src="js/stars.js"></script>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', () => {
+                            generateStars('#aboutstars', 20);
+                        });
+                    </script>
                 </div>
                 <div class="modal-body">
                     <p class="aboutTitle">creators</p>
@@ -433,11 +398,40 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/signup.js"></script>
-    <script src="js/login.js"></script>
+    <!-- Profile Modal -->
+    <div class="modal fade" id="ProfileModal" tabindex="-1" role="dialog" aria-labelledby="ProfileModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header row col-md-12">
+                    <div class="col-md-4"></div>
+                    <div class="col-md-4">
+                        <h2 style="text-align: center;" class="modal-title" id="ProfileModalLabel">Profile</h2>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="button" data-bs-dismiss="modal" class="close" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div id="profilestars" class="stars">
+                        <script src="js/stars.js"></script>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', () => {
+                                generateStars('#profilestars', 20);
+                            });
+                        </script>
+                    </div>
+                    <div class="modal-body">
+                    </div>
+                </div>
+            </div>
+        </div>
 
-
-
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="js/signup.js"></script>
+        <script src="js/login.js"></script>
+        <script src="js/tournament.js"></script>
+        <script src="js/stars.js"></script>
 </body>
+
 </html>
