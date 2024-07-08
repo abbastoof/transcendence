@@ -30,8 +30,23 @@ sleep 5
 
 # Create a new PostgreSQL user and set the password
 psql -c "CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASS}';"
-psql -c "GRANT ALL PRIVILEGES ON SCHEMA public TO ${DB_USER};"
-psql -c "GRANT ALL PRIVILEGES ON DATABASE postgres TO ${DB_USER};"
+# psql -c "GRANT ALL PRIVILEGES ON SCHEMA public TO ${DB_USER};"
+# psql -c "GRANT ALL PRIVILEGES ON DATABASE postgres TO ${DB_USER};"
+
+# Grant all necessary privileges to the user
+psql -c "ALTER USER ${DB_USER} CREATEDB;"
+psql -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${DB_USER};"
+psql -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ${DB_USER};"
+psql -c "GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO ${DB_USER};"
+
+# Create the database named test_game_stats_db.
+psql -c "CREATE DATABASE test_game_stats_db OWNER ${DB_USER};"
+psql -c "GRANT ALL PRIVILEGES ON DATABASE test_game_stats_db TO ${DB_USER};"
+
+# Run Django migrations
+cd /app
+source venv/bin/activate
+python manage.py migrate
 
 # Stop the PostgreSQL server after setting the password
 pg_ctl stop -D /var/lib/postgresql/data
