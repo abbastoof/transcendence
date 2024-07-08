@@ -1,0 +1,34 @@
+name: Merge to Develop
+
+on:
+  push:
+    branches:
+      - 'feature/*'
+      - 'fix/*'
+      - 'refactor/*'
+      - 'chore/*'
+
+jobs:
+  merge-to-develop:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch all branches
+        run: git fetch --all
+
+      - name: Merge branches into develop
+        run: |
+          BRANCHES=$(git for-each-ref --format '%(refname:short)' refs/heads/feature refs/heads/fix refs/heads/refactor refs/heads/chore)
+          for branch in $BRANCHES; do
+            git checkout develop
+            git merge $branch --no-ff -m "Merging $branch into develop"
+          done
+          git push origin develop
