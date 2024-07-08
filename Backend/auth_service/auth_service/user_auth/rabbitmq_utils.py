@@ -2,7 +2,7 @@ import json
 import pika
 from django.conf import settings
 
-# Singleton pattern for managing RabbitMQ connection
+
 class RabbitMQManager:
     _connection = None
 
