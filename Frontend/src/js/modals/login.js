@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    var logInModal = new bootstrap.Modal(document.getElementById('logInModal'));
+    var loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
     var logoutModal = new bootstrap.Modal(document.getElementById('logoutModal'));
     var authButton = document.getElementById('authButton');
 
@@ -32,12 +32,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Login form submit event listener
-    document.getElementById('logInForm').addEventListener('submit', function(event) {
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
         event.preventDefault(); // Prevent form submission
 
         // Get form values
-        const username = document.getElementById('logInUsername').value;
-        const password = document.getElementById('logInPassword').value;
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
 
         // Send data to the server
         fetch('https://localhost:3000/auth/login/', {
@@ -59,8 +59,8 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.setItem('userData', JSON.stringify({ id: data.id, token: data.access, refresh: data.refresh }));
             localStorage.setItem('isLoggedIn', 'true'); // Save login state to localStorage ! change this to variable in backend
             
-            logInModal.hide(); // Close the modal on success
-            document.getElementById('logInForm').reset(); // Reset form fields
+            loginModal.hide(); // Close the modal on success
+            document.getElementById('loginForm').reset(); // Reset form fields
             isLoggedIn = true; // Update login state
             updateAuthButton();
             addProfileButton(); // Add profile button on login
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to show error message
     function showErrorMessage(message) {
         // Remove any existing error message
-        const existingErrorMessage = document.querySelector('#logInModal .ErrorMessage');
+        const existingErrorMessage = document.querySelector('#loginModal .ErrorMessage');
         if (existingErrorMessage) {
             existingErrorMessage.remove();
         }
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
         errorSpan.textContent = message;
 
         // Insert the error message before the modal body
-        var modalBody = document.querySelector('#logInModal .modal-body');
+        var modalBody = document.querySelector('#loginModal .modal-body');
         modalBody.parentNode.insertBefore(errorSpan, modalBody);
 
         // Hide the error message after 5 seconds
@@ -99,14 +99,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Function to clear password field
     function clearPasswordField() {
-        document.getElementById('logInPassword').value = '';
+        document.getElementById('loginPassword').value = '';
     }
 
     // Reset form fields and hide error message when modal is hidden (on modal close)
-    logInModal._element.addEventListener('hidden.bs.modal', function () {
-        document.getElementById('logInForm').reset();
+    loginModal._element.addEventListener('hidden.bs.modal', function () {
+        document.getElementById('loginForm').reset();
         // Remove any error messages
-        const errorSpans = document.querySelectorAll('#logInModal .ErrorMessage');
+        const errorSpans = document.querySelectorAll('#loginModal .ErrorMessage');
         errorSpans.forEach(function(errorSpan) {
             errorSpan.remove();
         });
@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             authButton.textContent = 'Log in';
             authButton.setAttribute('data-bs-toggle', 'modal');
-            authButton.setAttribute('data-bs-target', '#logInModal');
+            authButton.setAttribute('data-bs-target', '#loginModal');
             removeProfileButton(); // Remove profile button if logged out
         }
     }

@@ -194,31 +194,17 @@
         <button type="button" class="buttons">Local Game</button>
         <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#tournamentModal">Local
             Tournament</button>
-        <button type="button" class="buttons" id="authButton" data-bs-toggle="modal" data-bs-target="#logInModal">Log
+        <button type="button" class="buttons" id="authButton" data-bs-toggle="modal" data-bs-target="#loginModal">Log
             in</button>
         <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#aboutModal">About</button>
     </div>
 
     <!-- Tournament Modal -->
-    <div class="modal fade" id="tournamentModal" tabindex="-1" role="dialog" aria-labelledby="tournamentModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header row col-md-12">
-                    <div class="col-md-2"></div>
-                    <div class="col-md-8">
-                        <h2 style="text-align: center;" class="modal-title" id="signUpModalLabel">Tournament</h2>
-                    </div>
-                    <div class="col-md-2">
-                        <button type="button" data-bs-dismiss="modal" class="close" ; aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="modal-body">
-                    <p class="font">Select number of players:</p>
-                    <form id="playerForm" class="Form">
-                        <div class="row row-cols-4">
+    <script>
+        createModal('tournament',
+                    `<form id="playerForm" class="Form">
+                        <p class="font">Select number of players:</p>
+                        <div class="row justify-content-center">
                             <div class="col-md-3">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="playerCount" id="2vs2" value="2">
@@ -248,11 +234,9 @@
                             <!-- Player alias inputs will be dynamically added here -->
                         </div>
                         <button type="submit" class="submit">Play</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+                    </form>`);
+    </script>
+
 
 
     <!-- Sign up Modal -->
@@ -314,83 +298,54 @@
     </div>
 
     <!-- Login Modal -->
-    <div class="modal fade" id="logInModal" tabindex="-1" role="dialog" aria-labelledby="logInModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header row col-md-12">
-                    <div class="col-md-4"></div>
-                    <div class="col-md-4">
-                        <h2 style="text-align: center;" class="modal-title" id="logInModalLabel">Log in</h2>
-                    </div>
-                    <div class="col-md-4">
-                        <button type="button" data-bs-dismiss="modal" class="close" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                </div>
-                <div id="loginstars" class="stars">
-                    <script>
-                        document.addEventListener('DOMContentLoaded', () => {
-                            generateStars('#loginstars', 20);
-                        });
-                    </script>
-                </div>
-                <div class="modal-body">
-                    <!-- Login Form -->
-                    <form id="logInForm">
-                        <!-- Username field -->
+    <script>
+        createModal('login', `
+                    <form id="loginForm" class="text-center">
                         <div class="form-group">
-                            <label class="labelFont" for="logInUsername">Username</label>
-                            <input type="text" class="form-control" id="logInUsername" placeholder="Enter username"
-                                required>
+                            <label class="labelFont" for="loginUsername">Username</label>
+                            <input type="text" class="form-control" id="loginUsername" placeholder="Enter username" required>
                         </div>
-                        <!-- Password field -->
                         <div class="form-group">
-                            <label class="labelFont" for="logInPassword">Password</label>
-                            <input type="password" class="form-control" id="logInPassword" placeholder="Enter password"
-                                required>
+                            <label class="labelFont" for="loginPassword">Password</label>
+                            <input type="password" class="form-control" id="loginPassword" placeholder="Enter password" required>
                         </div>
-                        <button type="submit" class="submit">Log in</button>
+                        <button type="submit" class="submit btn btn-primary">Log in</button>
                     </form>
-                    <div class="row mt-3 text-center">
-                        <p class="font">
-                            Don't have an account? <a href="#" class="signup-link" data-bs-dismiss="modal"
-                                data-bs-toggle="modal" data-bs-target="#signUpModal">Sign up</a>
-                        </p>
-                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
+                <div class="row mt-3">
+                    <p class="font text-center">
+                        Don't have an account? <a href="#" class="signup-link" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#signUpModal">Sign up</a>
+                    </p>
+                `);
+    </script>
 
 
     <!-- Logout Confirmation Modal -->
     <script>
         createModal('logout', `
-            <div class="modal-body">
-                <p class="ErrorMessage">Are you sure you want to log out?</p>
-            </div>
-            <div class="submitContainer">
-                <button type="button" class="submit" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="submit" onclick="confirmLogout()">Yes, Log out</button>
-            </div>`);
+                <div class="modal-body">
+                    <p class="ErrorMessage">Are you sure you want to log out?</p>
+                </div>
+                <div class="submitContainer">
+                    <button type="button" class="submit" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="submit" onclick="confirmLogout()">Yes, Log out</button>
+                </div>`);
     </script>
 
     <!-- About Modal -->
     <script>
         createModal('about', `
-            <div class="modal-body">
-                <p class="aboutTitle">Creators</p>
-                <div><a class="aboutText" href="https://github.com/vmustone">Ville</a></div>
-                <div><a class="aboutText" href="https://github.com/mtoof/mtoof?tab=readme-ov-file">Mojtaba</a></div>
-                <div><a class="aboutText" href="https://github.com/abbastoof">Abbas</a></div>
-                <div><a class="aboutText" href="https://github.com/Sir-Eli">Elina</a></div>
-                <div><a class="aboutText" href="https://github.com/trsctr">Otto</a></div>
-                <div><a class="aboutText" href="https://github.com/jhesso">Juho</a></div>
-                <div><a class="aboutText" href="https://github.com/fotogiorgo">Jorgo</a></div>
-                <div><a class="aboutText" href="https://github.com/nicktvdd">Nick</a></div>
-            </div>`);
+                <div class="modal-body">
+                    <p class="aboutTitle">Creators</p>
+                    <div><a class="aboutText" href="https://github.com/vmustone">Ville</a></div>
+                    <div><a class="aboutText" href="https://github.com/mtoof/mtoof?tab=readme-ov-file">Mojtaba</a></div>
+                    <div><a class="aboutText" href="https://github.com/abbastoof">Abbas</a></div>
+                    <div><a class="aboutText" href="https://github.com/Sir-Eli">Elina</a></div>
+                    <div><a class="aboutText" href="https://github.com/trsctr">Otto</a></div>
+                    <div><a class="aboutText" href="https://github.com/jhesso">Juho</a></div>
+                    <div><a class="aboutText" href="https://github.com/fotogiorgo">Jorgo</a></div>
+                    <div><a class="aboutText" href="https://github.com/nicktvdd">Nick</a></div>
+                </div>`);
     </script>
 
     <!-- Profile Modal -->

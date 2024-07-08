@@ -1,23 +1,25 @@
 function createModal(modalId, content) {
     const modalHTML = `
-        <div class="modal fade" id="${modalId}Modal" tabindex="-1" role="dialog" aria-labelledby="${modalId}ModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header row col-md-12">
-                        <div class="col-md-4"></div>
-                        <div class="col-md-4">
-                            <h2 style="text-align: center;" class="modal-title" id="${modalId}Label">${modalId}</h2>
-                        </div>
-                        <div class="col-md-4">
-                            <button type="button" data-bs-dismiss="modal" class="close" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div id="${modalId}Content">
-                        ${content}
+    <div class="modal fade" id="${modalId}Modal" tabindex="-1" role="dialog" aria-labelledby="${modalId}ModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="col-md-4"></div>
+                    <div class="col-md-4 d-flex justify-content-center">
+                        <h2 class="modal-title" id="${modalId}Label">${modalId}</h2>
+                    </div>
+                    <div class="col-md-4 text-right">
+                        <button type="button" data-bs-dismiss="modal" class="close" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
                 </div>
+                <div class="modal-body" id="${modalId}Content">
+                    ${content}
+                </div>
             </div>
-        </div>`;
+        </div>
+    </div>`;
 
     // Append the modal to the body
     document.body.insertAdjacentHTML('beforeend', modalHTML);
