@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 	"rest_framework",
-    "user_session",
+    "profile_app",
     "rest_framework_simplejwt",
     "corsheaders",
 ]

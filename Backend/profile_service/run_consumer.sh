@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # URL of the Django application
-DJANGO_URL="http://localhost:8004/api/logout/"
+DJANGO_URL="http://localhost:8004/user/logout/"
 
 # Wait until Django server is available
 while ! curl -s "${DJANGO_URL}" >/dev/null; do

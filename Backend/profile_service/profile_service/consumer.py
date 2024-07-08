@@ -7,7 +7,7 @@ django.setup()
 
 
 def start_consumer():
-    from user_session.views import ValidateToken
+    from profile_app.views import ValidateToken
 
     ValidateToken().start_consumer()
 

@@ -3,4 +3,4 @@ from django.apps import AppConfig
 
 class UserSessionConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'user_session'
+    name = 'profile_app'

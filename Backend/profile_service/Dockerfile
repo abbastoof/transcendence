@@ -40,6 +40,6 @@ RUN chown -R postgres:postgres /etc/supervisor && \
 
 USER postgres
 
-HEALTHCHECK --interval=30s --timeout=2s --start-period=5s --retries=3 CMD curl -sSf http://localhost:8004/api/logout/ > /dev/null &&  echo "success" || echo "failure"
+HEALTHCHECK --interval=30s --timeout=2s --start-period=5s --retries=3 CMD curl -sSf http://localhost:8004/user/logout/ > /dev/null &&  echo "success" || echo "failure"
 
 ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
