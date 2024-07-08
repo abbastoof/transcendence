@@ -116,3 +116,6 @@ __pycache__/
 # Ignore Pytest cache
 pytest_cache/
 .pytest_cache/
+node_modules/
+package-lock.json
+package.json
