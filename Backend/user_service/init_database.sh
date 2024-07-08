@@ -25,10 +25,12 @@ exec postgres -D /var/lib/postgresql/data &
 # Wait for PostgreSQL to start (you may need to adjust the sleep time)
 sleep 5
 
-# Create a new PostgreSQL user and set the password
+# Create a new PostgreSQL user and set the passwordd
 psql -c "CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASS}';"
 psql -c "GRANT ALL PRIVILEGES ON SCHEMA public TO ${DB_USER};"
+psql -c "ALTER USER ${DB_USER} CREATEDB;"
 psql -c "GRANT ALL PRIVILEGES ON DATABASE postgres TO ${DB_USER};"
+# psql -c "GRANT ALL PRIVILEGES ON DATABASE test_postgres TO ${DB_USER};"
 
 # Stop the PostgreSQL server after setting the password
 pg_ctl stop -D /var/lib/postgresql/data

@@ -116,7 +116,12 @@ DATABASES = {
         "USER": "root",
         "PASSWORD": "root",
         "PORT": "5432",
-    }
+        "ATOMIC_REQUESTS": True,
+        "TEST": {
+            "NAME": "mytestdatabase",
+            "ATOMIC_REQUESTS": True,
+        },
+    },
 }
 
 
