@@ -9,10 +9,13 @@ WORKDIR /app
 # Copy the project requirements file
 COPY ./requirements.txt /app/requirements.txt
 
-# Create and activate a virtual environment, then install dependencies
+# Create and activate a virtual environment
 RUN python3 -m venv /app/venv
-RUN /app/venv/bin/pip install --upgrade pip
-RUN /app/venv/bin/pip install setuptools==58.0.4 wheel
+
+# Ensure setuptools and wheel are installed in the virtual environment
+RUN /app/venv/bin/pip install --upgrade pip setuptools wheel
+
+# Install the project dependencies
 RUN /app/venv/bin/pip install -r /app/requirements.txt
 
 # Copy the rest of the application code
