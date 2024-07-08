@@ -22,12 +22,12 @@ def test_create_game_history(api_client):
     response = api_client.post(url, data, format='json') # send a POST request to the URL with the data as the request body
     assert response.status_code == status.HTTP_201_CREATED
     assert GameHistory.objects.count() == 1 # Objects count should be 1 after creating a new GameHistory object in the database
-    game_history = GameHistory.objects.first() # Get the first GameHistory object from the database
-    assert game_history.player1_id == 1
-    assert game_history.player2_id == 2
-    assert game_history.winner_id == 1
-    assert game_history.start_time.isoformat() == '2024-07-03T12:00:00+00:00'
-    assert game_history.end_time is not None
+    game_history = GameHistory.objects.first() # Get the first GameHistory object from the database (there should be only one) because we just created it
+    assert game_history.player1_id == 1 # The player1_id should be 1 because we set it to 1 in the data
+    assert game_history.player2_id == 2 # The player2_id should be 2 because we set it to 2 in the data
+    assert game_history.winner_id == 1 # The winner_id should be 1 because we set it to 1 in the data
+    assert game_history.start_time.isoformat() == '2024-07-03T12:00:00+00:00' # The start_time should be '2024-07-03T12:00:00+00:00' because we set it to that value in the data
+    assert game_history.end_time is None
 
 @pytest.mark.django_db
 def test_list_game_histories(api_client):

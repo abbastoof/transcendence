@@ -37,15 +37,10 @@ RUN touch /var/log/django.log /var/log/django.err /var/log/init_database.log /va
     chown -R postgres:postgres /var/log/django.log /var/log/django.err /var/log/init_database.log /var/log/init_database.err
 
 # Ensure supervisord and scripts are executable and owned by postgres
-# RUN chown -R postgres:postgres /etc/supervisor && \
-#     chown -R postgres:postgres /usr/bin/supervisord && \
-#     chown -R postgres:postgres /etc/supervisor/conf.d/supervisord.conf && \
 RUN chown -R postgres:postgres /app && \
     chown -R postgres:postgres /var/log && \
     chown -R postgres:postgres /app/venv && \
     chown -R postgres:postgres /app/game_history
-    # chown -R postgres:postgres /app/game_data
-    # chmod +x /usr/bin/supervisord
 
 USER postgres
 

@@ -1,9 +1,9 @@
 from django.db import models
 
-class GameStats(models.Model):
+class game_dataGameStats(models.Model):
     game_id = models.AutoField(primary_key=True)
-    player1_score = models.IntegerField(unique=True)
-    player2_score = models.IntegerField(unique=True)
+    player1_score = models.IntegerField()
+    player2_score = models.IntegerField()
     total_hits = models.IntegerField()
     longest_rally = models.IntegerField()
 

@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from .models import GameStats
+from .models import game_dataGameStats
 
 class GameStatsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = GameStats
+        model = game_dataGameStats
         fields = '__all__'
