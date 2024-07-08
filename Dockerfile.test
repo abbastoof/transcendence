@@ -1,34 +1,29 @@
 FROM alpine:3.20
 
-# Install Python, pip, and other dependencies
-RUN apk add --no-cache python3 py3-pip
+# Install Python and pip
+RUN apk add --no-cache python3 py3-pip && \
+    python3 -m ensurepip && \
+    ln -sf python3 /usr/bin/python && \
+    pip install --upgrade pip && \
+    pip install virtualenv
 
-# Set the working directory
+# Create and activate virtual environment
+RUN python3 -m venv /venv
+
+# Ensure setuptools and wheel are installed in virtual environments before installing requirements
+RUN /venv/bin/pip install --upgrade setuptools wheel
+
+# Copy requirements and install within virtual environment
+COPY ./requirements.txt /requirements.txt
+RUN /venv/bin/pip install -r /requirements.txt
+
 WORKDIR /app
 
-# Copy the project requirements file
-COPY ./requirements.txt /app/requirements.txt
-
-# Create and activate a virtual environment
-RUN python3 -m venv /app/venv
-
-# Ensure setuptools and wheel are installed in the virtual environment
-RUN /app/venv/bin/pip install --upgrade pip setuptools wheel
-
-# Install the project dependencies
-RUN /app/venv/bin/pip install -r /app/requirements.txt
-
-# Copy the rest of the application code
 COPY . /app
 
-# Set permissions and user
 RUN addgroup -S www-data && adduser -S www-data -G www-data && \
     chown -R www-data:www-data /app
 
 USER www-data
 
-# Expose the application port
-EXPOSE 8000
-
-# Default command
-CMD ["/app/venv/bin/python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["/venv/bin/pytest", "--maxfail=1", "--disable-warnings"]
