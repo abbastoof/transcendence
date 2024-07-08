@@ -21,4 +21,4 @@ typing-extensions==4.12.1; python_version <= '3.12'
 django-environ
 daphne
 pytest-django
-postgresql
+pytest-mock
