@@ -30,7 +30,7 @@ python3 /app/game_history/manage.py makemigrations
 python3 /app/game_history/manage.py migrate
 
 # Run pytest with explicit PYTHONPATH
-PYTHONPATH=/app pytest -vv
+# PYTHONPATH=/app pytest -vv
 
 # Start the Django application
 cd /app/game_history

@@ -37,7 +37,6 @@ ALLOWED_HOSTS = [
     '[::1]',
     'game-history',
     'game-history:8002',
-    'testserver',
 ]
 
 
@@ -120,6 +119,14 @@ DATABASES = {
         "USER": "root",
         "PASSWORD": "root",
         "PORT": "5432",
+        "ATOMIC_REQUESTS": True,
+        "TEST": {
+            "NAME": "test_game_history",
+            "USER": "root",
+            "PASSWORD": "root",
+            "PORT": "5432",
+            "ATOMIC_REQUESTS": True,
+        },
     }
 }
 
