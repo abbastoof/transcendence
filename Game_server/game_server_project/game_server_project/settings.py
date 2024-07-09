@@ -69,7 +69,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'game_server_project.wsgi.application'
+ASGI_APPLICATION = 'game_server_project.asgi.application'
 
 
 # Database
