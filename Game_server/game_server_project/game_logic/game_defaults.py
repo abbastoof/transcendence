@@ -1,7 +1,7 @@
 # default settings for game entities
 # values are based on what is in the threejs prototype, but we will find sweet spots later
 
-PADDLE_WIDTH = 50
+PADDLE_WIDTH = 90
 PADDLE_DEPTH = 16
 
 BALL_RADIUS = 6

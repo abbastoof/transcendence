@@ -1,6 +1,8 @@
 import math
 from entities.position import Position
 from game_defaults import *
+from entities.paddle import Paddle
+import logging
 # Ball class
 # Represents a ball in the game
 # Properties:
@@ -88,9 +90,17 @@ class Ball:
         self.set_deltas()
 
     def set_deltas(self) -> None:
-        radians: float = math.radians(self._direction)
-        self._delta_x = math.cos(radians) * self._speed
-        self._delta_z = math.sin(radians) * self._speed
+        radians: float = math.radians(self.direction)
+        self._delta_x = math.cos(radians) * self.speed
+        self._delta_z = math.sin(radians) * self.speed
+    
+    @property
+    def delta_x(self) -> float:
+        return self._delta_x
+    
+    @property
+    def delta_z(self) -> float:
+        return self._delta_z
     
     # speed_up method
     # increases the speed of the ball by the given increment
@@ -100,8 +110,8 @@ class Ball:
     # update_position method
     # updates the position of the ball based on its speed and direction
     def update_position(self) -> None:
-        self._position.x += self._delta_x
-        self._position.z += self._delta_z
+        self._position.x += self.delta_x
+        self._position.z += self.delta_z
     
     # check_collision method
     # checks if the ball has collided with a given object
@@ -116,14 +126,80 @@ class Ball:
         return False
  
     def bounce_from_paddle(self, paddle):
-        self.direction = (180 - self.direction) % 360
-        # determine new direction for the ball when it hits the paddle. see game design doc
-        # taking paddle as argument to calculate the new angle based on where the ball hits the paddle
+        logging.info(f"Bouncing from paddle, paddle pos: x {paddle.position.x}, z {paddle.position.z} ")
+        logging.info(f"Ball pos x: {self.x}, z: {self.z}")
+        logging.info(f"Ball deltas before bounce: x {self.delta_x}, z {self.delta_z}")
+        
+        self.direction = self.direction % 360
+        logging.info(f"Ball direction before bounce: {self.direction}")
+        
+    # Calculate hit position normalization
+        hitpos = (self.z - paddle.position.z) / (paddle.width / 2)
+
+        adjustment = self.direction % 45 + 5 * abs(hitpos)
+        logging.info(f"hitpos variable: {hitpos}")
+        logging.info(f"adjustment: {adjustment}")
+        if hitpos >= 0 and hitpos < 0.2 or hitpos < 0 and hitpos > -.2:
+            self.direction = 1 + (hitpos * 10) if self.delta_x < 0.0 else 183 + 5 * hitpos
+        else:
+            if self.delta_z < 0.0:
+                if self.direction > 270:
+                    if hitpos > 0.0:
+                        self.direction = 170 - adjustment
+                    else:
+                        self.direction = 190 + adjustment
+                else:
+                    if hitpos > 0.0:
+                        self.direction = 10 + adjustment
+                    else:
+                        self.direction = 350 - adjustment
+            else:
+                if self.direction > 90:
+                    if hitpos > 0.0:
+                        self.direction = 10 + adjustment
+                    else:
+                        self.direction = 350 - adjustment
+                else:
+                    if hitpos > 0.0:
+                        self.direction = 170 - adjustment
+                    else:
+                        self.direction = 190 + adjustment
+                
+
+        logging.info(f"Direction after bounce: {self.direction}")
+        logging.info(f"Deltas after bounce: x {self.delta_x}, y {self.delta_z}")
+        #conditions
+        # direction -90 - 0 / 270 - 360 aka bottomright
+        # if hitpos < 0
+        # desired angle between 180 & 270 aka bottom left
+        # if hitpos > 0
+        # desired angle between 90 & 180 aka top left
+        
+        # direction 180 - 270 aka bottom left
+        # if hitpos < 0
+        # desired angle between 270 & 360 aka bottom right
+        # if hitpos > 0
+        # desired angle between 0 & 90 aka top right
+        
+        # direction 0 - 90 aka top right
+        # if hitpos > 0
+        # desired angle between 90 & 180 aka top left
+        # if hitpos < 0 
+        # desired angle between 180 & 270 aka bottom left
+
+        # direction 90 - 180 aka top left
+        # if hitpos > 0
+        # desired angle between 0 & 90 aka top right
+        # if hitpos < 0
+        # desired angle between 180 & 270 aka
+
+
+        #taking paddle as argument to calculate the new angle based on where the ball hits the paddle
     
     # bounce_from_wall method
     # reflects the direction of the ball when it bounces from a wall
     def bounce_from_wall(self) -> None:
-        self.direction = (360 - self._direction) % 360
+        self.direction = (360 - self.direction) % 360
         # reflects the direction when ball bounces from wall
 
     # def reset_ball(self):

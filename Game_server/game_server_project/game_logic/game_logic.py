@@ -2,8 +2,10 @@ from entities.gamestate import GameState
 from entities.player import Player
 from game_defaults import *
 from entities.ball import Ball
+import logging
 
 def main():
+    logging.basicConfig(filename='bong.log', level=logging.INFO)
     run_game(1, 1, 2)
 
 def init_game(game_id: int, player1_id: int, player2_id: int) -> GameState:
