@@ -1,6 +1,6 @@
 import math
 from entities.position import Position
-
+from game_defaults import *
 # Ball class
 # Represents a ball in the game
 # Properties:
@@ -105,11 +105,18 @@ class Ball:
     
     # check_collision method
     # checks if the ball has collided with a given object
-    def check_collision(self, object):
+    def check_collision(self, paddle):
         # collision checking algorithm, can be wall or paddle
-        return False # (or False)
+        if(self._position.x > 0 + PADDLE_DEPTH and self._position.x < FIELD_DEPTH - PADDLE_DEPTH):
+            return False # (or False)
+        paddle_z_bottom = paddle.z - PADDLE_WIDTH / 2 
+        paddle_z_top = paddle_z_bottom + PADDLE_WIDTH
+        if (self._position.z >= paddle_z_bottom and self._position.z <= paddle_z_top):
+            return True
+        return False
  
-    # def bounce_from_paddle(self, paddle):
+    def bounce_from_paddle(self, paddle):
+        self.direction = (180 - self.direction) % 360
         # determine new direction for the ball when it hits the paddle. see game design doc
         # taking paddle as argument to calculate the new angle based on where the ball hits the paddle
     
