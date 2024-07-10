@@ -40,7 +40,8 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         """
         data = json.loads(body)
         username = data.get("username")
-        user = type('User', (object,), {"id": 1, "username": username})
+        id = data.get("id")
+        user = type('User', (object,), {"id": id, "username": username})
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
         publish_message("user_token_response_queue", json.dumps({"refresh": str(refresh), "access": access_token}))
@@ -61,7 +62,7 @@ class CustomTokenRefreshView(TokenRefreshView):
                 request: The request object.
 
             Returns:
-                Response: The response object containing the new access token.    
+                Response: The response object containing the new access token.
         """
         bearer = request.headers.get("Authorization")
         if not bearer or not bearer.startswith('Bearer '):

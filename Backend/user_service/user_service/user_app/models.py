@@ -1,5 +1,5 @@
 from django.contrib.auth.models import AbstractUser
-
+from django.db import models
 # Create your models here.
 
 
@@ -14,4 +14,5 @@ class User(AbstractUser):
 
         Email: The email field is required for the user model.
     """
+    friends = models.ManyToManyField("self", null=True, symmetrical=True)
     REQUIRED_FIELDS = ["email"]

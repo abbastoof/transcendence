@@ -1,5 +1,6 @@
 import json
-
+import jwt
+from django.conf import settings
 from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
@@ -9,7 +10,7 @@ from rest_framework import status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
-
+from rest_framework import status
 from .models import User
 from .rabbitmq_utils import consume_message, publish_message
 from .serializers import UserSerializer
@@ -59,7 +60,7 @@ class UserViewSet(viewsets.ViewSet):
             return Response(serializer.data)
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
-                
+
 
     def retrieve_user(self, request, pk=None) -> Response:
         """
@@ -98,12 +99,15 @@ class UserViewSet(viewsets.ViewSet):
         try:
             self.send_data_to_user_service(request)
             data = get_object_or_404(User, id=pk)
-            if data != request.user and not request.user.is_superuser:
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
+            # if data != request.user and not request.user.is_superuser:
+            #     return Response(status=status.HTTP_401_UNAUTHORIZED)
             serializer = UserSerializer(instance=data, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            # if User updated Username should send message to all microservices to update the username related to this user using Kafka
             serializer.save()
+            # if User updated Username should send message to all microservices to update the username related to this user using Kafka
+            friends_data = request.data.get("friends")
+            if friends_data is not None:
+                data.friends.set(friends_data)
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)

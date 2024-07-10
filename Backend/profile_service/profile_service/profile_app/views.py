@@ -16,13 +16,13 @@ class UserSessionViewClass(viewsets.ViewSet):
         """
             Post method to generate tokens for the user.
 
-            This method overrides the post method of TokenObtainPairView to generate tokens for the user. 
+            This method overrides the post method of TokenObtainPairView to generate tokens for the user.
             It sends a request to the user service to validate the user credentials
             and get the user data. It then generates the tokens for the user and returns the tokens in the response.
 
             Args:
                 request: The request object.
-            
+
             Returns:
                 Response: The response object containing the tokens.
         """
@@ -41,7 +41,7 @@ class UserSessionViewClass(viewsets.ViewSet):
 
         # Define a callback function to process the message
         def handle_response(ch, method, properties, body):
-            nonlocal user_data
+            nonlocal user_data #
             user_data.update(json.loads(body))
             ch.stop_consuming()
 
@@ -60,7 +60,7 @@ class UserSessionViewClass(viewsets.ViewSet):
                             "refresh":serializer["token_data"]["refresh"],
                             "access":serializer["token_data"]["access"]}
         except UserTokens.DoesNotExist:
-            publish_message("user_token_request_queue", json.dumps({"username": username}))
+            publish_message("user_token_request_queue", json.dumps({"id": user_data["id"], "username": username}))
 
             user_token_data = {}
 
@@ -68,15 +68,15 @@ class UserSessionViewClass(viewsets.ViewSet):
                 nonlocal user_token_data
                 user_token_data.update(json.loads(body))
                 ch.stop_consuming()
-            
+
             consume_message("user_token_response_queue", handle_token_response)
 
             if "error" in user_token_data:
                 return Response(
                     {"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED
                 )
-            
-            response_messsage = {"id": user_data["id"], 
+
+            response_messsage = {"id": user_data["id"],
                             "refresh":user_token_data["refresh"],
                             "access":user_token_data["access"]}
 
@@ -89,9 +89,9 @@ class UserSessionViewClass(viewsets.ViewSet):
             })
 
             if serializer.is_valid():
-                serializer.save()            
+                serializer.save()
         return Response(response_messsage, status=status.HTTP_200_OK)
-        
+
 
     def logout(self, request, *args, **kwargs) -> Response:
         """
@@ -101,7 +101,7 @@ class UserSessionViewClass(viewsets.ViewSet):
 
             Args:
                 request: The request object.
-            
+
             Returns:
                 Response: The response object containing the message.
         """
@@ -112,7 +112,7 @@ class UserSessionViewClass(viewsets.ViewSet):
         user_id = request.data.get("id")
         user = get_object_or_404(UserTokens, id=user_id)
         user.delete()
-        return Response({'detail': 'Successfully logged out'}, status=status.HTTP_200_OK)    
+        return Response({'detail': 'Successfully logged out'}, status=status.HTTP_200_OK)
 
 class ValidateToken():
     @staticmethod
@@ -125,7 +125,7 @@ class ValidateToken():
 
             Args:
                 access_token: The refresh token to validate.
-            
+
             Returns:
                 bool: True if the token is valid, False otherwise.
         """
@@ -136,7 +136,7 @@ class ValidateToken():
             return False
         except jwt.InvalidTokenError:
             return False
-    
+
     def validate_token_request_queue(self, ch, method, properties, body):
         """
             Method to handle the token validation request.

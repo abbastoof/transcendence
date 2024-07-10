@@ -10,13 +10,13 @@ from .validators import CustomPasswordValidator
 class UserSerializer(serializers.ModelSerializer):
     """
         UserSerializer class to define the user serializer.
-        
+
         This class defines the user serializer to serialize the user data.
-        
+
         Attributes:
             email: The email field.
             Meta: The meta class to define the model and fields for the serializer.
-            
+
             Methods:
                 create: Method to create a new user.
                 update: Method to update a user.
@@ -24,10 +24,13 @@ class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
+    friends = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=User.objects.all(), required=False # required=False means that the field is not required
+    )
 
     class Meta:
         model = User
-        fields = ["id", "username", "email", "password"]
+        fields = ["id", "username", "email", "password", "friends"]
         extra_kwargs = {"password": {"write_only": True}}
 
         ### Password should be strong password, minimum 8 characters, at least one uppercase letter, one lowercase letter, one number and one special character
@@ -37,10 +40,10 @@ class UserSerializer(serializers.ModelSerializer):
             Method to create a new user.
 
             This method creates a new user with the given data.
-            The password is validated using CustomPasswordValidator. 
+            The password is validated using CustomPasswordValidator.
             The password is hashed before saving the user object.
             Args:
-                validate_data: The data to validate. 
+                validate_data: The data to validate.
 
             Returns:
                 User: The user object.
@@ -59,20 +62,20 @@ class UserSerializer(serializers.ModelSerializer):
     def update(self, instance, validate_data) -> User:
         """
             Method to update a user.
-            
+
             This method updates a user with the given data.
             The password is hashed before saving the user object.
-            
+
             Args:
                 instance: The user object.
                 validate_data: The data to validate.
-                
+
             Returns:
                 User: The updated user object.
-                
+
             Raises:
                 serializers.ValidationError: If the password is the same as the current password.
-                
+
         """
         for attr, value in validate_data.items():
             if attr == "password" and value is not None:
