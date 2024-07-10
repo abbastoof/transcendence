@@ -173,7 +173,7 @@ class GameState:
         self.current_rally += 1
         self.ball.update_position()
         self.handle_collisions()
-        self.render()
+        # self.render()
         # print("ball x: " + str(self.ball.x))
         # print("ball z: " + str(self.ball.z))
         if self.check_goal() == True:
@@ -235,16 +235,14 @@ class GameState:
     # and gives it a random direction
     def reset_ball(self):
         if self.ball.x < 0:
-            self.ball.direction = random.randrange(-70, 70) #random direction towards player 2 
+            self.ball.direction = random.randrange(-40, 40) #random direction towards player 2 
         elif self.ball.x > 400:                             # THIS NEEDS TO BESWAPPED
-            self.ball.direction = random.randrange(110, 250)  #random direction towards player 1
+            self.ball.direction = random.randrange(140, 220)  #random direction towards player 1
         else:
             if random.random() >= .5:
-                self.ball.direction = random.randrange(-70, 70)
+                self.ball.direction = random.randrange(-12, 12)
             else:
-                self.ball.direction = random.randrange(110, 250)
-        #self.ball.direction = 0
-        # print("Ball reset to angle " + str(self.ball.direction))
+                self.ball.direction = random.randrange(168, 192)
         self.ball.position = BALL_DEFAULT_X, 0, BALL_DEFAULT_Z
 
     # run_rally method

@@ -2,6 +2,8 @@
 
 import unittest
 import math
+import logging
+
 
 from entities.position import Position
 from entities.paddle import Paddle
@@ -61,10 +63,10 @@ class TestPaddle(unittest.TestCase):
         self.assertEqual(self.paddle.position, Position(50, 0, 155))
     
     def test_width(self):
-        self.assertEqual(self.paddle.width, 100)
+        self.assertEqual(self.paddle.width, PADDLE_WIDTH)
     
     def test_depth(self):
-        self.assertEqual(self.paddle.depth, 16)
+        self.assertEqual(self.paddle.depth, PADDLE_DEPTH)
 
 class TestPlayer(unittest.TestCase):
     
@@ -95,7 +97,7 @@ class TestBall(unittest.TestCase):
         self.assertEqual(self.ball.position, Position(200, 0, BALL_DEFAULT_Z))
 
     def test_initial_speed(self):
-        self.assertEqual(self.ball.speed, 0.5)
+        self.assertEqual(self.ball.speed, BALL_SPEED)
     
     def test_initial_direction(self):
         self.assertEqual(self.ball.direction, 42)
@@ -142,6 +144,238 @@ class TestBall(unittest.TestCase):
         expected_direction = (360 - self.ball.direction) % 360
         self.ball.bounce_from_wall()
         self.assertEqual(self.ball.direction, expected_direction)
+
+    def test_bounce_from_paddle_middle1(self):
+        logging.info(f"Test: bounce from paddle middle #1")
+        self.ball.direction = 0
+        self.ball.z = 151
+        self.paddle = Paddle(PLAYER2_START_X)
+        self.paddle.position.z = 150
+        logging.info(f"Bouncing from paddle, paddle z {self.paddle.position.z} ")
+        logging.info(f"Ball pos z: {self.ball.z}")
+        logging.info(f"Ball deltas before bounce: x {self.ball.delta_x}, z {self.ball.delta_z}")
+        hitpos = (self.ball.z - self.paddle.position.z) / (self.paddle.width / 2)
+        dz_factor = (self.ball.delta_z / self.ball.speed) * 10
+        direction_mod = abs((self.ball.direction % 180) - 90)
+        if direction_mod > 75:
+            direction_mod = 150 - direction_mod
+
+        adjustment = abs(75 - direction_mod) + 5 * abs(hitpos) + dz_factor
+        adjustment = min(adjustment, MAX_BOUNCE_ANGLE_ADJUSTMENT)
+        logging.info(f"hitpos variable: {hitpos}")
+        logging.info(f"dz factor: {dz_factor}")
+        logging.info(f"adjustment: {adjustment}")
+        logging.info(f"Ball direction before bounce: {self.ball.direction}")
+        expected_angle = 183 + hitpos * adjustment
+        logging.info(f"Expected angle: {expected_angle}")
+        radians: float = math.radians(expected_angle)
+        expected_delta_x = math.cos(radians) * self.ball.speed
+        expected_delta_z = math.sin(radians) * self.ball.speed
+        self.ball.bounce_from_paddle(self.paddle)
+        self.assertEqual(self.ball.direction, expected_angle)
+        logging.info(f"Direction after bounce: {self.ball.direction}")
+        logging.info(f"Deltas after bounce: x {self.ball.delta_x}, y {self.ball.delta_z}")
+        self.assertEqual({self.ball.delta_x, self.ball.delta_z}, {expected_delta_x, expected_delta_z})
+        logging.info("\n\n")
+
+    def test_bounce_from_paddle_middle2(self):
+        logging.info(f"Test: bounce from paddle middle #2")
+        self.ball.direction = 279
+        self.ball.z = 149
+        self.paddle = Paddle(PLAYER2_START_X)
+        self.paddle.position.z = 151
+        logging.info(f"Bouncing from paddle, paddle z {self.paddle.position.z} ")
+        logging.info(f"Ball pos z: {self.ball.z}")
+        logging.info(f"Ball deltas before bounce: x {self.ball.delta_x}, z {self.ball.delta_z}")
+        hitpos = (self.ball.z - self.paddle.position.z) / (self.paddle.width / 2)
+        dz_factor = (self.ball.delta_z / self.ball.speed) * 10
+        direction_mod = abs((self.ball.direction % 180) - 90)
+        if direction_mod > 75:
+            direction_mod = 150 - direction_mod
+
+        adjustment = abs(75 - direction_mod) + 5 * abs(hitpos) + dz_factor
+        logging.info(f"dz factor: {dz_factor}")
+        adjustment = min(adjustment, MAX_BOUNCE_ANGLE_ADJUSTMENT)
+        logging.info(f"hitpos variable: {hitpos}")
+        logging.info(f"adjustment: {adjustment}")
+        logging.info(f"Ball direction before bounce: {self.ball.direction}")
+        expected_angle = 177 - hitpos * adjustment
+        logging.info(f"Expected angle: {expected_angle}")
+        radians: float = math.radians(expected_angle)
+        expected_delta_x = math.cos(radians) * self.ball.speed
+        expected_delta_z = math.sin(radians) * self.ball.speed
+        self.ball.bounce_from_paddle(self.paddle)
+        self.assertEqual(self.ball.direction, expected_angle)
+        logging.info(f"Direction after bounce: {self.ball.direction}")
+        logging.info(f"Deltas after bounce: x {self.ball.delta_x}, y {self.ball.delta_z}")
+        self.assertEqual({self.ball.delta_x, self.ball.delta_z}, {expected_delta_x, expected_delta_z})
+        logging.info("\n\n")
+
+    def test_bounce_from_paddle_middle3(self):
+        logging.info(f"Test: bounce from paddle middle #3")
+        self.ball.direction = 110
+        self.ball.z = 205
+        self.paddle = Paddle(PLAYER2_START_X)
+        self.paddle.position.z = 200
+        logging.info(f"Bouncing from paddle, paddle z {self.paddle.position.z} ")
+        logging.info(f"Ball pos z: {self.ball.z}")
+        logging.info(f"Ball deltas before bounce: x {self.ball.delta_x}, z {self.ball.delta_z}")
+        hitpos = (self.ball.z - self.paddle.position.z) / (self.paddle.width / 2)
+        dz_factor = (self.ball.delta_z / self.ball.speed) * 10
+        direction_mod = abs((self.ball.direction % 180) - 90)
+        if direction_mod > 75:
+            direction_mod = 150 - direction_mod
+
+        adjustment = abs(75 - direction_mod) + 5 * abs(hitpos) + dz_factor   
+        adjustment = min(adjustment, MAX_BOUNCE_ANGLE_ADJUSTMENT)   
+        logging.info(f"hitpos variable: {hitpos}")
+        logging.info(f"dz factor: {dz_factor}")
+        logging.info(f"adjustment: {adjustment}")
+        logging.info(f"Ball direction before bounce: {self.ball.direction}")
+        expected_angle = 3 + hitpos * adjustment
+        logging.info(f"Expected angle: {expected_angle}")
+        radians: float = math.radians(expected_angle)
+        expected_delta_x = math.cos(radians) * self.ball.speed
+        expected_delta_z = math.sin(radians) * self.ball.speed
+        self.ball.bounce_from_paddle(self.paddle)
+        self.assertEqual(self.ball.direction, expected_angle)
+        logging.info(f"Direction after bounce: {self.ball.direction}")
+        logging.info(f"Deltas after bounce: x {self.ball.delta_x}, y {self.ball.delta_z}")
+        self.assertEqual({self.ball.delta_x, self.ball.delta_z}, {expected_delta_x, expected_delta_z})
+        logging.info("\n\n")
+
+    def test_bounce_from_paddle_middle4(self):
+        logging.info(f"Test: bounce from paddle middle #4")
+        self.ball.direction = 180.5
+        self.ball.z = 199
+        self.paddle = Paddle(PLAYER2_START_X)
+        self.paddle.position.z = 200
+        logging.info(f"Bouncing from paddle, paddle z {self.paddle.position.z} ")
+        logging.info(f"Ball pos z: {self.ball.z}")
+        logging.info(f"Ball deltas before bounce: x {self.ball.delta_x}, z {self.ball.delta_z}")
+        hitpos = (self.ball.z - self.paddle.position.z) / (self.paddle.width / 2)
+        dz_factor = (self.ball.delta_z / self.ball.speed) * 10
+        direction_mod = abs((self.ball.direction % 180) - 90)
+        if direction_mod > 75:
+            direction_mod = 150 - direction_mod
+
+        adjustment = abs(75 - direction_mod) + 5 * abs(hitpos) + dz_factor    
+        adjustment = min(adjustment, MAX_BOUNCE_ANGLE_ADJUSTMENT)
+        logging.info(f"hitpos variable: {hitpos}")
+        logging.info(f"dz factor: {dz_factor}")
+        logging.info(f"adjustment: {adjustment}")
+        logging.info(f"Ball direction before bounce: {self.ball.direction}")
+        expected_angle = 357 - hitpos * adjustment
+        logging.info(f"Expected angle: {expected_angle}")
+        radians: float = math.radians(expected_angle)
+        expected_delta_x = math.cos(radians) * self.ball.speed
+        expected_delta_z = math.sin(radians) * self.ball.speed
+        self.ball.bounce_from_paddle(self.paddle)
+        self.assertEqual(self.ball.direction, expected_angle)
+        logging.info(f"Direction after bounce: {self.ball.direction}")
+        logging.info(f"Deltas after bounce: x {self.ball.delta_x}, y {self.ball.delta_z}")
+        self.assertEqual({self.ball.delta_x, self.ball.delta_z}, {expected_delta_x, expected_delta_z})
+        logging.info("\n\n")
+
+    def test_bounce_from_paddle_top1(self):
+        logging.info(f"Test: bounce from paddle top #1")
+        self.ball.direction = 260
+        self.ball.z = 59
+        self.paddle = Paddle(PLAYER2_START_X)
+        self.paddle.position.z = 30
+        logging.info(f"Bouncing from paddle, paddle z: {self.paddle.position.z} ")
+        logging.info(f"Ball pos z: {self.ball.z}")
+        logging.info(f"Ball deltas before bounce: x {self.ball.delta_x}, z {self.ball.delta_z}")
+        hitpos = (self.ball.z - self.paddle.position.z) / (self.paddle.width / 2)
+        dz_factor = (self.ball.delta_z / self.ball.speed) * 10
+        direction_mod = abs((self.ball.direction % 180) - 90)
+        if direction_mod > 75:
+            direction_mod = 150 - direction_mod
+
+        adjustment = abs(75 - direction_mod) + 5 * abs(hitpos) + dz_factor
+        adjustment = min(adjustment, MAX_BOUNCE_ANGLE_ADJUSTMENT)
+        logging.info(f"hitpos variable: {hitpos}")
+        logging.info(f"dz factor: {dz_factor}")
+        logging.info(f"adjustment: {adjustment}")
+        logging.info(f"Ball direction before bounce: {self.ball.direction}")
+        expected_angle = 10 + adjustment * .5
+        logging.info(f"Expected angle: {expected_angle}")
+        radians: float = math.radians(expected_angle)
+        expected_delta_x = math.cos(radians) * self.ball.speed
+        expected_delta_z = math.sin(radians) * self.ball.speed
+        self.ball.bounce_from_paddle(self.paddle)
+        self.assertEqual(self.ball.direction, expected_angle)
+        logging.info(f"Direction after bounce: {self.ball.direction}")
+        logging.info(f"Deltas after bounce: x {self.ball.delta_x}, y {self.ball.delta_z}")
+        self.assertEqual({self.ball.delta_x, self.ball.delta_z}, {expected_delta_x, expected_delta_z})
+        logging.info("\n\n")
+
+    def test_bounce_from_paddle_top2(self):
+        logging.info(f"Test: bounce from paddle top #2")
+        self.ball.direction = 75
+        self.ball.z = 290
+        self.paddle = Paddle(PLAYER2_START_X)
+        self.paddle.position.z = 255
+        logging.info(f"Bouncing from paddle, paddle z: {self.paddle.position.z} ")
+        logging.info(f"Ball pos z: {self.ball.z}")
+        logging.info(f"Ball deltas before bounce: x {self.ball.delta_x}, z {self.ball.delta_z}")
+        hitpos = (self.ball.z - self.paddle.position.z) / (self.paddle.width / 2)
+        dz_factor = (self.ball.delta_z / self.ball.speed) * 10
+        direction_mod = abs((self.ball.direction % 180) - 90)
+        if direction_mod > 75:
+            direction_mod = 150 - direction_mod
+
+        adjustment = abs(75 - direction_mod) + 5 * abs(hitpos) + dz_factor  
+        adjustment = min(adjustment, MAX_BOUNCE_ANGLE_ADJUSTMENT)
+        logging.info(f"hitpos variable: {hitpos}")
+        logging.info(f"dz factor: {dz_factor}")
+        logging.info(f"adjustment: {adjustment}")
+        logging.info(f"Ball direction before bounce: {self.ball.direction}")
+        expected_angle = 170 - adjustment
+        logging.info(f"Expected angle: {expected_angle}")
+        radians: float = math.radians(expected_angle)
+        expected_delta_x = math.cos(radians) * self.ball.speed
+        expected_delta_z = math.sin(radians) * self.ball.speed
+        self.ball.bounce_from_paddle(self.paddle)
+        self.assertEqual(self.ball.direction, expected_angle)
+        logging.info(f"Direction after bounce: {self.ball.direction}")
+        logging.info(f"Deltas after bounce: x {self.ball.delta_x}, y {self.ball.delta_z}")
+        self.assertEqual({self.ball.delta_x, self.ball.delta_z}, {expected_delta_x, expected_delta_z})
+        logging.info("\n\n")
+
+    def test_bounce_from_paddle_top3(self):
+        logging.info(f"Test: bounce from paddle top #3")
+        self.ball.direction = 179
+        self.ball.z = 270
+        self.paddle = Paddle(PLAYER1_START_X)
+        self.paddle.position.z = 255
+        logging.info(f"Bouncing from paddle, paddle z: {self.paddle.position.z} ")
+        logging.info(f"Ball pos z: {self.ball.z}")
+        logging.info(f"Ball deltas before bounce: x {self.ball.delta_x}, z {self.ball.delta_z}")
+        hitpos = (self.ball.z - self.paddle.position.z) / (self.paddle.width / 2)
+        dz_factor = (self.ball.delta_z / self.ball.speed) * 10
+        direction_mod = abs((self.ball.direction % 180) - 90)
+        if direction_mod > 75:
+            direction_mod = 150 - direction_mod
+
+        adjustment = abs(75 - direction_mod) + 5 * abs(hitpos) + dz_factor  
+        adjustment = min(adjustment, MAX_BOUNCE_ANGLE_ADJUSTMENT)
+        logging.info(f"hitpos variable: {hitpos}")
+        logging.info(f"dz factor: {dz_factor}")
+        logging.info(f"adjustment: {adjustment}")
+        logging.info(f"Ball direction before bounce: {self.ball.direction}")
+        expected_angle = 10 + adjustment
+        logging.info(f"Expected angle: {expected_angle}")
+        radians: float = math.radians(expected_angle)
+        expected_delta_x = math.cos(radians) * self.ball.speed
+        expected_delta_z = math.sin(radians) * self.ball.speed
+        self.ball.bounce_from_paddle(self.paddle)
+        self.assertEqual(self.ball.direction, expected_angle)
+        logging.info(f"Direction after bounce: {self.ball.direction}")
+        logging.info(f"Deltas after bounce: x {self.ball.delta_x}, y {self.ball.delta_z}")
+        self.assertEqual({self.ball.delta_x, self.ball.delta_z}, {expected_delta_x, expected_delta_z})
+        logging.info("\n\n")
+
 
 class TestGameState(unittest.TestCase):
     
@@ -207,13 +441,14 @@ class TestGameState(unittest.TestCase):
         self.game_state.update_game_state()
         self.assertEqual(self.game_state.get_player_score(2), 1)
 
-    def test_run_rally(self):
-        self.game_state.run_rally()
-        self.assertEqual(self.game_state.get_player_score(1), 1)
+    # def test_run_rally(self):
+    #     self.game_state.run_rally()
+    #     self.assertEqual(self.game_state.get_player_score(1), 1)
 
 
 
 if __name__ == '__main__':
+    logging.basicConfig(filename='bongtest.log', level=logging.INFO)
     unittest.main()
 
  

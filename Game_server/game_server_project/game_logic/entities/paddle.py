@@ -9,7 +9,7 @@ from game_defaults import *
 #    - depth: the depth of the paddle (read only)
 class Paddle:
     def __init__(self, x_position: float):
-        self._position: Position = Position(x_position, 0, FIELD_WIDTH / 2)
+        self._position: Position = Position(x_position, 0, PLAYER_START_Z)
         self._width: float = PADDLE_WIDTH
         self._depth: float = PADDLE_DEPTH
     
