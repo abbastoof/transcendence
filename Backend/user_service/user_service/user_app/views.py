@@ -14,7 +14,7 @@ from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from .models import User, FriendRequest
 from .rabbitmq_utils import consume_message, publish_message
-from .serializers import UserSerializer
+from .serializers import UserSerializer, FriendSerializer
 
 
 class UserViewSet(viewsets.ViewSet):
@@ -255,11 +255,14 @@ class FriendsViewSet(viewsets.ViewSet):
 
     def send_friend_request(self, request, user_pk=None, pk=None):
         try:
-            current_user = get_object_or_404(User, id=user_pk)
-            receiver = get_object_or_404(User, id=pk)
+            if (user_pk == pk):
+                raise ValidationError(detail={"You can't send a friend request to yourself"}, code=status.HTTP_400_BAD_REQUEST)
+            current_user = get_object_or_404(User, id=user_pk) # current user is sending a request to the target
+            receiver = get_object_or_404(User, id=pk) # target user is the receiver of the request
+            # This FriendRequest.objects.get_or_create() function will get the object or create it
             friend_request, created = FriendRequest.objects.get_or_create(
-                receiver_user = current_user,
-                sender_user = receiver,
+                sender_user = current_user,
+                receiver_user = receiver,
                 status = 'pending'
             )
             if created:
@@ -272,12 +275,18 @@ class FriendsViewSet(viewsets.ViewSet):
     def accept_friend_request(self, request, user_pk=None, pk=None):
         try:
             current_user = get_object_or_404(User, id=user_pk)
-            pending_user = get_object_or_404(FriendRequest, id=pk)
-            if pending_user.receiver_user == current_user:
-                if pending_user.status == 'pending':
-                    pending_user.status = 'accepted'
-                    pending_user.accept()
-                    pending_user.save()
-            return Response({"detail": "Request accepted"}, status=status.HTTP_202_ACCEPTED)
+            sender_user = get_object_or_404(User, id=pk)
+            pending_requests = FriendRequest.objects.filter(receiver_user=current_user, sender_user=sender_user, status='pending') # filter returns a list
+            if pending_requests.exists(): # We can not use is not None instead used exists(), it is more efficient because it translates to a SELECT EXISTS SQL query
+                for request in pending_requests:
+                    request.accept()
+                return Response({"detail": "Request accepted"}, status=status.HTTP_202_ACCEPTED)
+            return Response({"detail": "No pending requests found"}, status=status.HTTP_404_NOT_FOUND)
         except User.DoesNotExist:
             return Response({"detail": "Invalid user_id"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def friend_requests(self, request, user_pk=None): # get user pending list
+        user = get_object_or_404(User, id = user_pk)
+        pending_requests = FriendRequest.objects.filter(receiver_user=user, status='pending') # filter returns a list
+        data = FriendSerializer(pending_requests, many=True)
+        return Response(data.data, status=status.HTTP_200_OK)

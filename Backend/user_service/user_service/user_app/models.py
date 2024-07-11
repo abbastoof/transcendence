@@ -14,7 +14,7 @@ class User(AbstractUser):
 
         Email: The email field is required for the user model.
     """
-    friends = models.ManyToManyField("self", null=True, symmetrical=True)
+    friends = models.ManyToManyField("self", blank=True, symmetrical=True)
     status = models.BooleanField(default=False)
     REQUIRED_FIELDS = ["email"]
 

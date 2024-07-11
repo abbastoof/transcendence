@@ -3,10 +3,14 @@ from django.core.exceptions import ValidationError
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from .models import User
+from .models import User, FriendRequest
 from .validators import CustomPasswordValidator
 
 
+class FriendSerializer(serializers.ModelSerializer):
+    class Meta: 
+        model=FriendRequest
+        fields = ["sender_user", "receiver_user", "status"]
 class UserSerializer(serializers.ModelSerializer):
     """
         UserSerializer class to define the user serializer.
