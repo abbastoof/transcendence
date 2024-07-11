@@ -11,6 +11,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from .models import User
 from .rabbitmq_utils import consume_message, publish_message
 from .serializers import UserSerializer
@@ -105,9 +106,6 @@ class UserViewSet(viewsets.ViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             # if User updated Username should send message to all microservices to update the username related to this user using Kafka
-            friends_data = request.data.get("friends")
-            if friends_data is not None:
-                data.friends.set(friends_data)
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
@@ -139,7 +137,7 @@ class UserViewSet(viewsets.ViewSet):
     def send_data_to_user_service(self, request) -> None:
         bearer = request.headers.get("Authorization")
         if not bearer or not bearer.startswith('Bearer '):
-            raise ValidationError({"error": "Access token is required"})
+            raise ValidationError(detail= "Access token is required", code=status.HTTP_400_BAD_REQUEST)
         access_token = bearer.split(' ')[1]
         publish_message("validate_token_request_queue", json.dumps({"access": access_token}))
 
@@ -153,9 +151,7 @@ class UserViewSet(viewsets.ViewSet):
         consume_message("validate_token_response_queue", handle_response)
 
         if "error" in response_data:
-            raise ValidationError(
-                {"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED
-            )
+            raise ValidationError(detail= "Invalid access token", code=status.HTTP_401_UNAUTHORIZED)
 
 
     @staticmethod  # This method is static because it doesn't need to access any instance variables
@@ -188,7 +184,9 @@ class UserViewSet(viewsets.ViewSet):
         if user is not None:
             # Check if the user is active
             if user.is_active:
-                serializer = UserSerializer(user)
+                serializer = UserSerializer(user, data={"status": True}, partial=True)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
                 response_message = {"id": serializer.data["id"], "username": serializer.data["username"]}
             else:
                 response_message = {"error": "User is inactive or staff"}
