@@ -7,6 +7,6 @@ urlpatterns = [
     path("user/",UserViewSet.as_view({"get": "users_list",}),name="users-list",),
     path("user/<int:pk>/",UserViewSet.as_view({"get": "retrieve_user","put": "update_user","delete": "destroy_user",}),name="user-detail",),
     path("user/<int:user_pk>/friends/", FriendsViewSet.as_view({"get": "friends_list"}), name="friends-list"),
-    path("user/<int:user_pk>/friends/<int:pk>/", FriendsViewSet.as_view({"delete": "remove_friend", "post": "add_friend"}), name="friends-list"),
+    path("user/<int:user_pk>/friends/<int:pk>/", FriendsViewSet.as_view({"put": "accept_friend_request", "post": "send_friend_request"}), name="friends-list"),
 
 ]

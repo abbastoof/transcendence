@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
-from .models import User
+from .models import User, FriendRequest
 from .rabbitmq_utils import consume_message, publish_message
 from .serializers import UserSerializer
 
@@ -243,12 +243,41 @@ class FriendsViewSet(viewsets.ViewSet):
     def remove_friend(self, request, user_pk=None, pk=None):
         pass
 
-    def add_friend(self, request, user_pk=None, pk=None):
+    # def add_friend(self, request, user_pk=None, pk=None):
+    #     try:
+    #         user = get_object_or_404(User, id=user_pk)
+    #         friend = get_object_or_404(User, id=pk)
+    #         user.friends.add(friend)
+    #         user.save()
+    #         return Response({"detail": "Friend added"}, status=status.HTTP_202_ACCEPTED)
+    #     except User.DoesNotExist:
+    #         return Response({"detail": "Invalid user_id"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def send_friend_request(self, request, user_pk=None, pk=None):
         try:
-            user = get_object_or_404(User, id=user_pk)
-            friend = get_object_or_404(User, id=pk)
-            user.friends.add(friend)
-            user.save()
-            return Response({"detail": "Friend added"}, status=status.HTTP_202_ACCEPTED)
+            current_user = get_object_or_404(User, id=user_pk)
+            receiver = get_object_or_404(User, id=pk)
+            friend_request, created = FriendRequest.objects.get_or_create(
+                receiver_user = current_user,
+                sender_user = receiver,
+                status = 'pending'
+            )
+            if created:
+                friend_request.save()
+                return Response({"detail": "Requested"}, status=status.HTTP_202_ACCEPTED)
+            return Response({"detail": f"Your request status is {friend_request.status}"}, status=status.HTTP_202_ACCEPTED)
+        except User.DoesNotExist:
+            return Response({"detail": "Invalid user_id"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def accept_friend_request(self, request, user_pk=None, pk=None):
+        try:
+            current_user = get_object_or_404(User, id=user_pk)
+            pending_user = get_object_or_404(FriendRequest, id=pk)
+            if pending_user.receiver_user == current_user:
+                if pending_user.status == 'pending':
+                    pending_user.status = 'accepted'
+                    pending_user.accept()
+                    pending_user.save()
+            return Response({"detail": "Request accepted"}, status=status.HTTP_202_ACCEPTED)
         except User.DoesNotExist:
             return Response({"detail": "Invalid user_id"}, status=status.HTTP_400_BAD_REQUEST)
