@@ -228,3 +228,27 @@ class RegisterViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class FriendsViewSet(viewsets.ViewSet):
+    def friends_list(self, request, user_pk=None):
+        user = get_object_or_404(User, id=user_pk)
+        if user is not None:
+            serializer = UserSerializer(user.friends.all(), many=True)
+            data = []
+            for item in serializer.data:
+                data.append({"username": item["username"], "status": item["status"]})
+            return Response(data, status=status.HTTP_200_OK)
+        return Response({"detail": "User not found"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def remove_friend(self, request, user_pk=None, pk=None):
+        pass
+
+    def add_friend(self, request, user_pk=None, pk=None):
+        try:
+            user = get_object_or_404(User, id=user_pk)
+            friend = get_object_or_404(User, id=pk)
+            user.friends.add(friend)
+            user.save()
+            return Response({"detail": "Friend added"}, status=status.HTTP_202_ACCEPTED)
+        except User.DoesNotExist:
+            return Response({"detail": "Invalid user_id"}, status=status.HTTP_400_BAD_REQUEST)
