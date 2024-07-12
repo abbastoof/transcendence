@@ -12,6 +12,7 @@ build:
 # Start all services
 .PHONY: up
 up:
+	mkdir -p database_volume
 	docker compose up -d --build
 
 # Stop all services
@@ -36,6 +37,7 @@ pull:
 # Remove stopped containers and unused images, networks, and volumes
 .PHONY: clean
 clean:
+	rm -rf /database_volume
 	docker system prune -f --all
 	docker volume prune -f
 	docker network prune -f

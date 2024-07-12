@@ -2,10 +2,17 @@ networks:
   transcendence_network:
     name: transcendence_network
     driver: bridge
-  
+
 volumes:
   www_data:
     name: www_data
+  database:
+    name: database
+    driver: local
+    driver_opts:
+      type: 'none'
+      device: '/home/ptoof/transcendence2/database_volume'
+      o: 'bind'
 
 services:
   rabbitmq:
@@ -34,7 +41,7 @@ services:
       - transcendence_network
     depends_on:
       - rabbitmq
-  
+
   user-service:
     container_name: user-service
     image: user-service
@@ -47,6 +54,7 @@ services:
       - transcendence_network
     volumes:
       - www_data:/www/avatars
+      - database:/var/lib/postgresql/
     depends_on:
       - rabbitmq
 

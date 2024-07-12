@@ -256,17 +256,6 @@ class FriendsViewSet(viewsets.ViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-
-    # def add_friend(self, request, user_pk=None, pk=None):
-    #     try:
-    #         user = get_object_or_404(User, id=user_pk)
-    #         friend = get_object_or_404(User, id=pk)
-    #         user.friends.add(friend)
-    #         user.save()
-    #         return Response({"detail": "Friend added"}, status=status.HTTP_202_ACCEPTED)
-    #     except User.DoesNotExist:
-    #         return Response({"detail": "Invalid user_id"}, status=status.HTTP_400_BAD_REQUEST)
-
     def send_friend_request(self, request, user_pk=None, pk=None):
         try:
             if (user_pk == pk):
@@ -280,27 +269,20 @@ class FriendsViewSet(viewsets.ViewSet):
             if existing_request:
                 if existing_request.sender_user == current_user:
                     existing_request.delete()
-                    return Response({"detail:" "Friend request canceled"}, status=status.HTTP_200_OK)
+                    return Response({"detail": "You withdrew your request"}, status=status.HTTP_200_OK)
                 else:
                     return Response({"detail": "You have a pending friend from this user."}, status=status.HTTP_400_BAD_REQUEST)
-
-            # friend_request, created = FriendRequest.objects.get_or_create(
-            #     sender_user = current_user,
-            #     receiver_user = receiver,
-            #     status = 'pending'
-            # )
             friend_request = FriendRequest.objects.create(
                 sender_user=current_user,
                 receiver_user=receiver,
                 status='pending'
             )
-            # if created:
-            #     friend_request.save()
             return Response({"detail": "Friend request sent"}, status=status.HTTP_202_ACCEPTED)
         except User.DoesNotExist:
             return Response({"detail": "Invalid user_id"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
     def accept_friend_request(self, request, user_pk=None, pk=None):
         try:
             current_user = get_object_or_404(User, id=user_pk)
@@ -310,6 +292,18 @@ class FriendsViewSet(viewsets.ViewSet):
                 for request in pending_requests:
                     request.accept()
                 return Response({"detail": "Request accepted"}, status=status.HTTP_202_ACCEPTED)
+            return Response({"detail": "No pending requests found"}, status=status.HTTP_404_NOT_FOUND)
+        except User.DoesNotExist:
+            return Response({"detail": "Invalid user_id"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def reject_friend_request(self, request, user_pk=None, pk=None):
+        try:
+            current_user = get_object_or_404(User, id=user_pk)
+            sender_user = get_object_or_404(User, id=pk)
+            pending_request = FriendRequest.objects.filter(receiver_user=current_user, sender_user=sender_user, status='pending').first() # filter returns a list
+            if pending_request: # We can not use is not None instead used exists(), it is more efficient because it translates to a SELECT EXISTS SQL query:
+                pending_request.reject()
+                return Response({"detail": "Request rejected"}, status=status.HTTP_202_ACCEPTED)
             return Response({"detail": "No pending requests found"}, status=status.HTTP_404_NOT_FOUND)
         except User.DoesNotExist:
             return Response({"detail": "Invalid user_id"}, status=status.HTTP_400_BAD_REQUEST)
