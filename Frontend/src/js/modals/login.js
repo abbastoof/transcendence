@@ -64,6 +64,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 isLoggedIn = true; // Update login state
                 updateAuthButton();
                 addProfileButton(); // Add profile button on login
+                updateUserProfile();
             })
             .catch(error => {
                 console.error('Error:', error);
