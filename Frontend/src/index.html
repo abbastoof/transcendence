@@ -24,12 +24,14 @@
     <script src="js/modals/login.js"></script>
     <script src="js/stars.js"></script>
 
-    <div class="headerContainer">
-        <script>
-                insert('.headerContainer', 'headerSVG.html');
-        </script>
-    </div>
+    <!-- Header and SVG -->
+    <div class="headerContainer"></div>
+    <script>
+        insert('.headerContainer', 'headerSVG.html');
+    </script>
 
+
+    <!-- Buttons -->
     <div class="buttonContainer col-md-12">
         <button type="button" class="buttons">Local Game</button>
         <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#tournamentModal">Local
@@ -40,13 +42,10 @@
     </div>
 
     <!-- Tournament Modal -->
-     <div class="tournament">
-        <script>
-            insertModal('.tournament', 'tournamentModal.html', 'tournament')
-        </script>
-     </div>
-
-
+    <div class="tournament"></div>
+    <script>
+        insertModal('.tournament', 'tournamentModal.html', 'tournament');
+    </script>
 
 
     <!-- Sign up Modal -->
@@ -128,7 +127,6 @@
                 `);
     </script>
 
-
     <!-- Logout Confirmation Modal -->
     <script>
         createModal('logout', `
@@ -142,19 +140,9 @@
     </script>
 
     <!-- About Modal -->
+    <div class="about"></div>
     <script>
-        createModal('about', `
-                <div>
-                    <p class="aboutTitle">Creators</p>
-                    <div><a class="aboutText" href="https://github.com/vmustone">Ville</a></div>
-                    <div><a class="aboutText" href="https://github.com/mtoof/mtoof?tab=readme-ov-file">Mojtaba</a></div>
-                    <div><a class="aboutText" href="https://github.com/abbastoof">Abbas</a></div>
-                    <div><a class="aboutText" href="https://github.com/Sir-Eli">Elina</a></div>
-                    <div><a class="aboutText" href="https://github.com/trsctr">Otto</a></div>
-                    <div><a class="aboutText" href="https://github.com/jhesso">Juho</a></div>
-                    <div><a class="aboutText" href="https://github.com/fotogiorgo">Jorgo</a></div>
-                    <div><a class="aboutText" href="https://github.com/nicktvdd">Nick</a></div>
-                </div>`);
+        insertModal('.about', 'aboutModal.html', 'about');
     </script>
 
     <!-- Profile Modal -->
