@@ -4,7 +4,6 @@ function createModal(modalId, content) {
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <div class="col-md-4"></div>
                     <div class="col-md-4 d-flex justify-content-center">
                         <h2 class="modal-title" id="${modalId}Label">${modalId}</h2>
                     </div>

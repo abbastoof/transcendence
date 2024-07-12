@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', function () {
             profileButton.textContent = 'Profile';
             profileButton.setAttribute('data-bs-toggle', 'modal');
             profileButton.setAttribute('data-bs-target', '#ProfileModal');
-            profileButton.setAttribute('tabindex', '-1');
             buttonContainer.appendChild(profileButton);
             // Insert profile button before the about button
             buttonContainer.insertBefore(profileButton, buttonContainer.children[3]);
