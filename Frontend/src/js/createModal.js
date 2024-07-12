@@ -22,11 +22,6 @@ function createModal(modalId, content) {
     // Correctly reference the modal by its full ID including "Modal" suffix
     const modalElement = new bootstrap.Modal(document.getElementById(`${modalId}Modal`));
 
-    // If the modal is for the profile, update its content dynamically
-    if (modalId === 'Profile') {
-        updateUserProfile();
-    }
-
     // Return the modal element for further use if needed
     return modalElement;
 }
