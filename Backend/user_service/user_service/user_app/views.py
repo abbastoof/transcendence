@@ -241,7 +241,20 @@ class FriendsViewSet(viewsets.ViewSet):
         return Response({"detail": "User not found"}, status=status.HTTP_400_BAD_REQUEST)
 
     def remove_friend(self, request, user_pk=None, pk=None):
-        pass
+        try:
+            user = get_object_or_404(User, id=user_pk)
+            friend = get_object_or_404(User, id=pk)
+            if friend in user.friends.all():
+                user.friends.remove(friend)
+                user.save()
+                return Response({"detail": "Friend removed"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"detail": "Friend not in user's friends list"}, status=status.HTTP_404_NOT_FOUND)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
     # def add_friend(self, request, user_pk=None, pk=None):
     #     try:
