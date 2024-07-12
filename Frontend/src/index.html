@@ -18,6 +18,7 @@
 <body>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/createModal.js"></script>
+    <script src="js/insert.js"></script>
     <script src="js/modals/profile.js"></script>
     <script src="js/modals/signup.js"></script>
     <script src="js/modals/login.js"></script>
@@ -25,19 +26,12 @@
 
     <div class="headerContainer">
         <script>
-            fetch('headerSVG.html')
-                .then(response => response.text())
-                .then(html => {
-                    document.querySelector('.headerContainer').innerHTML = html;
-                })
-                .catch(error => {
-                    console.error('Error loading the header:', error);
-                });
+                insert('.headerContainer', 'headerSVG.html');
         </script>
     </div>
 
     <div class="buttonContainer col-md-12">
-        <button type="button" class="buttons" >Local Game</button>
+        <button type="button" class="buttons">Local Game</button>
         <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#tournamentModal">Local
             Tournament</button>
         <button type="button" class="buttons" id="authButton" data-bs-toggle="modal" data-bs-target="#loginModal">Log
@@ -46,22 +40,17 @@
     </div>
 
     <!-- Tournament Modal -->
-    <script>
-        fetch('tournamentModal.html')
-            .then(response => response.text())
-            .then(html => {
-                createModal('tournament', html);
-            })
-            .catch(error => {
-                console.error('Error loading the tournament modal:', error);
-            });
-    </script>
+     <div class="tournament">
+        <script>
+            insertModal('.tournament', 'tournamentModal.html', 'tournament')
+        </script>
+     </div>
+
 
 
 
     <!-- Sign up Modal -->
-    <div class="modal fade" id="signUpModal"  role="dialog" aria-labelledby="signUpModalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="signUpModal" role="dialog" aria-labelledby="signUpModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header row col-md-12">
