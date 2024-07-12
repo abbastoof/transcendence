@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     var loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
     var logoutModal = new bootstrap.Modal(document.getElementById('logoutModal'));
     var authButton = document.getElementById('authButton');
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Login form submit event listener
-    document.getElementById('loginForm').addEventListener('submit', function(event) {
+    document.getElementById('loginForm').addEventListener('submit', function (event) {
         event.preventDefault(); // Prevent form submission
 
         // Get form values
@@ -48,29 +48,29 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify({ username, password }),
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Invalid username or password');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Success:', data);
-            // Store all tokens and user ID
-            localStorage.setItem('userData', JSON.stringify({ id: data.id, token: data.access, refresh: data.refresh }));
-            localStorage.setItem('isLoggedIn', 'true'); // Save login state to localStorage ! change this to variable in backend
-            
-            loginModal.hide(); // Close the modal on success
-            document.getElementById('loginForm').reset(); // Reset form fields
-            isLoggedIn = true; // Update login state
-            updateAuthButton();
-            addProfileButton(); // Add profile button on login
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showErrorMessage('Log in failed: ' + error.message);
-            clearPasswordField();
-        });
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Invalid username or password');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Success:', data);
+                // Store all tokens and user ID
+                localStorage.setItem('userData', JSON.stringify({ id: data.id, token: data.access, refresh: data.refresh }));
+                localStorage.setItem('isLoggedIn', 'true'); // Save login state to localStorage ! change this to variable in backend
+
+                loginModal.hide(); // Close the modal on success
+                document.getElementById('loginForm').reset(); // Reset form fields
+                isLoggedIn = true; // Update login state
+                updateAuthButton();
+                addProfileButton(); // Add profile button on login
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorMessage('Log in failed: ' + error.message);
+                clearPasswordField();
+            });
     });
 
     // Function to show error message
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
         modalBody.parentNode.insertBefore(errorSpan, modalBody);
 
         // Hide the error message after 5 seconds
-        setTimeout(function() {
+        setTimeout(function () {
             if (errorSpan && errorSpan.parentNode) {
                 errorSpan.parentNode.removeChild(errorSpan);
             }
@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('loginForm').reset();
         // Remove any error messages
         const errorSpans = document.querySelectorAll('#loginModal .ErrorMessage');
-        errorSpans.forEach(function(errorSpan) {
+        errorSpans.forEach(function (errorSpan) {
             errorSpan.remove();
         });
     });
@@ -119,25 +119,23 @@ document.addEventListener('DOMContentLoaded', function() {
             authButton.textContent = 'Log out';
             authButton.setAttribute('data-bs-toggle', 'modal');
             authButton.setAttribute('data-bs-target', '#logoutModal');
-            profileButton.setAttribute('tabindex', '-1');
             addProfileButton(); // Ensure profile button is added
         } else {
             authButton.textContent = 'Log in';
             authButton.setAttribute('data-bs-toggle', 'modal');
             authButton.setAttribute('data-bs-target', '#loginModal');
-            profileButton.setAttribute('tabindex', '-1');
             removeProfileButton(); // Remove profile button if logged out
         }
     }
 
     // Function to handle logout confirmation
-    window.confirmLogout = function() {
+    window.confirmLogout = function () {
         // Simulating a successful logout response
         console.log('Logout successful: Simulated response');
         userId = null; // Clear user ID
         refreshToken = null; // Clear refresh token
         accessToken = null; // Clear access token
-        
+
         localStorage.clear('userData'); // Clear all localStorage items
 
         isLoggedIn = false; // Update login state
