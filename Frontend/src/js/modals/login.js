@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
             profileButton.textContent = 'Profile';
             profileButton.setAttribute('data-bs-toggle', 'modal');
             profileButton.setAttribute('data-bs-target', '#ProfileModal');
+            profileButton.setAttribute('tabindex', '-1');
             buttonContainer.appendChild(profileButton);
             // Insert profile button before the about button
             buttonContainer.insertBefore(profileButton, buttonContainer.children[3]);
@@ -118,11 +119,13 @@ document.addEventListener('DOMContentLoaded', function() {
             authButton.textContent = 'Log out';
             authButton.setAttribute('data-bs-toggle', 'modal');
             authButton.setAttribute('data-bs-target', '#logoutModal');
+            profileButton.setAttribute('tabindex', '-1');
             addProfileButton(); // Ensure profile button is added
         } else {
             authButton.textContent = 'Log in';
             authButton.setAttribute('data-bs-toggle', 'modal');
             authButton.setAttribute('data-bs-target', '#loginModal');
+            profileButton.setAttribute('tabindex', '-1');
             removeProfileButton(); // Remove profile button if logged out
         }
     }
