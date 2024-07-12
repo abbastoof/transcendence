@@ -131,9 +131,6 @@ document.addEventListener('DOMContentLoaded', function () {
     window.confirmLogout = function () {
         // Simulating a successful logout response
         console.log('Logout successful: Simulated response');
-        userId = null; // Clear user ID
-        refreshToken = null; // Clear refresh token
-        accessToken = null; // Clear access token
 
         localStorage.clear('userData'); // Clear all localStorage items
 

@@ -1,17 +1,13 @@
 function createModal(modalId, content) {
     const modalHTML = `
-    <div class="modal fade" id="${modalId}Modal"  role="dialog" aria-labelledby="${modalId}ModalLabel" aria-hidden="true">
+    <div class="modal fade" id="${modalId}Modal" role="dialog" aria-labelledby="${modalId}ModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <div class="col-md-4 d-flex justify-content-center">
-                        <h2 class="modal-title" id="${modalId}Label">${modalId}</h2>
-                    </div>
-                    <div class="col-md-4 text-right">
-                        <button type="button" data-bs-dismiss="modal" class="close" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
+                    <h2 class="modal-title" id="${modalId}Label">${modalId}</h2>
+                    <button type="button" data-bs-dismiss="modal" class="close" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
                 <div class="modal-body" id="${modalId}Content">
                     ${content}
@@ -30,7 +26,7 @@ function createModal(modalId, content) {
     if (modalId === 'Profile') {
         updateUserProfile();
     }
-	
+
     // Return the modal element for further use if needed
     return modalElement;
 }

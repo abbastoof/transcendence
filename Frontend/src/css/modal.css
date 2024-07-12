@@ -1,15 +1,10 @@
 .modal-dialog {
   display: flex;
+  justify-content: center;
   align-items: center;
   flex-direction: column;
-  top: 1.5%
-}
-
-.modal-dialog1 {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  top: 1.5%
+  top: 1.5%;
+  bottom: 1.5%
 }
 
 .modal-content {
@@ -25,9 +20,7 @@
 }
 
 .modal-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+
 }
 
 .modal-title {
