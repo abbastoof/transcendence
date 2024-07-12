@@ -15,6 +15,7 @@ from rest_framework.exceptions import ValidationError
 from .models import User, FriendRequest
 from .rabbitmq_utils import consume_message, publish_message
 from .serializers import UserSerializer, FriendSerializer
+from django.db.models import Q
 
 
 class UserViewSet(viewsets.ViewSet):
@@ -270,21 +271,36 @@ class FriendsViewSet(viewsets.ViewSet):
         try:
             if (user_pk == pk):
                 raise ValidationError(detail={"You can't send a friend request to yourself"}, code=status.HTTP_400_BAD_REQUEST)
-            current_user = get_object_or_404(User, id=user_pk) # current user is sending a request to the target
-            receiver = get_object_or_404(User, id=pk) # target user is the receiver of the request
-            # This FriendRequest.objects.get_or_create() function will get the object or create it
-            friend_request, created = FriendRequest.objects.get_or_create(
-                sender_user = current_user,
-                receiver_user = receiver,
-                status = 'pending'
+            current_user = get_object_or_404(User, id=user_pk)
+            receiver = get_object_or_404(User, id=pk)
+            existing_request = FriendRequest.objects.filter(
+            (Q(sender_user=current_user) & Q(receiver_user=receiver) & Q(status='pending')) |
+            (Q(sender_user=receiver) & Q(receiver_user=current_user) & Q(status='pending'))
+            ).first()
+            if existing_request:
+                if existing_request.sender_user == current_user:
+                    existing_request.delete()
+                    return Response({"detail:" "Friend request canceled"}, status=status.HTTP_200_OK)
+                else:
+                    return Response({"detail": "You have a pending friend from this user."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # friend_request, created = FriendRequest.objects.get_or_create(
+            #     sender_user = current_user,
+            #     receiver_user = receiver,
+            #     status = 'pending'
+            # )
+            friend_request = FriendRequest.objects.create(
+                sender_user=current_user,
+                receiver_user=receiver,
+                status='pending'
             )
-            if created:
-                friend_request.save()
-                return Response({"detail": "Requested"}, status=status.HTTP_202_ACCEPTED)
-            return Response({"detail": f"Your request status is {friend_request.status}"}, status=status.HTTP_202_ACCEPTED)
+            # if created:
+            #     friend_request.save()
+            return Response({"detail": "Friend request sent"}, status=status.HTTP_202_ACCEPTED)
         except User.DoesNotExist:
             return Response({"detail": "Invalid user_id"}, status=status.HTTP_400_BAD_REQUEST)
-
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     def accept_friend_request(self, request, user_pk=None, pk=None):
         try:
             current_user = get_object_or_404(User, id=user_pk)
