@@ -11,7 +11,7 @@ volumes:
     driver: local
     driver_opts:
       type: 'none'
-      device: '/home/ptoof/transcendence2/database_volume'
+      device: '${PWD}/database_volume'
       o: 'bind'
 
 services:
@@ -28,19 +28,6 @@ services:
       - 15672:15672
     networks:
       - transcendence_network
-
-  profile-service:
-    container_name: profile-service
-    image: profile-service
-    build:
-      context: .
-      dockerfile: Backend/profile_service/Dockerfile
-    env_file:
-      - .env
-    networks:
-      - transcendence_network
-    depends_on:
-      - rabbitmq
 
   user-service:
     container_name: user-service
@@ -114,6 +101,5 @@ services:
     depends_on:
       - user-service
       - token-service
-      - profile-service
       - game-history
       - game-server

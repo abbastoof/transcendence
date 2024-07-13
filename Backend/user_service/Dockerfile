@@ -21,7 +21,7 @@ RUN python3 -m venv venv && chown -R postgres:postgres venv
 
 # Copy application code and adjust permissions
 COPY --chown=postgres:postgres ./Backend/user_service/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY --chown=postgres:postgres ./Backend/user_service/requirements.txt .
+COPY --chown=postgres:postgres ./Backend/user_service/requirements.txt /app/
 COPY --chown=postgres:postgres ./Backend/user_service/user_service /app/user_service
 COPY --chown=postgres:postgres ./Backend/user_service/tools.sh /app
 COPY --chown=postgres:postgres ./Backend/user_service/init_database.sh /app

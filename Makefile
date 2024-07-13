@@ -18,7 +18,7 @@ up:
 # Stop all services
 .PHONY: down
 down:
-	docker compose down -v
+	docker compose down --rmi all --volumes --remove-orphans
 
 # Restart all services
 .PHONY: re

@@ -21,11 +21,12 @@ RUN python3 -m venv venv && chown -R postgres:postgres venv
 
 # Copy application code and adjust permissions
 COPY --chown=postgres:postgres ./Backend/token_service/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY --chown=postgres:postgres ./Backend/token_service/requirements.txt .
+COPY --chown=postgres:postgres ./Backend/token_service/requirements.txt /app/
 COPY --chown=postgres:postgres ./Backend/token_service/token_service /app/token_service
 COPY --chown=postgres:postgres ./Backend/token_service/tools.sh /app
 COPY --chown=postgres:postgres ./Backend/token_service/init_database.sh /app
 COPY --chown=postgres:postgres ./Backend/token_service/run_consumer.sh /app
+COPY --chown=postgres:postgres ./Backend/token_service/run_consumer2.sh /app
 
 # Ensure supervisord and scripts are executable and owned by postgres
 RUN chown -R postgres:postgres /etc/supervisor && \

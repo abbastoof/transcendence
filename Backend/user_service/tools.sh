@@ -3,7 +3,7 @@
 sh /app/init_database.sh
 # trunk-ignore(shellcheck/SC1091)
 source venv/bin/activate
-pip install -r requirements.txt
+pip install -r /app/requirements.txt
 pip install tzdata
 
 while ! psql -U "${DB_USER}" -d "postgres" -c '\q'; do
