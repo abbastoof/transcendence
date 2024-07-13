@@ -27,6 +27,7 @@ COPY --chown=postgres:postgres ./Backend/token_service/tools.sh /app
 COPY --chown=postgres:postgres ./Backend/token_service/init_database.sh /app
 COPY --chown=postgres:postgres ./Backend/token_service/run_consumer.sh /app
 COPY --chown=postgres:postgres ./Backend/token_service/run_consumer2.sh /app
+COPY --chown=postgres:postgres ./Backend/token_service/run_consumer3.sh /app
 
 # Ensure supervisord and scripts are executable and owned by postgres
 RUN chown -R postgres:postgres /etc/supervisor && \

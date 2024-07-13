@@ -54,7 +54,7 @@ class UserViewSet(viewsets.ViewSet):
                 Response: The response object containing the list of users.
         """
         try:
-            self.send_data_to_user_service(request)
+            self.validate_token(request)
             if not request.user.is_staff or not request.user.is_superuser:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
             users = User.objects.all()
@@ -78,7 +78,7 @@ class UserViewSet(viewsets.ViewSet):
                 Response: The response object containing the user data.
         """
         try:
-            self.send_data_to_user_service(request)
+            self.validate_token(request)
             data = get_object_or_404(User, id=pk)
             serializer = UserSerializer(data)
             return Response(serializer.data)
@@ -99,7 +99,7 @@ class UserViewSet(viewsets.ViewSet):
                 Response: The response object containing the updated user data.
         """
         try:
-            self.send_data_to_user_service(request)
+            self.validate_token(request)
             data = get_object_or_404(User, id=pk)
             # if data != request.user and not request.user.is_superuser:
             #     return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -125,7 +125,7 @@ class UserViewSet(viewsets.ViewSet):
                 Response: The response object containing the status of the deletion.
         """
         try:
-            self.send_data_to_user_service(request)
+            self.validate_token(request)
             data = get_object_or_404(User, id=pk)
             if data != request.user and not request.user.is_superuser:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -135,7 +135,7 @@ class UserViewSet(viewsets.ViewSet):
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
-    def send_data_to_user_service(self, request) -> None:
+    def validate_token(self, request) -> None:
         bearer = request.headers.get("Authorization")
         if not bearer or not bearer.startswith('Bearer '):
             raise ValidationError(detail= "Access token is required", code=status.HTTP_400_BAD_REQUEST)
@@ -153,52 +153,6 @@ class UserViewSet(viewsets.ViewSet):
 
         if "error" in response_data:
             raise ValidationError(detail= "Invalid access token", code=status.HTTP_401_UNAUTHORIZED)
-
-
-    @staticmethod  # This method is static because it doesn't need to access any instance variables
-    @method_decorator(
-        csrf_exempt
-    )  # This decorator is used to disable CSRF protection for this method because it is called by RabbitMQ and not by a browser
-    def handle_login_request(ch, method, properties, body) -> None:
-        """
-            Method to handle the RabbitMQ request.
-
-            This method handles the RabbitMQ request by authenticating the user and sending the response message.
-
-            Args:
-                ch: The channel object.
-                method: The method object.
-                properties: The properties object.
-                body: The body of the message.
-
-            Returns:
-                None
-
-        """
-        payload = json.loads(body)
-        username = payload.get("username")
-        password = payload.get("password")
-
-        # Authenticate the user
-        user = authenticate(username=username, password=password)
-
-        if user is not None:
-            # Check if the user is active
-            if user.is_active:
-                serializer = UserSerializer(user, data={"status": True}, partial=True)
-                serializer.is_valid(raise_exception=True)
-                serializer.save()
-                response_message = {"id": serializer.data["id"], "username": serializer.data["username"]}
-            else:
-                response_message = {"error": "User is inactive or staff"}
-        else:
-            response_message = {"error": "Invalid username or password"}
-        print(f"Response message: {response_message}")
-        publish_message("login_response_queue", json.dumps(response_message))
-
-    def start_consumer(self) -> None:
-        consume_message("login_request_queue", self.handle_login_request)
-
 
 class RegisterViewSet(viewsets.ViewSet):
     """
