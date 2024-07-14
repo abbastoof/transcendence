@@ -1,4 +1,4 @@
-from entities.paddle import Paddle
+from game_logic.entities.paddle import Paddle
 
 # Player class
 # Represents a player in the game

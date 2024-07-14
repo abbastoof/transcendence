@@ -14,7 +14,7 @@ GAME_DURATION = 300 # game duration in seconds
                     # and then subtract from it on every loop
                     # or maybe just convert it to a time format that can be shown in the frontend as well
 
-FIELD_DEPTH = 400 # or width if 2d, this is x axis
+FIELD_DEPTH = 800 # or width if 2d, this is x axis
 FIELD_WIDTH = 300 # or height if 2d, this is z axis
 
 PLAYER_START_Z = FIELD_WIDTH / 2

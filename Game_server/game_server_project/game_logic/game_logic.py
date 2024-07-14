@@ -1,7 +1,7 @@
-from entities.gamestate import GameState
-from entities.player import Player
-from game_defaults import *
-from entities.ball import Ball
+from game_logic.entities.gamestate import GameState
+from game_logic.entities.player import Player
+from game_logic.game_defaults import *
+from game_logic.entities.ball import Ball
 import logging
 
 def main():

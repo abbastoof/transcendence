@@ -1,6 +1,6 @@
 from django.urls import re_path
-from game_logic import consumers
+from . import consumers
 
 websocket_urlpatterns = [
-    re_path(r'ws/$', consumers.Consumers.as_asgi()),
+    re_path(r'ws/game/$', consumers.GameConsumer.as_asgi()),
 ]

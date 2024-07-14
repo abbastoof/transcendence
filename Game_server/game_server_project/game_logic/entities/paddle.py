@@ -1,5 +1,5 @@
-from entities.position import Position
-from game_defaults import *
+from game_logic.entities.position import Position
+from game_logic.game_defaults import *
 
 # Paddle class
 # Represents a paddle in the game world

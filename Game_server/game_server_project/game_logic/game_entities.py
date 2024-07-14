@@ -1,5 +1,5 @@
 import math
-from game_defaults import *
+from game_logic.game_defaults import *
 
 # Position class
 # Represents a 3d position in the game world

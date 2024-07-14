@@ -1,7 +1,7 @@
 from channels.layers import get_channel_layer
-from entities.player import Player
-from entities.ball import Ball
-from game_defaults import *
+from game_logic.entities.player import Player
+from game_logic.entities.ball import Ball
+from game_logic.game_defaults import *
 import random
 import time
 

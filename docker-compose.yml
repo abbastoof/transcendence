@@ -79,6 +79,8 @@ services:
       dockerfile: Game_server/Dockerfile
     env_file:
       - .env
+    ports:
+      - 6379:8010
     networks:
       - transcendence_network
     depends_on:

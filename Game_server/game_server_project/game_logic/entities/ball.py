@@ -1,8 +1,8 @@
 import math
-from entities.position import Position
-from game_defaults import *
-from entities.paddle import Paddle
-from game_defaults import *
+from game_logic.entities.position import Position
+from game_logic.game_defaults import *
+from game_logic.entities.paddle import Paddle
+from game_logic.game_defaults import *
 import logging
 # Ball class
 # Represents a ball in the game
