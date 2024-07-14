@@ -22,7 +22,12 @@ class Paddle:
     @property
     def x(self) -> float:
         return self._position.x
-    
+
+    # getter for y
+    @property
+    def y(self) -> float:
+        return self._position.y
+        
     # getter for z
     @property
     def z(self):

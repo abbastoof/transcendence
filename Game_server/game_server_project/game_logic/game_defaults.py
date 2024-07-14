@@ -7,6 +7,8 @@ PADDLE_DEPTH = 16
 BALL_RADIUS = 6
 BALL_SPEED = 3
 
+PADDLE_SPEED = 5
+
 GAME_DURATION = 300 # game duration in seconds
                     # need to multiply this with something, set the result as gamestate.time_remaining
                     # and then subtract from it on every loop
@@ -15,9 +17,9 @@ GAME_DURATION = 300 # game duration in seconds
 FIELD_DEPTH = 400 # or width if 2d, this is x axis
 FIELD_WIDTH = 300 # or height if 2d, this is z axis
 
-PLAYER_START_Z = 150
-PLAYER1_START_X = 0 + PADDLE_DEPTH
-PLAYER2_START_X = FIELD_DEPTH - PADDLE_DEPTH
+PLAYER_START_Z = FIELD_WIDTH / 2
+PLAYER1_START_X = 0 + (PADDLE_DEPTH / 2)
+PLAYER2_START_X = FIELD_DEPTH - (PADDLE_DEPTH / 2)
 
 BALL_DEFAULT_X = FIELD_DEPTH / 2
 BALL_DEFAULT_Z = FIELD_WIDTH / 2

@@ -1,3 +1,4 @@
+from channels.layers import get_channel_layer
 from entities.player import Player
 from entities.ball import Ball
 from game_defaults import *
@@ -127,16 +128,16 @@ class GameState:
 
     # increase_ball_speed method
     # increases the speed of the ball by the given increment
-    def increase_ball_speed(self, increment):
+    def increase_ball_speed(self, increment: float) -> None:
         self.ball.speed_up(increment)
 
     # handle_collisions method
     # handles the collisions between the ball and the walls or paddles
     # and updates the ball's direction and player's hitcount accordingly
-    def handle_collisions(self):
-        if self.ball.x < 0 or self.ball.x > 400:
+    def handle_collisions(self) -> None:
+        if self.ball.x < 0 or self.ball.x > FIELD_DEPTH:
             return
-        if self.ball.z <= 0 or self.ball.z >= 300:
+        if self.ball.z <= 0 or self.ball.z >= FIELD_WIDTH:
             self.ball.bounce_from_wall()
         elif self.ball.check_collision(self.player1.paddle):
             self.player1.add_hit()
@@ -149,12 +150,12 @@ class GameState:
     # checks if the ball has scored a goal
     # and updates the score of the appropriate player
     # returns True if a goal was scored, False otherwise
-    def check_goal(self):
+    def check_goal(self) -> None:
         if self.ball.x < 0:
             self.update_player_score(self.player2.id)
             print("Goal scored by player 2")
             return True
-        if self.ball.x > 400:
+        if self.ball.x > FIELD_DEPTH:
             self.update_player_score(self.player1.id)
             print("Goal scored by player 1")
             return True
@@ -169,17 +170,17 @@ class GameState:
     # updates the state of the game for the next frame
     # including updating the ball's position, handling collisions, and checking for goals
     # and increments the rally_timer
-    def update_game_state(self):
+    def update_game_state(self) -> None:
         self.current_rally += 1
         self.ball.update_position()
         self.handle_collisions()
-        # self.render()
+        self.render()
         # print("ball x: " + str(self.ball.x))
         # print("ball z: " + str(self.ball.z))
         if self.check_goal() == True:
             self.paused = True
     
-    def render(self):
+    def render(self) -> None:
         start_time = time.time()
         # Clear the terminal screen
         print('\033c', end='')
@@ -188,21 +189,21 @@ class GameState:
         field = [[' ' for _ in range(160)] for _ in range(40)]
 
         # Set the ball and paddles in the field, scaling down their positions to fit the terminal window
-        ball_z = 39 - int(self._ball.z * 40 / 300)  # Invert the ball's z-position
-        ball_x = int(self._ball.x * 160 / 400)
+        ball_z = 39 - int(self._ball.z * 40 / FIELD_WIDTH)  # Invert the ball's z-position
+        ball_x = int(self._ball.x * 160 / FIELD_DEPTH)
         if 0 <= ball_z < 40 and 0 <= ball_x < 160:
             field[ball_z][ball_x] = 'O'
         # Correctly calculate the top and bottom positions of paddle1
-        paddle1_top = 39 - int(self._player1.paddle.z * 40 / 300 - self._player1.paddle.width * 40 / 300 / 2)
-        paddle1_bottom = 39 - int(self._player1.paddle.z * 40 / 300 + self._player1.paddle.width * 40 / 300 / 2)
+        paddle1_top = 39 - int(self._player1.paddle.z * 40 / FIELD_WIDTH - self._player1.paddle.width * 40 / FIELD_WIDTH / 2)
+        paddle1_bottom = 39 - int(self._player1.paddle.z * 40 / FIELD_DEPTH + self._player1.paddle.width * 40 / FIELD_WIDTH / 2)
         # Ensure the loop correctly iterates from bottom to top for paddle1
         for z in range(paddle1_bottom, paddle1_top + 1):  # Include paddle1_top in the range
             if 0 <= z < 40:
                 field[z][0] = '|'
 
         # Correctly calculate the top and bottom positions of paddle2
-        paddle2_top = 39 - int(self._player2.paddle.z * 40 / 300 - self._player2.paddle.width * 40 / 300 / 2)
-        paddle2_bottom = 39 - int(self._player2.paddle.z * 40 / 300 + self._player2.paddle.width * 40 / 300 / 2)
+        paddle2_top = 39 - int(self._player2.paddle.z * 40 / FIELD_WIDTH - self._player2.paddle.width * 40 / FIELD_WIDTH / 2)
+        paddle2_bottom = 39 - int(self._player2.paddle.z * 40 / FIELD_WIDTH + self._player2.paddle.width * 40 / FIELD_WIDTH / 2)
         # Ensure the loop correctly iterates from bottom to top for paddle2
         for z in range(paddle2_bottom, paddle2_top + 1):  # Include paddle2_top in the range
             if 0 <= z < 40:
@@ -236,7 +237,7 @@ class GameState:
     def reset_ball(self):
         if self.ball.x < 0:
             self.ball.direction = random.randrange(-40, 40) #random direction towards player 2 
-        elif self.ball.x > 400:                             # THIS NEEDS TO BESWAPPED
+        elif self.ball.x > FIELD_DEPTH:                             # THIS NEEDS TO BESWAPPED
             self.ball.direction = random.randrange(140, 220)  #random direction towards player 1
         else:
             if random.random() >= .5:
@@ -251,7 +252,7 @@ class GameState:
     # then updates ball_position for 60 frames as ball goes through the goal
     # updates the longest rally if necessary
     # resets the current rally timer
-    def run_rally(self): # reset ball position in this method? receive new angle as argument?
+    def run_rally(self) -> None: # reset ball position in this method? receive new angle as argument?
         self.reset_ball()
         self.paused = False
         while self.paused == False:
@@ -260,18 +261,12 @@ class GameState:
         #     self.ball.update_position()
         if self.current_rally > self.longest_rally:
             self.longest_rally = self.current_rally
-        # print("rally length: " + str(self.current_rally))
-        # print("player 1 score: " + str(self.player1.score))
-        # print("player 2 score: " + str(self.player2.score))
-        # print("ball x: " + str(self.ball.x))
-        # print("ball z: " + str(self.ball.z))
         self.current_rally = 0
     
-        # is_game_over method
-        # returns True if the game is over, False otherwise
+    # is_game_over method
+    # returns True if the game is over, False otherwise
     def is_game_over(self) -> bool:
         return self.time_remaining <= 0 or self.player1.score >= 10 or self.player2.score >= 10 
-        # and movement handling?
 
     # def reset_game(self):
         # self.player1.score = 0
@@ -281,17 +276,45 @@ class GameState:
 
     # def handle_input(self, input)
 
-    def send_game_state_to_client(self):
-        game_id = self.game_id
-        player1_id = self.player1.id
-        player1_score = self.player1.score
-        player1_x, player1_y, player1_z = self.player1.paddle.position.as_tuple()
-        player2_id = self.player2.id
-        player2_score = self.player2.score
-        player2_x, player2_y, player2_z = self.player2.paddle.position.as_tuple()
-        ball_x, ball_y, ball_z = self.ball.position.as_tuple()
-        time_remaining = self.time_remaining
-    
+    async def send_game_state_to_client(self):
+        json_data = {
+            "game_id": self.game_id,
+            "player1": {
+                "id": self.player1.id,
+                "score": self.player1.score,
+                "x": self.player1.paddle.x,
+                "y": self.player1.paddle.y,
+                "z": self.player1.paddle.z
+            },
+            "player2_pos": {
+                "id": self.player2.id,
+                "score": self.player2.score,
+                "x": self.player2.paddle.x,
+                "y": self.player2.paddle.y,
+                "z": self.player2.paddle.z
+            },
+            "ball": {
+                "pos": {
+                    "x": self.ball.x,
+                    "y": self.ball.y,
+                    "z": self.ball.z
+                },
+                "delta": {
+                    "x": self.ball.delta_x,
+                    "z": self.ball.delta_z
+                },
+            },
+            "time_remaining": self.time_remaining,
+        }
+        channel_layer = get_channel_layer()
+        await channel_layer.group_send(
+            f"game_{self.game_id}",
+            {
+                "type": "game_state",
+                "text": json_data
+            }
+        )
+
     # end_game method
     # ends the game and sends game stats to server and clients
     # closes the game session
@@ -311,14 +334,5 @@ class GameState:
             "longest_rally": self._longest_rally,
             "game_duration": GAME_DURATION - self.time_remaining
         }
-        # Terminal size
-        terminal_width = 182
-        terminal_height = 30
-
-        # Calculate the maximum width and height that maintain a 4:3 aspect ratio
-        game_width = min(terminal_width, int(terminal_height * 4 / 3))
-        game_height = min(terminal_height, int(game_width * 3 / 4))
-
-        print(f'Game field size: {game_width}x{game_height}')
         # send data to clients
         # send data to server
