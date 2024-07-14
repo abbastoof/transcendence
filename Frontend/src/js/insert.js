@@ -5,7 +5,7 @@ function insert(selector, path) {
 		return;
 	}
 
-	fetch(path)
+	fetch('html/' + path) // Prepend "html/" to the path variable
 		.then(response => response.text())
 		.then(html => {
 			element.innerHTML = html;
@@ -22,7 +22,7 @@ function insertModal(selector, path, modal) {
 		return;
 	}
 
-	fetch(path)
+	fetch('html/' + path) // Prepend "html/" to the path variable
 		.then(response => response.text())
 		.then(html => {
 			createModal(modal, html);
