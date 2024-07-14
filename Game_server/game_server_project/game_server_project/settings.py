@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'game_logic',
+    'channels'
 ]
 
 MIDDLEWARE = [
@@ -71,6 +72,14 @@ TEMPLATES = [
 
 ASGI_APPLICATION = 'game_server_project.asgi.application'
 
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
