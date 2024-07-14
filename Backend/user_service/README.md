@@ -20,10 +20,16 @@ The API runs on port 8000 and exposed to 8000.
 
 After running the makefile, you can access the API using the following url:
 
-- `http://user-service:8001/user/register/` "create user record using POST method"
-- `http://user-service:8001/user/` "List users records using GET method"
-- `http://user-service:8001/user/<int:pk>/` "without angel brackets" "retrieve, update and delete user record using GET, PUT and DELETE methods respectively"
-
+- `http://localhost:3000/user/register/` "create user record using POST method"
+- `http://localhost:3000/user/` "List users records using GET method"
+- `http://localhost:3000/user/<int:pk>/` "without angel brackets" "retrieve, update and delete user record using GET, PUT and DELETE methods respectively"
+- `http://localhost:3000/user/login/` "login user using POST method"
+- `http://localhost:3000/user/logout/` "logout user using POST method"
+- `"http://localhost:3000/user/<int:user_pk>/friends/"` "List friends of a user using GET method"
+- `"http://localhost:3000/user/<int:user_pk>/friends/<int:pk>/"` send friend request to a user using POST method or withdraw friend request, accept friend request PUT method
+- `"http://localhost:3000/user/<int:user_pk>/pending/"` "List pending friend requests of a user using GET method"
+- `"http://localhost:3000/user/<int:user_pk>/pending/<int:pk>"` "Accept or reject friend request using PUT method"
+- `"http://localhost:3000/user/<int:user_pk>/friends/<int:pk>/remove/"` "Remove friend using DELETE method"
 You should send a JSON object with the following fields:
 
 ```JSON

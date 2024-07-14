@@ -1,10 +1,5 @@
 import json
-import jwt
-from django.conf import settings
-from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ValidationError
 from rest_framework import status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -13,9 +8,33 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from .models import User, FriendRequest
-from .rabbitmq_utils import consume_message, publish_message
+from .rabbitmq_utils import publish_message, consume_message
 from .serializers import UserSerializer, FriendSerializer
 from django.db.models import Q
+
+
+def validate_token(request) -> None:
+    bearer = request.headers.get("Authorization")
+    if not bearer or not bearer.startswith('Bearer '):
+        raise ValidationError(
+            detail={"error": "Access token is required"},
+            code=status.HTTP_400_BAD_REQUEST)
+    access_token = bearer.split(' ')[1]
+    publish_message("validate_token_request_queue", json.dumps({"access": access_token}))
+
+    response_data = {}
+
+    def handle_response(ch, method, properties, body):
+        nonlocal response_data
+        response_data.update(json.loads(body))
+        ch.stop_consuming()
+
+    consume_message("validate_token_response_queue", handle_response)
+
+    if "error" in response_data:
+        raise ValidationError(detail={"error": "Invalid access token"},
+            code=status.HTTP_401_UNAUTHORIZED
+        )
 
 
 class UserViewSet(viewsets.ViewSet):
@@ -54,12 +73,10 @@ class UserViewSet(viewsets.ViewSet):
                 Response: The response object containing the list of users.
         """
         try:
-            self.validate_token(request)
-            if not request.user.is_staff or not request.user.is_superuser:
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
+            validate_token(request)
             users = User.objects.all()
             serializer = UserSerializer(users, many=True)
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -78,10 +95,10 @@ class UserViewSet(viewsets.ViewSet):
                 Response: The response object containing the user data.
         """
         try:
-            self.validate_token(request)
+            validate_token(request)
             data = get_object_or_404(User, id=pk)
             serializer = UserSerializer(data)
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -99,10 +116,10 @@ class UserViewSet(viewsets.ViewSet):
                 Response: The response object containing the updated user data.
         """
         try:
-            self.validate_token(request)
+            validate_token(request)
             data = get_object_or_404(User, id=pk)
-            # if data != request.user and not request.user.is_superuser:
-            #     return Response(status=status.HTTP_401_UNAUTHORIZED)
+            if data != request.user and not request.user.is_superuser:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
             serializer = UserSerializer(instance=data, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
@@ -125,7 +142,7 @@ class UserViewSet(viewsets.ViewSet):
                 Response: The response object containing the status of the deletion.
         """
         try:
-            self.validate_token(request)
+            validate_token(request)
             data = get_object_or_404(User, id=pk)
             if data != request.user and not request.user.is_superuser:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -134,25 +151,6 @@ class UserViewSet(viewsets.ViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
-
-    def validate_token(self, request) -> None:
-        bearer = request.headers.get("Authorization")
-        if not bearer or not bearer.startswith('Bearer '):
-            raise ValidationError(detail= "Access token is required", code=status.HTTP_400_BAD_REQUEST)
-        access_token = bearer.split(' ')[1]
-        publish_message("validate_token_request_queue", json.dumps({"access": access_token}))
-
-        response_data = {}
-
-        def handle_response(ch, method, properties, body):
-            nonlocal response_data
-            response_data.update(json.loads(body))
-            ch.stop_consuming()
-
-        consume_message("validate_token_response_queue", handle_response)
-
-        if "error" in response_data:
-            raise ValidationError(detail= "Invalid access token", code=status.HTTP_401_UNAUTHORIZED)
 
 class RegisterViewSet(viewsets.ViewSet):
     """
@@ -185,13 +183,24 @@ class RegisterViewSet(viewsets.ViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class FriendsViewSet(viewsets.ViewSet):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def friends_list(self, request, user_pk=None):
-        user = get_object_or_404(User, id=user_pk)
-        serializer = UserSerializer(user.friends.all(), many=True)
-        data = [{"username": item["username"], "status": item["status"]} for item in serializer.data]
-        return Response(data, status=status.HTTP_200_OK)
+        try:
+            
+            validate_token(request)
+            user = get_object_or_404(User, id=user_pk)
+            serializer = UserSerializer(user.friends.all(), many=True)
+            data = [{"username": item["username"], "status": item["status"]} for item in serializer.data]
+            return Response(data, status=status.HTTP_200_OK)
+        except Exception as err:
+            return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
+
 
     def remove_friend(self, request, user_pk=None, pk=None):
+        try:
+            validate_token(request)
             user = get_object_or_404(User, id=user_pk)
             friend = get_object_or_404(User, id=pk)
             if friend in user.friends.all():
@@ -199,47 +208,71 @@ class FriendsViewSet(viewsets.ViewSet):
                 user.save()
                 return Response({"detail": "Friend removed"}, status=status.HTTP_200_OK)
             return Response({"detail": "Friend not in user's friends list"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as err:
+            return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
+
 
     def send_friend_request(self, request, user_pk=None, pk=None):
-        if (user_pk == pk):
-            raise ValidationError(detail={"You can't send a friend request to yourself"}, code=status.HTTP_400_BAD_REQUEST)
+        try:
+            validate_token(request)
+            if (user_pk == pk):
+                raise ValidationError(detail={"You can't send a friend request to yourself"}, code=status.HTTP_400_BAD_REQUEST)
 
-        current_user = get_object_or_404(User, id=user_pk)
-        receiver = get_object_or_404(User, id=pk)
+            current_user = get_object_or_404(User, id=user_pk)
+            receiver = get_object_or_404(User, id=pk)
 
-        existing_request = FriendRequest.objects.filter(
-        (Q(sender_user=current_user) & Q(receiver_user=receiver) & Q(status='pending')) |
-        (Q(sender_user=receiver) & Q(receiver_user=current_user) & Q(status='pending'))
-        ).first()
+            existing_request = FriendRequest.objects.filter(
+            (Q(sender_user=current_user) & Q(receiver_user=receiver) & Q(status='pending')) |
+            (Q(sender_user=receiver) & Q(receiver_user=current_user) & Q(status='pending'))
+            ).first()
 
-        if existing_request:
-            if existing_request.sender_user == current_user:
-                existing_request.delete()
-                return Response({"detail": "You withdrew your request"}, status=status.HTTP_200_OK)
-            return Response({"detail": "You have a pending friend from this user."}, status=status.HTTP_400_BAD_REQUEST)
+            if existing_request:
+                if existing_request.sender_user == current_user:
+                    existing_request.delete()
+                    return Response({"detail": "You withdrew your request"}, status=status.HTTP_200_OK)
+                return Response({"detail": "You have a pending friend from this user."}, status=status.HTTP_400_BAD_REQUEST)
 
-        FriendRequest.objects.create(sender_user=current_user, receiver_user=receiver, status='pending')
-        return Response({"detail": "Friend request sent"}, status=status.HTTP_202_ACCEPTED)
+            FriendRequest.objects.create(sender_user=current_user, receiver_user=receiver, status='pending')
+            return Response({"detail": "Friend request sent"}, status=status.HTTP_202_ACCEPTED)
+        except Exception as err:
+            return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
+
 
     def accept_friend_request(self, request, user_pk=None, pk=None):
-        current_user = get_object_or_404(User, id=user_pk)
-        sender_user = get_object_or_404(User, id=pk)
-        pending_requests = FriendRequest.objects.filter(receiver_user=current_user, sender_user=sender_user, status='pending')
-        if pending_requests.exists():
-            for req in pending_requests:
-                req.accept()
-            return Response({"detail": "Request accepted"}, status=status.HTTP_202_ACCEPTED)
-        return Response({"detail": "No pending requests found"}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            validate_token(request)
+            current_user = get_object_or_404(User, id=user_pk)
+            sender_user = get_object_or_404(User, id=pk)
+            pending_requests = FriendRequest.objects.filter(receiver_user=current_user, sender_user=sender_user, status='pending')
+            if pending_requests.exists():
+                for req in pending_requests:
+                    req.accept()
+                return Response({"detail": "Request accepted"}, status=status.HTTP_202_ACCEPTED)
+            return Response({"detail": "No pending requests found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as err:
+            return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
+
+
     def reject_friend_request(self, request, user_pk=None, pk=None):
-        current_user = get_object_or_404(User, id=user_pk)
-        sender_user = get_object_or_404(User, id=pk)
-        pending_request = FriendRequest.objects.filter(receiver_user=current_user, sender_user=sender_user, status='pending').first()
-        if pending_request:
-            pending_request.reject()
-            return Response({"detail": "Request rejected"}, status=status.HTTP_202_ACCEPTED)
-        return Response({"detail": "No pending requests found"}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            validate_token(request)
+            current_user = get_object_or_404(User, id=user_pk)
+            sender_user = get_object_or_404(User, id=pk)
+            pending_request = FriendRequest.objects.filter(receiver_user=current_user, sender_user=sender_user, status='pending').first()
+            if pending_request:
+                pending_request.reject()
+                return Response({"detail": "Request rejected"}, status=status.HTTP_202_ACCEPTED)
+            return Response({"detail": "No pending requests found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as err:
+            return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
+
+        
     def friend_requests(self, request, user_pk=None): # get user pending list
-        user = get_object_or_404(User, id = user_pk)
-        pending_requests = FriendRequest.objects.filter(receiver_user=user, status='pending') # filter returns a list
-        data = FriendSerializer(pending_requests, many=True)
-        return Response(data.data, status=status.HTTP_200_OK)
+        try:
+            validate_token(request)
+            user = get_object_or_404(User, id = user_pk)
+            pending_requests = FriendRequest.objects.filter(receiver_user=user, status='pending') # filter returns a list
+            data = FriendSerializer(pending_requests, many=True)
+            return Response(data.data, status=status.HTTP_200_OK)
+        except Exception as err:
+            return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)

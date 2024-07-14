@@ -1,17 +1,11 @@
 import json
-import jwt
-from django.conf import settings
 from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-from django.core.exceptions import ValidationError
 from rest_framework import status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
 from .models import User
 from .rabbitmq_utils import consume_message, publish_message
 from .serializers import UserSerializer

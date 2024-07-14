@@ -62,6 +62,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 try:
                     refresh = RefreshToken(token_data["refresh"])
                     token_data["access"] = str(refresh.access_token)
+                    user.token_data = token_data
                     user.save()
                     response_message = {
                         "id": id,
