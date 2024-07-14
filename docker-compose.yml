@@ -3,6 +3,17 @@ networks:
     name: transcendence_network
     driver: bridge
 
+volumes:
+  www_data:
+    name: www_data
+  database:
+    name: database
+    driver: local
+    driver_opts:
+      type: 'none'
+      device: '${PWD}/database_volume'
+      o: 'bind'
+
 services:
   rabbitmq:
     container_name: rabbitmq
@@ -23,26 +34,51 @@ services:
     image: user-service
     build:
       context: .
-      dockerfile: Backend/user_management/Dockerfile
+      dockerfile: Backend/user_service/Dockerfile
     env_file:
       - .env
-    # ports:
-    #   - 8001:8001
+    networks:
+      - transcendence_network
+    volumes:
+      - www_data:/www/avatars
+      - database:/var/lib/postgresql/
+    depends_on:
+      - rabbitmq
+
+  token-service:
+    container_name: token-service
+    image: token-service
+    build:
+      context: .
+      dockerfile: Backend/token_service/Dockerfile
+    env_file:
+      - .env
     networks:
       - transcendence_network
     depends_on:
       - rabbitmq
 
-  auth-service:
-    container_name: auth-service
-    image: auth-service
+  game-history:
+    container_name: game-history
+    image: game-history
     build:
       context: .
-      dockerfile: Backend/auth_service/Dockerfile
+      dockerfile: Backend/game_history/Dockerfile
     env_file:
       - .env
-    # ports:
-    #   - 8000:8000
+    networks:
+      - transcendence_network
+    depends_on:
+      - rabbitmq
+
+  game-server:
+    container_name: game-server
+    image: game-server
+    build:
+      context: .
+      dockerfile: Game_server/Dockerfile
+    env_file:
+      - .env
     networks:
       - transcendence_network
     depends_on:
@@ -60,21 +96,10 @@ services:
       - 3000:443
     networks:
       - transcendence_network
+    volumes:
+      - www_data:/www/avatars
     depends_on:
       - user-service
-      - auth-service
-
-  game-server:
-    container_name: game-server
-    image: game-server
-    build:
-      context: .
-      dockerfile: Game_server/Dockerfile
-    env_file:
-      - .env
-    ports:
-      - 8002:8002
-    networks:
-      - transcendence_network
-    depends_on:
-      - rabbitmq
+      - token-service
+      - game-history
+      - game-server

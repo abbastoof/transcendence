@@ -15,6 +15,5 @@ done
 
 python3 /app/game_server/manage.py makemigrations
 python3 /app/game_server/manage.py migrate
-python3 /app/game_server/manage.py runserver 0.0.0.0:8002
-# echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('$DB_USER', 'admin@example.com', '$DB_USER')" | python3 /app/auth_service/manage.py shell && echo "Superuser created successfully."
-# CMD ["gunicorn", "auth_service.wsgi:application", "--bind", "0.0.0.0:8000"]
+cd /app/game_server
+daphne -b 0.0.0.0 -p 8010 game_server_project.asgi:application

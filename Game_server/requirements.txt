@@ -4,7 +4,6 @@ django-cors-headers==4.3.1; python_version >= '3.8'
 django-mysql==4.13.0; python_version >= '3.8'
 djangorestframework==3.15.1; python_version >= '3.6'
 djangorestframework-simplejwt; python_version >= '3.6'
-pgsql; python_version >= '3.7'
 djangorestframework-simplejwt[crypto]; python_version >= '3.6'
 exceptiongroup==1.2.1; python_version <= '3.12'
 iniconfig==2.0.0; python_version >= '3.7'
@@ -19,3 +18,6 @@ typing-extensions==4.12.1; python_version <= '3.12'
 gunicorn==20.1.0; python_version <= '3.12'
 django-environ
 websockets
+daphne
+channels
+channels-redis

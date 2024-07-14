@@ -1,0 +1,78 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - feature/*
+      - fix/*
+      - refactor/*
+      - chore/*
+      - develop
+
+jobs:
+  lint-project:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Build and run linter
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ./Dockerfile.lint
+
+  run-tests:
+    needs: lint-project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Build and run tests
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ./Dockerfile.test
+
+  publish-test-image:
+    needs: run-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: abbastoof
+          password: ${{ secrets.GH_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ./Dockerfile.publish
+          push: true
+          tags: ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+
+  merge-develop:
+    runs-on: ubuntu-latest
+    needs: publish-test-image
+    if: github.ref_name == 'develop'
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Fetch all branches
+        run: git fetch --all
+
+      - name: Merge branches into develop
+        run: |
+          git checkout develop
+          git merge --no-ff ${{ github.ref_name }}
+          git push origin develop
