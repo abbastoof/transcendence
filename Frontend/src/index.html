@@ -20,7 +20,6 @@
     <script src="js/createModal.js"></script>
     <script src="js/insert.js"></script>
     <script src="js/modals/profile.js"></script>
-
     <script src="js/modals/login.js"></script>
     <script src="js/stars.js"></script>
 
@@ -29,7 +28,6 @@
     <script>
         insert('.headerContainer', 'headerSVG.html');
     </script>
-
 
     <!-- Buttons -->
     <div class="buttonContainer col-md-12">
@@ -47,13 +45,12 @@
         insertModal('.tournament', 'tournamentModal.html', 'tournament');
     </script>
 
-
     <!-- Sign up Modal -->
     <script>
         createModal('signUp', `
             <form id="signUpForm">
                 <div class="form-group">
-                    <label class="labelFont" for="signUpEmail">Email</label>
+                <label class="labelFont" for="signUpEmail">Email</label>
                     <input type="email" class="form-control" id="signUpEmail" placeholder="Enter email"
                         required>
                 </div>
@@ -73,8 +70,7 @@
                         placeholder="Re-enter password" required>
                 </div>
                 <button type="submit" class="submit">Sign up</button>
-            </form>
-    `)
+            </form>`)
     </script>
 
     <!-- Login Modal -->
@@ -95,8 +91,7 @@
                 <div class="row mt-3">
                     <p class="font text-center">
                         Don't have an account? <a href="#" class="signup-link" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#signUpModal">Sign up</a>
-                    </p>
-                `);
+                    </p>`);
     </script>
 
     <!-- Logout Confirmation Modal -->
@@ -121,7 +116,7 @@
     <script>
         createModal('Profile', '<div id="userProfile"></div>')
     </script>
-    
+
     <script src="js/modals/signup.js"></script>
 </body>
 
