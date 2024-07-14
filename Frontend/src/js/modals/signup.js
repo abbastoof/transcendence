@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the Bootstrap modal
     var signUpModal = new bootstrap.Modal(document.getElementById('signUpModal'));
-    var modalTitle = document.getElementById('signUp    Label');
+    var modalTitle = document.getElementById('signUpLabel');
     var modalBody = document.querySelector('#signUpModal .modal-body');
 
     // Check if modalTitle and modalBody elements exist
