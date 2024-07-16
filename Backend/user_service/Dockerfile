@@ -38,7 +38,7 @@ RUN chown -R postgres:postgres /etc/supervisor && \
     chown -R postgres:postgres /app/user_service && \
     chmod +x /usr/bin/supervisord
 
-USER root
+USER postgres
 
 HEALTHCHECK --interval=30s --timeout=2s --start-period=5s --retries=3 CMD curl -sSf http://localhost:8001/user/register/ > /dev/null &&  echo "success" || echo "failure"
 

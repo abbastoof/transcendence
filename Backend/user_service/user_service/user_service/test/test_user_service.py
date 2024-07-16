@@ -3,7 +3,8 @@ import json
 from django.urls import reverse
 from unittest.mock import patch, MagicMock
 from rest_framework_simplejwt.tokens import RefreshToken
-from user_app.views import UserViewSet, RegisterViewSet
+from user_app.views import UserViewSet, RegisterViewSet, FriendsViewSet, validate_token
+from user_app.user_session_views import UserLoginView, UserLogoutView
 from rest_framework import status
 from user_app.models import User
 
@@ -77,3 +78,67 @@ def test_users_list(api_client, admin_user, admin_token, user_data):
         # Assert the response status and content
         print("response data=", response.data)
         assert response.status_code == status.HTTP_200_OK
+
+@pytest.mark.django_db
+def test_user_login(api_client, admin_user):
+    data = {
+        "username":"admin",
+        "password":"Admin@123"
+    }
+    url = reverse("user-login")
+    response = api_client.post(url, data, format='json')
+    print("response = ", response)
+    assert response.status_code == 200
+
+@pytest.mark.django_db
+def test_user_logout(api_client, admin_user, admin_token):
+    with patch('user_app.user_session_views.publish_message') as mock_publish, patch('user_app.user_session_views.consume_message') as mock_consume:
+        # Set up the mock for consume_message to simulate a valid token response
+        def mock_consume_response(queue_name, callback):
+            response_data = json.dumps({"is_valid": True})
+            ch_mock = MagicMock()
+            method = None
+            properties = None
+            body = response_data.encode('utf-8')
+            callback(ch_mock, method, properties, body)
+
+        mock_consume.side_effect = mock_consume_response
+
+            # Authenticate the request
+        token = admin_token
+        api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+
+        url = reverse('user-logout', kwargs={'pk': admin_user.id})
+        response = api_client.post(url)
+        print("response = ", response)
+        assert response.status_code == 200
+        assert User.objects.filter(username=admin_user.username).exists()
+
+@pytest.mark.django_db
+def test_retrieve_user(api_client, user, user_token):
+    with patch('user_app.views.publish_message') as mock_publish, patch('user_app.views.consume_message') as mock_consume:
+        # Set up the mock for consume_message to simulate a valid token response
+        def mock_consume_response(queue_name, callback):
+            response_data = json.dumps({"is_valid": True})
+            ch_mock = MagicMock()
+            method = None
+            properties = None
+            body = response_data.encode('utf-8')
+            callback(ch_mock, method, properties, body)
+
+        mock_consume.side_effect = mock_consume_response
+
+        # Authenticate the request
+        api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
+
+        url = reverse('user-detail', kwargs={'pk': user.id})
+        response = api_client.get(url)
+
+        print("response data=", response.data)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['id'] == user.id
+        assert response.data['username'] == user.username
+        assert response.data['email'] == user.email
+
+# def update_user
+# def destroy_user
