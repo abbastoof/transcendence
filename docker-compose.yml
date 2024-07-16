@@ -80,11 +80,12 @@ services:
     env_file:
       - .env
     ports:
-      - 6379:8010
+      - 8011:8010
     networks:
       - transcendence_network
     depends_on:
       - rabbitmq
+      - redis
 
   frontend:
     container_name: frontend
@@ -105,3 +106,9 @@ services:
       - token-service
       - game-history
       - game-server
+
+  redis:
+    image: redis
+    container_name: redis
+    networks:
+      - transcendence_network

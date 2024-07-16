@@ -20,14 +20,14 @@ def init_game(game_id: int, player1_id: int, player2_id: int) -> GameState:
     
     return game_state
 
-def game_loop(game_state: GameState) -> None:
+async def game_loop(game_state: GameState) -> None:
     while game_state.in_progress:
-        game_state.run_rally()
+        await game_state.run_rally()
         game_state.in_progress = not game_state.is_game_over()
 
-def run_game(game_id, player1_id, player2_id) -> None:
+async def run_game(game_id, player1_id, player2_id) -> None:
     game_state = init_game(game_id, player1_id, player2_id)
-    game_loop(game_state)
+    await game_loop(game_state)
     game_state.end_game()
 
 if __name__ == "__main__":

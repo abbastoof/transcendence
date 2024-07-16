@@ -4,6 +4,9 @@ from game_logic.entities.ball import Ball
 from game_logic.game_defaults import *
 import random
 import time
+import json
+import asyncio
+import logging
 
 # GameState class
 # Represents the state of the game
@@ -160,21 +163,19 @@ class GameState:
             print("Goal scored by player 1")
             return True
         return False
-        # check if someone scored goal
-
-    #def reset_after_goal(self)
-        # self.ball.reset()
-        # self.ball.direction(here we get a random angle from a specified)
 
     # update_game_state method
     # updates the state of the game for the next frame
     # including updating the ball's position, handling collisions, and checking for goals
     # and increments the rally_timer
-    def update_game_state(self) -> None:
+    async def update_game_state(self) -> None:
         self.current_rally += 1
+        await self.send_game_state_to_client()
+        await asyncio.sleep(0.1)
         self.ball.update_position()
         self.handle_collisions()
-        self.render()
+
+        # self.render()
         # print("ball x: " + str(self.ball.x))
         # print("ball z: " + str(self.ball.z))
         if self.check_goal() == True:
@@ -252,11 +253,12 @@ class GameState:
     # then updates ball_position for 60 frames as ball goes through the goal
     # updates the longest rally if necessary
     # resets the current rally timer
-    def run_rally(self) -> None: # reset ball position in this method? receive new angle as argument?
+    async def run_rally(self) -> None: # reset ball position in this method? receive new angle as argument?
         self.reset_ball()
+        logging.info("Rally started")
         self.paused = False
         while self.paused == False:
-            self.update_game_state()
+            await self.update_game_state()
         # for counter in range(60):
         #     self.ball.update_position()
         if self.current_rally > self.longest_rally:
@@ -268,53 +270,7 @@ class GameState:
     def is_game_over(self) -> bool:
         return self.time_remaining <= 0 or self.player1.score >= 10 or self.player2.score >= 10 
 
-    # def reset_game(self):
-        # self.player1.score = 0
-        # self.player1.score = 0
-        # self.ball.reset()
-        # self.ball.direction(default direction)
-
-    # def handle_input(self, input)
-
-    async def send_game_state_to_client(self):
-        json_data = {
-            "game_id": self.game_id,
-            "player1": {
-                "id": self.player1.id,
-                "score": self.player1.score,
-                "x": self.player1.paddle.x,
-                "y": self.player1.paddle.y,
-                "z": self.player1.paddle.z
-            },
-            "player2_pos": {
-                "id": self.player2.id,
-                "score": self.player2.score,
-                "x": self.player2.paddle.x,
-                "y": self.player2.paddle.y,
-                "z": self.player2.paddle.z
-            },
-            "ball": {
-                "pos": {
-                    "x": self.ball.x,
-                    "y": self.ball.y,
-                    "z": self.ball.z
-                },
-                "delta": {
-                    "x": self.ball.delta_x,
-                    "z": self.ball.delta_z
-                },
-            },
-            "time_remaining": self.time_remaining,
-        }
-        channel_layer = get_channel_layer()
-        await channel_layer.group_send(
-            f"game_{self.game_id}",
-            {
-                "type": "game_state",
-                "text": json_data
-            }
-        )
-
+        
     # end_game method
     # ends the game and sends game stats to server and clients
     # closes the game session
