@@ -140,5 +140,51 @@ def test_retrieve_user(api_client, user, user_token):
         assert response.data['username'] == user.username
         assert response.data['email'] == user.email
 
-# def update_user
-# def destroy_user
+@pytest.mark.django_db
+def test_update_user(api_client, user, user_token):
+    data = {
+        "username": "newuser",
+        "email": "newuser@123.com"
+    }
+    with patch('user_app.views.publish_message') as mock_publish, patch('user_app.views.consume_message') as mock_consume:
+        # Set up the mock for consume_message to simulate a valid token response
+        def mock_consume_response(queue_name, callback):
+            response_data = json.dumps({"is_valid": True})
+            ch_mock = MagicMock()
+            method = None
+            properties = None
+            body = response_data.encode('utf-8')
+            callback(ch_mock, method, properties, body)
+
+        mock_consume.side_effect = mock_consume_response # Authenticate the request, .side_effect is used to set the return value of the mock object
+
+        api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
+
+        url = reverse('user-detail', kwargs={'pk': user.id})
+        response = api_client.put(url, data, format='json')
+
+        assert response.status_code == status.HTTP_202_ACCEPTED
+        assert response.data['id'] == user.id
+        assert response.data['username'] == 'newuser'
+        assert response.data['email'] == 'newuser@123.com'
+
+def test_destroy_user(api_client, user, user_token):
+    with patch('user_app.views.publish_message') as mock_publish, patch('user_app.views.consume_message') as mock_consume:
+        # Set up the mock for consume_message to simulate a valid token response
+        def mock_consume_response(queue_name, callback):
+            response_data = json.dumps({"is_valid": True})
+            ch_mock = MagicMock()
+            method = None
+            properties = None
+            body = response_data.encode('utf-8')
+            callback(ch_mock, method, properties, body) # callback is called with the mock objects and the response data to simulate the response
+
+        mock_consume.side_effect = mock_consume_response # Authenticate the request using the user token and call the API endpoint to delete the user object
+
+        api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
+
+        url = reverse('user-detail', kwargs={'pk': user.id}) # Get the URL for the user object to be deleted
+        response = api_client.delete(url) # Call the API endpoint to delete the user object and assert the response status code
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not User.objects.filter(username=user.username).exists()

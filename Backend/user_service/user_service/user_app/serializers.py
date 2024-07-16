@@ -8,7 +8,7 @@ from .validators import CustomPasswordValidator
 
 
 class FriendSerializer(serializers.ModelSerializer):
-    class Meta: 
+    class Meta:
         model=FriendRequest
         fields = ["sender_user", "receiver_user", "status"]
 class UserSerializer(serializers.ModelSerializer):
@@ -34,7 +34,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "username", "email", "password", "status", "friends"]
+        fields = ["id", "username", "email", "password", "avatar", "status", "friends"]
         extra_kwargs = {"password": {"write_only": True}}
 
         ### Password should be strong password, minimum 8 characters, at least one uppercase letter, one lowercase letter, one number and one special character

@@ -22,3 +22,4 @@ daphne
 pytest
 pytest-django
 pytest-mock
+pillow
