@@ -1,11 +1,13 @@
-function insert(selector, path) {
+import { createModal } from './createModal.js';
+
+export function insert(selector, path) {
 	const element = document.querySelector(selector);
 	if (!element) {
 		console.error('Element not found');
 		return;
 	}
 
-	fetch('src/html/' + path) // Prepend "html/" to the path variable
+	fetch('../html/' + path) // Prepend "html/" to the path variable
 		.then(response => response.text())
 		.then(html => {
 			element.innerHTML = html;
@@ -15,14 +17,14 @@ function insert(selector, path) {
 		});
 }
 
-function insertModal(selector, path, modal) {
+export function insertModal(selector, path, modal) {
 	const element = document.querySelector(selector);
 	if (!element) {
 		console.error('Element not found');
 		return;
 	}
 
-	fetch('src/html/' + path) // Prepend "html/" to the path variable
+	fetch('../html/' + path) // Prepend "html/" to the path variable
 		.then(response => response.text())
 		.then(html => {
 			createModal(modal, html);

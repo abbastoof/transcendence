@@ -108,6 +108,7 @@ a.out
 # Ignore Trunk specific files
 .trunk/
 
+# Ignore node_modules
 node_modules/
 package-lock.json
 package.json

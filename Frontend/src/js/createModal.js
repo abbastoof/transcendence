@@ -1,4 +1,7 @@
-function createModal(modalId, content) {
+import '../scss/styles.scss'
+import * as bootstrap from 'bootstrap'
+
+export function createModal(modalId, content) {
     const modalHTML = `
     <div class="modal fade" id="${modalId}Modal" role="dialog" aria-labelledby="${modalId}ModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
