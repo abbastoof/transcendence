@@ -60,6 +60,7 @@ createModal('signUp', `
         </div>
         <button type="submit" class="submit">Sign up</button>
     </form>`)
+import './modals/signup.js';
 
 createModal('login', `
             <form id="loginForm" class="text-center">
@@ -92,7 +93,4 @@ createModal('logout', `
 insertModal('.about', 'aboutModal.html', 'about');
 
 createModal('Profile', '<div id="userProfile"></div>')
-//     <script src="src/js/modals/signup.js"></script>
-// </body>
-
-// </html>
+import './modals/profile.js';
