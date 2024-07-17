@@ -108,6 +108,7 @@ a.out
 # Ignore Trunk specific files
 .trunk/
 
+# Ignore node_modules
 
 # Ignore __pycache__
 __pycache__/
