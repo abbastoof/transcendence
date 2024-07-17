@@ -11,6 +11,7 @@ TARGET_FILES=(
     "tools.sh"
     "supervisord.py"
     "Dockerfile"
+    "Settings.py"
     "init_database.sh"
     "run_consumer.sh"
     "requirements.txt"
