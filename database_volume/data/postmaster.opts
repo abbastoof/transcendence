@@ -1,1 +1,0 @@
-/usr/libexec/postgresql16/postgres "-D" "/var/lib/postgresql/data"
