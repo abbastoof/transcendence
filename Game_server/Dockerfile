@@ -5,12 +5,11 @@ ENV LANG=C.UTF-8
 
 USER root
 # Update and install dependencies
-RUN apk update && apk add --no-cache \
-	python3=3.12.3-r1 \
-    py3-pip=24.0-r2 \
-    postgresql16=16.3-r0 \
-    postgresql16-client=16.3-r0 \
-    bash=5.2.26-r0 && \
+# trunk-ignore(hadolint/DL3018)
+RUN apk update && apk add --no-cache python3 py3-pip \
+    postgresql16 postgresql16-client \
+    bash supervisor curl openssl bash \
+    build-base libffi-dev python3-dev nano && \
     mkdir /run/postgresql && \
     chown -R postgres:postgres /run/postgresql
 WORKDIR /app/
