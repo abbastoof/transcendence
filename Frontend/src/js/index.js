@@ -1,12 +1,40 @@
 // Import our custom CSS
 import '../scss/styles.scss'
-import { createModal } from './createModal.js'
+import { createModal, createGameModal } from './createModal.js'
 import { insert, insertModal } from './insert.js'
+import { startGame } from './pong/pong.js'
+
 // Import all of Bootstrap's JS
 import * as bootstrap from 'bootstrap'
 
 insert('.headerContainer', 'headerSVG.html');
 insertModal('.tournament', 'tournamentModal.html', 'tournament');
+
+const gameModal = createGameModal();
+// Select the button that should open the game modal
+console.log(gameModal)
+console.log(typeof gameModal.show); // Check if the show method is a function
+
+const gameButton = document.querySelector('button[data-bs-target="#pongModal"]');
+
+if (gameButton) {
+    // Add an event listener to the button
+    gameButton.addEventListener('click', (event) => {
+        console.log('Game button clicked');
+        // Prevent the default Bootstrap modal from opening
+        event.preventDefault();
+
+        // Open the game modal
+        gameModal.show();
+    });
+} else {
+    console.error('Game button not found');
+}
+
+
+document.getElementById('pongModal').addEventListener('shown.bs.modal', function() {
+    setTimeout(startGame(), 0);
+});
 
 createModal('signUp', `
     <form id="signUpForm">
