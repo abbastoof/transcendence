@@ -50,11 +50,8 @@ def admin_token(admin_user):
     refresh = RefreshToken.for_user(admin_user)
     return str(refresh.access_token)
 
-@pytest.mark.django_db
-def test_users_list(api_client, admin_user, admin_token, user_data):
-    # Mock the RabbitMQ interactions
-    user1 = User.objects.create_user(username='testuser1',email='testuser1@123.com',password='Test@123')
-    user2 = User.objects.create_user(username='testuser2',email='testuser2@123.com',password='Test@123')
+@pytest.fixture
+def mock_rabbitmq():
     with patch('user_app.views.publish_message') as mock_publish, patch('user_app.views.consume_message') as mock_consume:
         # Set up the mock for consume_message to simulate a valid token response
         def mock_consume_response(queue_name, callback):
@@ -66,18 +63,25 @@ def test_users_list(api_client, admin_user, admin_token, user_data):
             callback(ch_mock, method, properties, body)
 
         mock_consume.side_effect = mock_consume_response
+        yield mock_publish, mock_consume
+
+@pytest.mark.django_db
+def test_users_list(api_client, admin_user, admin_token, user_data, mock_rabbitmq):
+    # Mock the RabbitMQ interactions
+    user1 = User.objects.create_user(username='testuser1',email='testuser1@123.com',password='Test@123')
+    user2 = User.objects.create_user(username='testuser2',email='testuser2@123.com',password='Test@123')
 
         # Authenticate the request
-        token = admin_token
-        api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+    token = admin_token
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
 
-        # Call the API endpoint
-        url = reverse('users-list')  # Ensure this matches your URL configuration
-        response = api_client.get(url)
+    # Call the API endpoint
+    url = reverse('users-list')  # Ensure this matches your URL configuration
+    response = api_client.get(url)
 
-        # Assert the response status and content
-        print("response data=", response.data)
-        assert response.status_code == status.HTTP_200_OK
+    # Assert the response status and content
+    print("response data=", response.data)
+    assert response.status_code == status.HTTP_200_OK
 
 @pytest.mark.django_db
 def test_user_login(api_client, admin_user):
@@ -115,76 +119,40 @@ def test_user_logout(api_client, admin_user, admin_token):
         assert User.objects.filter(username=admin_user.username).exists()
 
 @pytest.mark.django_db
-def test_retrieve_user(api_client, user, user_token):
-    with patch('user_app.views.publish_message') as mock_publish, patch('user_app.views.consume_message') as mock_consume:
-        # Set up the mock for consume_message to simulate a valid token response
-        def mock_consume_response(queue_name, callback):
-            response_data = json.dumps({"is_valid": True})
-            ch_mock = MagicMock()
-            method = None
-            properties = None
-            body = response_data.encode('utf-8')
-            callback(ch_mock, method, properties, body)
-
-        mock_consume.side_effect = mock_consume_response
-
+def test_retrieve_user(api_client, user, user_token, mock_rabbitmq):
         # Authenticate the request
-        api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
 
-        url = reverse('user-detail', kwargs={'pk': user.id})
-        response = api_client.get(url)
+    url = reverse('user-detail', kwargs={'pk': user.id})
+    response = api_client.get(url)
 
-        print("response data=", response.data)
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data['id'] == user.id
-        assert response.data['username'] == user.username
-        assert response.data['email'] == user.email
+    print("response data=", response.data)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['id'] == user.id
+    assert response.data['username'] == user.username
+    assert response.data['email'] == user.email
 
 @pytest.mark.django_db
-def test_update_user(api_client, user, user_token):
+def test_update_user(api_client, user, user_token, mock_rabbitmq):
     data = {
         "username": "newuser",
         "email": "newuser@123.com"
     }
-    with patch('user_app.views.publish_message') as mock_publish, patch('user_app.views.consume_message') as mock_consume:
-        # Set up the mock for consume_message to simulate a valid token response
-        def mock_consume_response(queue_name, callback):
-            response_data = json.dumps({"is_valid": True})
-            ch_mock = MagicMock()
-            method = None
-            properties = None
-            body = response_data.encode('utf-8')
-            callback(ch_mock, method, properties, body)
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
 
-        mock_consume.side_effect = mock_consume_response # Authenticate the request, .side_effect is used to set the return value of the mock object
+    url = reverse('user-detail', kwargs={'pk': user.id})
+    response = api_client.put(url, data, format='json')
 
-        api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
+    assert response.status_code == status.HTTP_202_ACCEPTED
+    assert response.data['id'] == user.id
+    assert response.data['username'] == 'newuser'
+    assert response.data['email'] == 'newuser@123.com'
 
-        url = reverse('user-detail', kwargs={'pk': user.id})
-        response = api_client.put(url, data, format='json')
+def test_destroy_user(api_client, user, user_token, mock_rabbitmq):
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
 
-        assert response.status_code == status.HTTP_202_ACCEPTED
-        assert response.data['id'] == user.id
-        assert response.data['username'] == 'newuser'
-        assert response.data['email'] == 'newuser@123.com'
+    url = reverse('user-detail', kwargs={'pk': user.id}) # Get the URL for the user object to be deleted
+    response = api_client.delete(url) # Call the API endpoint to delete the user object and assert the response status code
 
-def test_destroy_user(api_client, user, user_token):
-    with patch('user_app.views.publish_message') as mock_publish, patch('user_app.views.consume_message') as mock_consume:
-        # Set up the mock for consume_message to simulate a valid token response
-        def mock_consume_response(queue_name, callback):
-            response_data = json.dumps({"is_valid": True})
-            ch_mock = MagicMock()
-            method = None
-            properties = None
-            body = response_data.encode('utf-8')
-            callback(ch_mock, method, properties, body) # callback is called with the mock objects and the response data to simulate the response
-
-        mock_consume.side_effect = mock_consume_response # Authenticate the request using the user token and call the API endpoint to delete the user object
-
-        api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
-
-        url = reverse('user-detail', kwargs={'pk': user.id}) # Get the URL for the user object to be deleted
-        response = api_client.delete(url) # Call the API endpoint to delete the user object and assert the response status code
-
-        assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert not User.objects.filter(username=user.username).exists()
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert not User.objects.filter(username=user.username).exists()
