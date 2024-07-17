@@ -6,13 +6,13 @@ networks:
 volumes:
   www_data:
     name: www_data
-  database:
-    name: database
-    driver: local
-    driver_opts:
-      type: 'none'
-      device: '${PWD}/database_volume'
-      o: 'bind'
+  # database:
+  #   name: database
+  #   driver: local
+  #   driver_opts:
+  #     type: 'none'
+  #     device: '${PWD}/database_volume'
+  #     o: 'bind'
 
 services:
   rabbitmq:
@@ -41,7 +41,7 @@ services:
       - transcendence_network
     volumes:
       - www_data:/www/avatars
-      - database:/var/lib/postgresql/
+      # - database:/var/lib/postgresql/
     depends_on:
       - rabbitmq
 
