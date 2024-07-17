@@ -46,7 +46,7 @@ import * as bootstrap from 'bootstrap'
             const password = document.getElementById('loginPassword').value;
 
             // Send data to the server
-            fetch('https://localhost:3000/auth/login/', {
+            fetch('https://localhost:3000/user/login/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
