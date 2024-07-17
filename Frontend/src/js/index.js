@@ -78,7 +78,7 @@ createModal('login', `
             <p class="font text-center">
                 Don't have an account? <a href="#" class="signup-link" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#signUpModal">Sign up</a>
             </p>`);
-import './modals/login.js';
+import './modals/signup.js';
 
 createModal('logout', `
         <div class="modal-body">
@@ -88,6 +88,7 @@ createModal('logout', `
             <button type="button" class="submit" data-bs-dismiss="modal">Cancel</button>
             <button type="button" class="submit" onclick="confirmLogout()">Yes, Log out</button>
         </div>`);
+import './modals/login.js';
 
 insertModal('.about', 'aboutModal.html', 'about');
 
