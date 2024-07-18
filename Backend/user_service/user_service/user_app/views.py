@@ -209,7 +209,7 @@ class FriendsViewSet(viewsets.ViewSet):
             if friend in user.friends.all():
                 user.friends.remove(friend)
                 user.save()
-                return Response({"detail": "Friend removed"}, status=status.HTTP_200_OK)
+                return Response({"detail": "Friend removed"}, status=status.HTTP_204_NO_CONTENT)
             return Response({"detail": "Friend not in user's friends list"}, status=status.HTTP_404_NOT_FOUND)
         except Http404:
             return Response({"error": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
