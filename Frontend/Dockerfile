@@ -12,7 +12,7 @@ mkdir -p /etc/nginx/ssl && \
 chown -R www:www /etc/nginx/ssl && \
 chown -R www:www /etc/nginx
 COPY --chown=www:www ./Frontend/src /www/
-COPY --chown=www:www ./Frontend/default.jpg /www/
+COPY --chown=www:www ./Frontend/default.jpg /www/avatars/
 WORKDIR /app
 COPY --chown=www:www ./Frontend/tools.sh /app/tools.sh
 RUN chmod +x /app/tools.sh
