@@ -1,5 +1,6 @@
 import json
 from django.shortcuts import get_object_or_404
+from django.http import Http404
 from django.core.exceptions import ValidationError
 from rest_framework import status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -194,6 +195,8 @@ class FriendsViewSet(viewsets.ViewSet):
             serializer = UserSerializer(user.friends.all(), many=True)
             data = [{"username": item["username"], "status": item["status"]} for item in serializer.data]
             return Response(data, status=status.HTTP_200_OK)
+        except Http404:
+            return Response({"error": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -208,6 +211,8 @@ class FriendsViewSet(viewsets.ViewSet):
                 user.save()
                 return Response({"detail": "Friend removed"}, status=status.HTTP_200_OK)
             return Response({"detail": "Friend not in user's friends list"}, status=status.HTTP_404_NOT_FOUND)
+        except Http404:
+            return Response({"error": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -233,7 +238,9 @@ class FriendsViewSet(viewsets.ViewSet):
                 return Response({"detail": "You have a pending friend from this user."}, status=status.HTTP_400_BAD_REQUEST)
 
             FriendRequest.objects.create(sender_user=current_user, receiver_user=receiver, status='pending')
-            return Response({"detail": "Friend request sent"}, status=status.HTTP_202_ACCEPTED)
+            return Response({"detail": "Friend request sent"}, status=status.HTTP_201_CREATED)
+        except Http404:
+            return Response({"error": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -249,6 +256,8 @@ class FriendsViewSet(viewsets.ViewSet):
                     req.accept()
                 return Response({"detail": "Request accepted"}, status=status.HTTP_202_ACCEPTED)
             return Response({"detail": "No pending requests found"}, status=status.HTTP_404_NOT_FOUND)
+        except Http404:
+            return Response({"error": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -263,6 +272,8 @@ class FriendsViewSet(viewsets.ViewSet):
                 pending_request.reject()
                 return Response({"detail": "Request rejected"}, status=status.HTTP_202_ACCEPTED)
             return Response({"detail": "No pending requests found"}, status=status.HTTP_404_NOT_FOUND)
+        except Http404:
+            return Response({"error": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -274,5 +285,7 @@ class FriendsViewSet(viewsets.ViewSet):
             pending_requests = FriendRequest.objects.filter(receiver_user=user, status='pending') # filter returns a list
             data = FriendSerializer(pending_requests, many=True)
             return Response(data.data, status=status.HTTP_200_OK)
+        except Http404:
+            return Response({"error": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
