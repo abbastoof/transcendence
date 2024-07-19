@@ -25,10 +25,11 @@ After running the makefile, you can access the API using the following url:
 - `http://localhost:3000/user/<int:pk>/` "without angel brackets" "retrieve, update and delete user record using GET, PUT and DELETE methods respectively"
 - `http://localhost:3000/user/login/` "login user using POST method"
 - `http://localhost:3000/user/logout/` "logout user using POST method"
-- `"http://localhost:3000/user/<int:user_pk>/friends/"` "List friends of a user using GET method"
-- `"http://localhost:3000/user/<int:user_pk>/friends/<int:pk>/"` send friend request to a user using POST method or withdraw friend request, accept friend request PUT method
+ - `"http://localhost:3000/user/<int:user_pk>/friends/"` "List friends of a user using GET method"
+- `"http://localhost:3000/user/<int:user_pk>/request/<int:pk>/"` send friend request to a user using POST method or withdraw friend request
+- `"http://localhost:3000/user/<int:user_pk>/accept/<int:pk>/"` accept friend request PUT method
 - `"http://localhost:3000/user/<int:user_pk>/pending/"` "List pending friend requests of a user using GET method"
-- `"http://localhost:3000/user/<int:user_pk>/pending/<int:pk>"` "Accept or reject friend request using PUT method"
+- `"http://localhost:3000/user/<int:user_pk>/reject/<int:pk>"` "Accept or reject friend request using PUT method"
 - `"http://localhost:3000/user/<int:user_pk>/friends/<int:pk>/remove/"` "Remove friend using DELETE method"
 You should send a JSON object with the following fields:
 
