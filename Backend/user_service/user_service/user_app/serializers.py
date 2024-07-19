@@ -99,11 +99,6 @@ class UserSerializer(serializers.ModelSerializer):
                         {"password": err.messages}
                     ) from err
                 instance.set_password(value)
-            # if attr == "friends" and value is not None:
-            #     friends_list = instance.friends
-            #     for friend in value:
-            #         friends_list.append(friend)
-            #     instance.friends.set(friends_list)
             else:
                 setattr(instance, attr, value)
         instance.save()

@@ -1,7 +1,7 @@
 import json
 from django.shortcuts import get_object_or_404
 from django.http import Http404
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -178,10 +178,15 @@ class RegisterViewSet(viewsets.ViewSet):
             Returns:
                 Response: The response object containing the user data.
         """
-        serializer = UserSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        try:
+            serializer = UserSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except ValidationError as err:
+            return Response({'error': err}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as err:
+            return Response({'error': str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class FriendsViewSet(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]

@@ -22,16 +22,6 @@ def user_data():
         'password': 'Test@123'
     }
 
-@pytest.mark.django_db
-def test_user_register(api_client, user_data):
-    url = reverse('register-user')
-    response = api_client.post(url, user_data, format='json')
-    assert response.status_code == 201
-    assert response.data['id'] == 1
-    assert response.data['username'] == 'testuser'
-    assert response.data['email'] == 'testuser@123.com'
-
-
 @pytest.fixture
 def user(db):
     return User.objects.create_user(username='testuser', email='testuser@123.com', password='Test@123')
@@ -64,6 +54,15 @@ def mock_rabbitmq():
 
         mock_consume.side_effect = mock_consume_response
         yield mock_publish, mock_consume
+
+@pytest.mark.django_db
+def test_user_register(api_client, user_data):
+    url = reverse('user-register')
+    response = api_client.post(url, user_data, format='json')
+    assert response.status_code == 201
+    assert response.data['id'] == 1
+    assert response.data['username'] == 'testuser'
+    assert response.data['email'] == 'testuser@123.com'
 
 @pytest.mark.django_db
 def test_users_list(api_client, admin_user, admin_token, user_data, mock_rabbitmq):

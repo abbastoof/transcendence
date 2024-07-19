@@ -4,7 +4,7 @@ from .views import RegisterViewSet, UserViewSet, FriendsViewSet
 from .user_session_views import UserLoginView, UserLogoutView
 
 urlpatterns = [
-    path("user/register/",RegisterViewSet.as_view({"post": "create_user",}),name="register-user",),
+    path("user/register/",RegisterViewSet.as_view({"post": "create_user",}),name="user-register",),
     path("user/",UserViewSet.as_view({"get": "users_list",}),name="users-list",),
     path("user/login/",UserLoginView.as_view({"post": "login",}),name="user-login",),
     path("user/<int:pk>/",UserViewSet.as_view({"get": "retrieve_user","put": "update_user","delete": "destroy_user",}),name="user-detail",),
