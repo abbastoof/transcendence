@@ -15,6 +15,7 @@ RUN addgroup -S www && adduser -D -S -G www www && \
     chown -R www:www /etc/nginx
 
 COPY --chown=www:www ./Frontend/src /www/
+COPY --chown=www:www ./Frontend/default.jpg /www/
 WORKDIR /app
 
 # Copy shared files
@@ -60,13 +61,21 @@ RUN cp -r /app/dist/* /www
 
 # Copy nginx configuration
 COPY --chown=www:www ./Frontend/nginx.conf /etc/nginx/nginx.conf
+RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/nginx-selfsigned.key \
+-out /etc/nginx/ssl/nginx-selfsigned.crt -subj \
+"/C=FI/ST=UUSIMAA/L=HELSINKI/O=HIVE/OU=HIVE/CN=localhost"
+
+RUN chmod 600 /etc/nginx/ssl/nginx-selfsigned.key /etc/nginx/ssl/nginx-selfsigned.crt && \
+    chown -R www:www /var/lib/nginx/logs/ /run/nginx /etc/nginx/ssl
+
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD curl -sSf http://localhost:443 > /dev/null &&  echo "success" || echo "failure"
 RUN chown -R www:www /run/nginx
 
 # Expose port for Nginx server
 EXPOSE 443
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD curl -sSf http://localhost:443 > /dev/null && echo "success" || echo "failure"
+# HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD curl -sSf http://localhost:443 > /dev/null && echo "success" || echo "failure"
 
 # Set up the final command
 USER www

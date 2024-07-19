@@ -4,6 +4,17 @@ networks:
     name: transcendence_network
     driver: bridge
 
+volumes:
+  www_data:
+    name: www_data
+  # database:
+  #   name: database
+  #   driver: local
+  #   driver_opts:
+  #     type: 'none'
+  #     device: '${PWD}/database_volume'
+  #     o: 'bind'
+
 services:
   rabbitmq:
     container_name: rabbitmq
@@ -24,7 +35,23 @@ services:
     image: user-service
     build:
       context: .
-      dockerfile: Backend/user_management/Dockerfile
+      dockerfile: Backend/user_service/Dockerfile
+    env_file:
+      - .env
+    networks:
+      - transcendence_network
+    volumes:
+      - www_data:/www/avatars
+      # - database:/var/lib/postgresql/
+    depends_on:
+      - rabbitmq
+
+  token-service:
+    container_name: token-service
+    image: token-service
+    build:
+      context: .
+      dockerfile: Backend/token_service/Dockerfile
     env_file:
       - .env
     networks:
@@ -32,12 +59,25 @@ services:
     depends_on:
       - rabbitmq
 
-  auth-service:
-    container_name: auth-service
-    image: auth-service
+  game-history:
+    container_name: game-history
+    image: game-history
     build:
       context: .
-      dockerfile: Backend/auth_service/Dockerfile
+      dockerfile: Backend/game_history/Dockerfile
+    env_file:
+      - .env
+    networks:
+      - transcendence_network
+    depends_on:
+      - rabbitmq
+
+  game-server:
+    container_name: game-server
+    image: game-server
+    build:
+      context: .
+      dockerfile: Game_server/Dockerfile
     env_file:
       - .env
     networks:
@@ -60,27 +100,11 @@ services:
     volumes:
       - ./Frontend/src:/app/src  # Mount the source code directory for live reloading in dev mode
       - /app/node_modules  # Prevent overwriting node_modules
+      - www_data:/www/avatars
     networks:
       - transcendence_network
     depends_on:
       - user-service
-      - auth-service
-    environment:
-      NODE_ENV: ${NODE_ENV:-production}  # Set NODE_ENV environment variable for the container
-      TARGET: ${TARGET:-production}  # Set TARGET environment variable for the Docker build stage
-
-  game-server:
-    container_name: game-server
-    image: game-server
-    build:
-      context: .
-      dockerfile: Game_server/Dockerfile
-    env_file:
-      - .env
-    ports:
-      - 8002:8002
-    networks:
-      - transcendence_network
-    depends_on:
-      - rabbitmq
-
+      - token-service
+      - game-history
+      - game-server

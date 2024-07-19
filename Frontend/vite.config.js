@@ -13,17 +13,11 @@ export default defineConfig(({ mode }) => {
       strictPort: true,  // Ensure the server will only listen on the specified port
       host: '0.0.0.0',  // Listen on all network interfaces for container access
       proxy: {
-        '/auth': {
-          target: 'http://nginx:80/auth',  // Proxy requests to the auth service through Nginx
-          changeOrigin: true,
-          secure: false,
-          rewrite: (path) => path.replace(/^\/auth/, '/auth'),
-        },
         '/user': {
-          target: 'http://nginx:80/user',  // Proxy requests to the user service through Nginx
+          target: 'http://localhost:3000/user',  // Proxy requests to the auth service through Nginx
           changeOrigin: true,
           secure: false,
-          rewrite: (path) => path.replace(/^\/user/, '/user'),
+          //rewrite: (path) => path.replace(/^\/auth/, '/auth'),
         },
       },
     },
