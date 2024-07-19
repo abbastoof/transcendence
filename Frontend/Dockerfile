@@ -15,7 +15,7 @@ RUN addgroup -S www && adduser -D -S -G www www && \
     chown -R www:www /etc/nginx
 
 COPY --chown=www:www ./Frontend/src /www/
-COPY --chown=www:www ./Frontend/default.jpg /www/
+COPY --chown=www:www ./Frontend/default.jpg /www/avatars/
 WORKDIR /app
 
 # Copy shared files

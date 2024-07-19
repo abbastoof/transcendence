@@ -91,7 +91,7 @@ def test_user_login(api_client, admin_user):
     }
     url = reverse("user-login")
     response = api_client.post(url, data, format='json')
-    print("response = ", response)
+    print("response_data", response.data)
     assert response.status_code == 200
 
 @pytest.mark.django_db
@@ -114,8 +114,8 @@ def test_user_logout(api_client, admin_user, admin_token):
 
         url = reverse('user-logout', kwargs={'pk': admin_user.id})
         response = api_client.post(url)
-        print("response = ", response)
         assert response.status_code == 200
+        assert response.data["detail"] == 'User logged out successfully'
         assert User.objects.filter(username=admin_user.username).exists()
 
 @pytest.mark.django_db
@@ -126,7 +126,6 @@ def test_retrieve_user(api_client, user, user_token, mock_rabbitmq):
     url = reverse('user-detail', kwargs={'pk': user.id})
     response = api_client.get(url)
 
-    print("response data=", response.data)
     assert response.status_code == status.HTTP_200_OK
     assert response.data['id'] == user.id
     assert response.data['username'] == user.username
@@ -156,3 +155,80 @@ def test_destroy_user(api_client, user, user_token, mock_rabbitmq):
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
     assert not User.objects.filter(username=user.username).exists()
+
+@pytest.mark.django_db
+def test_valid_data_friend_request_functions(api_client, admin_user, user, user_token, admin_token, mock_rabbitmq):
+    
+    print("\ntestuser sends a friend request to admin user")
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
+    url_request = reverse('friends-request', kwargs={'user_pk': user.id, 'pk':admin_user.id})
+    response_request = api_client.post(url_request, format='json')
+    assert response_request.status_code == status.HTTP_201_CREATED
+    assert response_request.data["detail"]=='Friend request sent'
+
+    print("\nAdmin check the friend requests list")
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
+    url_request = reverse('friend_request-list', kwargs={'user_pk': admin_user.id})
+    response_request = api_client.get(url_request, format='json')
+    assert response_request.data[0]["sender_user"] == 11
+    assert response_request.data[0]["receiver_user"] == 10
+    assert response_request.data[0]["status"] == 'pending'
+    assert response_request.status_code == status.HTTP_200_OK
+
+    print("\nAdmin accept the friend request")
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
+    url_request = reverse('friends-request', kwargs={'user_pk': admin_user.id, 'pk':user.id})
+    response_request = api_client.put(url_request, format='json')
+    assert response_request.data["detail"]=='Request accepted'
+    assert response_request.status_code == status.HTTP_202_ACCEPTED
+
+    print("\nAdmin user has testuser in its friends list")
+    url_request = reverse('friends-list', kwargs={'user_pk': admin_user.id})
+    response_request = api_client.get(url_request, format='json')
+    assert response_request.data[0]["username"] == "testuser"
+    
+    print("\ntest user has admin in its friends list")
+    url_request = reverse('friends-list', kwargs={'user_pk': user.id})
+    response_request = api_client.get(url_request, format='json')
+    assert response_request.data[0]["username"] == "admin"
+    assert response_request.status_code == 200
+
+    print("\ntestuser delete the admin user from its friends list")
+    url_request = reverse('remove-friend', kwargs={'user_pk': user.id, 'pk': admin_user.id})
+    response_request = api_client.delete(url_request, format='json')
+    assert response_request.status_code == status.HTTP_204_NO_CONTENT
+
+@pytest.mark.django_db
+def test_send_friend_request_invalid_user_id(api_client, admin_user, user, user_token, admin_token, mock_rabbitmq):
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
+
+    url_request = reverse('friends-request', kwargs={'user_pk': user.id, 'pk':2})
+    response_request = api_client.post(url_request, format='json')
+    assert response_request.status_code == 404
+    assert response_request.data["error"]=="User does not exist"
+
+@pytest.mark.django_db
+def test_reject_friend_request(api_client, admin_user, user, user_token, admin_token, mock_rabbitmq):
+    
+    print("\ntestuser sends a friend request to admin user")
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
+    url_request = reverse('friends-request', kwargs={'user_pk': user.id, 'pk':admin_user.id})
+    response_request = api_client.post(url_request, format='json')
+    assert response_request.status_code == status.HTTP_201_CREATED
+    assert response_request.data["detail"]=='Friend request sent'
+
+    print("\nAdmin check the friend requests list")
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
+    url_request = reverse('friend-request-list', kwargs={'user_pk': admin_user.id})
+    response_request = api_client.get(url_request, format='json')
+    assert response_request.data[0]["sender_user"] == 15
+    assert response_request.data[0]["receiver_user"] == 14
+    assert response_request.data[0]["status"] == 'pending'
+    assert response_request.status_code == status.HTTP_200_OK
+
+    print("Admin reject the testuser request")
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
+    url_request = reverse('reject-request', kwargs={'user_pk': admin_user.id,'pk':user.id})
+    response_request = api_client.put(url_request, format='json')
+    assert response_request.data["detail"] == "Request rejected"
+    assert response_request.status_code == status.HTTP_202_ACCEPTED
