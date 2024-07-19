@@ -14,15 +14,19 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',  // Listen on all network interfaces for container access
       proxy: {
         '/user': {
-          target: 'http://localhost:3000/user',  // Proxy requests to the auth service through Nginx
+          target: 'http://user-service:8001/',  // Proxy requests to the user service
           changeOrigin: true,
-          secure: false,
+          ///secure: false,
           //rewrite: (path) => path.replace(/^\/auth/, '/auth'),
         },
-      },
+        '/game-history': {
+          target: 'http://game-history:8002', // game history service
+          changeOrigin: true,
+        },
     },
     optimizeDeps: {
       include: ['three'],  // Include 'three' in optimized dependencies
     },
+  },
   };
 });

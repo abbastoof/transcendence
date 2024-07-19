@@ -48,7 +48,7 @@ FROM frontend AS development
 EXPOSE 3000
 
 # Development command
-CMD ["npm", "run", "dev"]
+CMD ["sh", "/app/tools.sh"]
 
 # Production stage
 FROM frontend AS production
