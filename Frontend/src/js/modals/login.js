@@ -1,6 +1,8 @@
 // Import our custom CSS
 import '../../scss/styles.scss';
 
+import { updateUserProfile } from './profile.js';
+
 // Import all of Bootstrap's JS
 import * as bootstrap from 'bootstrap'
 

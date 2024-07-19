@@ -62,6 +62,7 @@ createModal('signUp', `
     </form>`)
 import './modals/signup.js';
 
+import './modals/profile.js';
 createModal('login', `
             <form id="loginForm" class="text-center">
                 <div class="form-group">
@@ -93,4 +94,4 @@ createModal('logout', `
 insertModal('.about', 'aboutModal.html', 'about');
 
 createModal('Profile', '<div id="userProfile"></div>')
-import './modals/profile.js';
+
