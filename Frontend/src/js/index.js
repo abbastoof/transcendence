@@ -95,4 +95,3 @@ import './modals/login.js';
 insertModal('.about', 'aboutModal.html', 'about');
 
 createModal('Profile', '<div id="userProfile"></div>')
-
