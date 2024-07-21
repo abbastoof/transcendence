@@ -21,7 +21,7 @@ def validate_token(request) -> None:
             detail={"error": "Access token is required"},
             code=status.HTTP_400_BAD_REQUEST)
     access_token = bearer.split(' ')[1]
-    publish_message("validate_token_request_queue", json.dumps({"access": access_token}))
+    publish_message("validate_token_request_queue", json.dumps({"id": request.user.id, "access": access_token}))
 
     response_data = {}
 
@@ -98,6 +98,8 @@ class UserViewSet(viewsets.ViewSet):
         try:
             validate_token(request)
             data = get_object_or_404(User, id=pk)
+            if request.user != data:
+                return Response({"detail": "You're not authorized"}, status=status.HTTP)
             serializer = UserSerializer(data)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as err:
@@ -180,13 +182,12 @@ class RegisterViewSet(viewsets.ViewSet):
         """
         try:
             serializer = UserSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except ValidationError as err:
             return Response({'error': err}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as err:
-            return Response({'error': str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class FriendsViewSet(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]

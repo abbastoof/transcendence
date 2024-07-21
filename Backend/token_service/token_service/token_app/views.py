@@ -1,4 +1,5 @@
 import json
+import logging
 from django.http import Http404
 from rest_framework import status
 from token_service import settings
@@ -12,6 +13,9 @@ from .rabbitmq_utils import consume_message, publish_message
 from .serializers import CustomTokenObtainPairSerializer
 from .models import UserTokens
 import jwt
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     """
@@ -122,7 +126,7 @@ class CustomTokenRefreshView(TokenRefreshView):
 
 
 class ValidateToken():
-    def validate_token(access_token) -> bool:
+    def validate_token(self, access_token) -> bool:
         """
             Validate the refresh token.
 
@@ -158,18 +162,23 @@ class ValidateToken():
         """
         data = json.loads(body)
         access_token = data.get("access")
+        id = data.get("id")
+        response = {}
         try:
-            if ValidateToken.validate_token(access_token):
-                user = get_object_or_404(UserTokens, token_data__access=access_token)
+            result = self.validate_token(access_token)
+            if result:
+                logger.info("Before finding the user")
+                user = get_object_or_404(UserTokens, id=id)
+                logger.info("username= %s", user.username)
                 response = {"access_token": "Valid token"}
-            else:
-                response = {"error": "Invalid token"}
         except jwt.ExpiredSignatureError:
             response = {"error": "token is expired"}
         except jwt.InvalidTokenError:
             response = {"error": "Invalid token"}
+        except Http404:
+            response = {"error": "User has not logged in yet!!"}
         except Exception as err:
-            response = {"error": "Invalid token"}
+            response = {"error": "Could not validate the token"}
 
         publish_message("validate_token_response_queue", json.dumps(response))
 
