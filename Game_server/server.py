@@ -172,10 +172,10 @@ class PongGame:
             if player2_id is not None and p2_delta_z is not None:
                 self.game_state.move_player(player2_id, p2_delta_z)
             
-            await self.update_game_state()
+            # await self.update_game_state()
             #print("Paddle moved")
-        end_time = time.time()
-        logging.info(f"handle_paddle_movement execution time: {end_time - start_time} seconds")
+        #end_time = time.time()
+        #logging.info(f"handle_paddle_movement execution time: {end_time - start_time} seconds")
         
 
 @sio.event
