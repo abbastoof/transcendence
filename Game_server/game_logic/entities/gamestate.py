@@ -158,11 +158,12 @@ class GameState:
             self.update_player_score(self.player2.id)
             print("Goal scored by player 2")
             return True
-        if self.ball.x > FIELD_DEPTH:
+        elif self.ball.x > FIELD_DEPTH:
             self.update_player_score(self.player1.id)
             print("Goal scored by player 1")
             return True
-        return False
+        else:
+            return False
 
     # update_game_state method
     # updates the state of the game for the next frame
