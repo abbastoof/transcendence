@@ -8,7 +8,7 @@ import os
 def user_directory_path(instance, filename):
     ext = filename.split('.')[-1]
     filename = f'{uuid.uuid4()}.{ext}'
-    return os.path.join('', slugify(instance.username), filename)
+    return os.path.join('', instance.id, filename)
 
 class User(AbstractUser):
     """
