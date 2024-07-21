@@ -1,6 +1,8 @@
 // Import our custom CSS
 import '../../scss/styles.scss';
 
+import { updateUserProfile } from './profile.js';
+
 // Import all of Bootstrap's JS
 import * as bootstrap from 'bootstrap'
 
@@ -46,7 +48,7 @@ import * as bootstrap from 'bootstrap'
             const password = document.getElementById('loginPassword').value;
 
             // Send data to the server
-            fetch('https://localhost:3000/user/login/', {
+            fetch('/user/login/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
