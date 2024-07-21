@@ -125,7 +125,7 @@ class Ball:
     # takes a paddle as argument
     # returns false immediately if ball is not in same x coordinates as paddles
     def check_collision(self, paddle):
-        if(self._position.x > 0 + PADDLE_DEPTH and self._position.x < FIELD_DEPTH - PADDLE_DEPTH):
+        if(self._position.x - BALL_RADIUS > 0 + PADDLE_DEPTH and self._position.x + BALL_RADIUS < FIELD_DEPTH - PADDLE_DEPTH):
             return False
         paddle_z_bottom = paddle.z - PADDLE_WIDTH / 2 
         paddle_z_top = paddle_z_bottom + PADDLE_WIDTH

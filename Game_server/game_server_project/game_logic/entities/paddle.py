@@ -47,4 +47,12 @@ class Paddle:
     # moves the paddle by the given delta z
     def move(self, delta_z: float) -> None:
         ## TODO: make sure paddle doesn't move out of bounds
+        if abs(delta_z) > PADDLE_SPEED:
+            delta_z = PADDLE_SPEED
+        paddle_top = self.position.z + (PADDLE_WIDTH / 2)
+        paddle_bottom = self.position.z - (PADDLE_WIDTH / 2)
+        if paddle_top + delta_z > FIELD_WIDTH:
+            delta_z = FIELD_WIDTH - paddle_top
+        elif paddle_bottom + delta_z < 0:
+            delta_z = -paddle_bottom
         self.position.move(0, 0, delta_z)

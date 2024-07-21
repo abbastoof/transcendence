@@ -5,9 +5,9 @@ PADDLE_WIDTH = 100
 PADDLE_DEPTH = 16
 
 BALL_RADIUS = 6
-BALL_SPEED = 5
+BALL_SPEED = 5.0
 
-PADDLE_SPEED = 5
+PADDLE_SPEED = 5.0
 
 GAME_DURATION = 300 # game duration in seconds
                     # need to multiply this with something, set the result as gamestate.time_remaining

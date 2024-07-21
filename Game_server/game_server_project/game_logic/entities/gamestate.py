@@ -140,7 +140,7 @@ class GameState:
     def handle_collisions(self) -> None:
         if self.ball.x < 0 or self.ball.x > FIELD_DEPTH:
             return
-        if self.ball.z <= 0 or self.ball.z >= FIELD_WIDTH:
+        if self.ball.z - BALL_RADIUS <= 0 or self.ball.z + BALL_RADIUS >= FIELD_WIDTH:
             self.ball.bounce_from_wall()
         elif self.ball.check_collision(self.player1.paddle):
             self.player1.add_hit()
