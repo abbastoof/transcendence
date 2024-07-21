@@ -37,7 +37,7 @@ pull:
 # Remove stopped containers and unused images, networks, and volumes
 .PHONY: clean
 clean:
-	sudo rm -rf /database_volume
+	rm -rf /database_volume
 	docker system prune -f --all
 	docker volume prune -f
 	docker network prune -f
