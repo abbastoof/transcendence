@@ -53,7 +53,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 access_token = str(refresh.access_token)
                 user.token_data = {
                     "refresh": str(refresh),
-                    "token": access_token
+                    "access": access_token
                 }
                 user.save()
                 response_message = {
@@ -167,10 +167,15 @@ class ValidateToken():
         try:
             result = self.validate_token(access_token)
             if result:
-                logger.info("Before finding the user")
-                user = get_object_or_404(UserTokens, id=id)
-                logger.info("username= %s", user.username)
-                response = {"access_token": "Valid token"}
+                logger.info("result= %s", result)
+                user = UserTokens.objects.filter(id = id, token_data__access = access_token).first()
+
+                logger.info("user.username= %s", user.username)
+                logger.info("user.token_data['access']= %s", user.token_data["access"])
+                if result:
+                    response = {"access_token": "Valid token"}
+                else:
+                    response = {"error": "token mismatch"}
         except jwt.ExpiredSignatureError:
             response = {"error": "token is expired"}
         except jwt.InvalidTokenError:
@@ -178,8 +183,8 @@ class ValidateToken():
         except Http404:
             response = {"error": "User has not logged in yet!!"}
         except Exception as err:
-            response = {"error": "Could not validate the token"}
-
+            response = {"error": str(err)}
+        logger.info("response = %s", response)
         publish_message("validate_token_response_queue", json.dumps(response))
 
     def start_consumer(self) -> None:
