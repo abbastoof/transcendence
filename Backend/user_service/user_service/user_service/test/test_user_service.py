@@ -22,16 +22,6 @@ def user_data():
         'password': 'Test@123'
     }
 
-@pytest.mark.django_db
-def test_user_register(api_client, user_data):
-    url = reverse('register-user')
-    response = api_client.post(url, user_data, format='json')
-    assert response.status_code == 201
-    assert response.data['id'] == 1
-    assert response.data['username'] == 'testuser'
-    assert response.data['email'] == 'testuser@123.com'
-
-
 @pytest.fixture
 def user(db):
     return User.objects.create_user(username='testuser', email='testuser@123.com', password='Test@123')
@@ -64,6 +54,15 @@ def mock_rabbitmq():
 
         mock_consume.side_effect = mock_consume_response
         yield mock_publish, mock_consume
+
+@pytest.mark.django_db
+def test_user_register(api_client, user_data):
+    url = reverse('user-register')
+    response = api_client.post(url, user_data, format='json')
+    assert response.status_code == 201
+    assert response.data['id'] == 1
+    assert response.data['username'] == 'testuser'
+    assert response.data['email'] == 'testuser@123.com'
 
 @pytest.mark.django_db
 def test_users_list(api_client, admin_user, admin_token, user_data, mock_rabbitmq):
@@ -161,14 +160,14 @@ def test_valid_data_friend_request_functions(api_client, admin_user, user, user_
     
     print("\ntestuser sends a friend request to admin user")
     api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
-    url_request = reverse('friends-request', kwargs={'user_pk': user.id, 'pk':admin_user.id})
+    url_request = reverse('send-request', kwargs={'user_pk': user.id, 'pk':admin_user.id})
     response_request = api_client.post(url_request, format='json')
     assert response_request.status_code == status.HTTP_201_CREATED
     assert response_request.data["detail"]=='Friend request sent'
 
     print("\nAdmin check the friend requests list")
     api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
-    url_request = reverse('friend_request-list', kwargs={'user_pk': admin_user.id})
+    url_request = reverse('friend-request-list', kwargs={'user_pk': admin_user.id})
     response_request = api_client.get(url_request, format='json')
     assert response_request.data[0]["sender_user"] == 11
     assert response_request.data[0]["receiver_user"] == 10
@@ -177,7 +176,7 @@ def test_valid_data_friend_request_functions(api_client, admin_user, user, user_
 
     print("\nAdmin accept the friend request")
     api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
-    url_request = reverse('friends-request', kwargs={'user_pk': admin_user.id, 'pk':user.id})
+    url_request = reverse('accept-request', kwargs={'user_pk': admin_user.id, 'pk':user.id})
     response_request = api_client.put(url_request, format='json')
     assert response_request.data["detail"]=='Request accepted'
     assert response_request.status_code == status.HTTP_202_ACCEPTED
@@ -202,7 +201,7 @@ def test_valid_data_friend_request_functions(api_client, admin_user, user, user_
 def test_send_friend_request_invalid_user_id(api_client, admin_user, user, user_token, admin_token, mock_rabbitmq):
     api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
 
-    url_request = reverse('friends-request', kwargs={'user_pk': user.id, 'pk':2})
+    url_request = reverse('send-request', kwargs={'user_pk': user.id, 'pk':2})
     response_request = api_client.post(url_request, format='json')
     assert response_request.status_code == 404
     assert response_request.data["error"]=="User does not exist"
@@ -212,7 +211,7 @@ def test_reject_friend_request(api_client, admin_user, user, user_token, admin_t
     
     print("\ntestuser sends a friend request to admin user")
     api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
-    url_request = reverse('friends-request', kwargs={'user_pk': user.id, 'pk':admin_user.id})
+    url_request = reverse('send-request', kwargs={'user_pk': user.id, 'pk':admin_user.id})
     response_request = api_client.post(url_request, format='json')
     assert response_request.status_code == status.HTTP_201_CREATED
     assert response_request.data["detail"]=='Friend request sent'
