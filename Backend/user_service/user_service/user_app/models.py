@@ -14,7 +14,7 @@ class User(AbstractUser):
 
         Email: The email field is required for the user model.
     """
-    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True, default='avatars/default.jpg')
+    avatar = models.ImageField(upload_to='', null=True, blank=True, default='default.jpg')
     friends = models.ManyToManyField("self", blank=True, symmetrical=True)
     status = models.BooleanField(default=False)
     REQUIRED_FIELDS = ["email"]

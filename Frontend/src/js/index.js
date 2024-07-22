@@ -8,7 +8,7 @@ import { startGame } from './pong/pong.js'
 import * as bootstrap from 'bootstrap'
 
 insert('.headerContainer', 'headerSVG.html');
-insertModal('.tournament', 'tournamentModal.html', 'tournament');
+insertModal('.tournament', 'tournamentModal.html', 'tournament', 'Tournament');
 
 const gameModal = createGameModal();
 // Select the button that should open the game modal
@@ -36,7 +36,7 @@ document.getElementById('pongModal').addEventListener('shown.bs.modal', function
     setTimeout(startGame(), 0);
 });
 
-createModal('signUp', `
+createModal('signUp', 'Sign Up', `
     <form id="signUpForm">
         <div class="form-group">
         <label class="labelFont" for="signUpEmail">Email</label>
@@ -62,7 +62,8 @@ createModal('signUp', `
     </form>`)
 import './modals/signup.js';
 
-createModal('login', `
+import './modals/profile.js';
+createModal('login', 'Log in', `
             <form id="loginForm" class="text-center">
                 <div class="form-group">
                     <label class="labelFont" for="loginUsername">Username</label>
@@ -72,14 +73,14 @@ createModal('login', `
                     <label class="labelFont" for="loginPassword">Password</label>
                     <input type="password" class="form-control" id="loginPassword" placeholder="Enter password" required>
                 </div>
-                <button type="submit" class="submit btn btn-primary">Log in</button>
+                <button type="submit" class="submit">Log in</button>
             </form>
         </div>
         <div class="row mt-3">
             <p class="font text-center">
                 Don't have an account? <a href="#" class="signup-link" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#signUpModal">Sign up</a>
             </p>`);
-import './modals/login.js';
+import './modals/signup.js';
 
 createModal('logout', `
         <div class="modal-body">
@@ -89,8 +90,8 @@ createModal('logout', `
             <button type="button" class="submit" data-bs-dismiss="modal">Cancel</button>
             <button type="button" class="submit" onclick="confirmLogout()">Yes, Log out</button>
         </div>`);
+import './modals/login.js';
 
-insertModal('.about', 'aboutModal.html', 'about');
+insertModal('.about', 'aboutModal.html', 'about', 'About');
 
 createModal('Profile', '<div id="userProfile"></div>')
-import './modals/profile.js';

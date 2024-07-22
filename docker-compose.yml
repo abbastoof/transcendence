@@ -1,3 +1,4 @@
+
 networks:
   transcendence_network:
     name: transcendence_network
@@ -92,14 +93,18 @@ services:
     build:
       context: .
       dockerfile: Frontend/Dockerfile
+      target: ${TARGET:-production}  # Build stage based on the TARGET environment variable
     env_file:
       - .env
     ports:
-      - 3000:443
+      - "3001:3000"  # Development port mapping for Vite
+      - "3000:443"   # Production port mapping for Nginx
+    volumes:
+      - ./Frontend/src:/app/src  # Mount the source code directory for live reloading in dev mode
+      - /app/node_modules  # Prevent overwriting node_modules
+      - www_data:/www/avatars
     networks:
       - transcendence_network
-    volumes:
-      - www_data:/www/avatars
     depends_on:
       - user-service
       - token-service

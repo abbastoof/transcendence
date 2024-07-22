@@ -16,4 +16,10 @@ while ! curl -s "${AUTH_SERVICE_URL}" >/dev/null; do
 	sleep 5
 done
 
-nginx -g "daemon off;"
+if [ "$NODE_ENV" = "development" ]; then
+	echo "Starting development server"
+	npm run dev
+else
+	echo "Starting nginx"
+	nginx -g "daemon off;"
+fi

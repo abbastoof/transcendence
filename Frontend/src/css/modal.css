@@ -3,9 +3,9 @@
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  margin:auto
-  /* top: 1.5%; */
-  /* bottom: 1.5% */
+  margin:auto;
+  /*top: 1.5%;
+  bottom: 1.5%; */
 }
 
 .modal-content {
@@ -17,11 +17,13 @@
   background: radial-gradient(ellipse at bottom, #0d1d31 0%, #0c0d13 100%);
   overflow: hidden;
   position: relative;
-  /* margin-top:200px; */
+  margin-top:200px;
 }
 
 .modal-body {
-
+  display: block;
+  justify-content: center;
+  align-items: center;
 }
 
 .modal-game {
@@ -38,11 +40,13 @@
 
 .modal-title {
   color:white;
+  text-align: center;
   font-family: "Teko", sans-serif;
+  border-bottom: none;
 }
 
 .modal-header {
-  border-bottom: none;
+  border: none;
 }
 
 .labelFont {
