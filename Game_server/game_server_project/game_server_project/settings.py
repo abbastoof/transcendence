@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import logging
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'game_logic',
+    'channels'
 ]
 
 MIDDLEWARE = [
@@ -71,6 +73,15 @@ TEMPLATES = [
 
 ASGI_APPLICATION = 'game_server_project.asgi.application'
 
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('redis', 6379)],
+            "capacity": 1000,  # Increase this number as needed
+                },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -126,3 +137,14 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+try:
+    import channels.layers
+    channel_layer = channels.layers.get_channel_layer()
+    logger.info("Channel layer: %s", channel_layer)
+except Exception as e:
+    logger.error("Error getting channel layer: %s", e)

@@ -1,8 +1,10 @@
-document.addEventListener('DOMContentLoaded', function () {
-    updateUserProfile();
-});
+// Import our custom CSS
+import '../../scss/styles.scss';
 
-function updateUserProfile() {
+// Import all of Bootstrap's JS
+import * as bootstrap from 'bootstrap'
+
+export function updateUserProfile() {
     // Check if the user is logged in
     const userData = JSON.parse(localStorage.getItem('userData'));
     console.log('UserData:', userData); // Debugging line

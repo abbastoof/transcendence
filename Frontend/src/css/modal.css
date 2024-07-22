@@ -1,15 +1,11 @@
 .modal-dialog {
   display: flex;
+  justify-content: center;
   align-items: center;
   flex-direction: column;
-  top: 1.5%
-}
-
-.modal-dialog1 {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  top: 1.5%
+  margin:auto;
+  /*top: 1.5%;
+  bottom: 1.5%; */
 }
 
 .modal-content {
@@ -25,18 +21,32 @@
 }
 
 .modal-body {
-  display: flex;
+  display: block;
   justify-content: center;
   align-items: center;
 }
 
+.modal-game {
+  .modal-dialog{
+    margin: auto;
+  }
+  .modal-content {
+    height: 700px;
+    width: 900px;
+    margin:0px;
+  }
+
+}
+
 .modal-title {
   color:white;
+  text-align: center;
   font-family: "Teko", sans-serif;
+  border-bottom: none;
 }
 
 .modal-header {
-  border-bottom: none;
+  border: none;
 }
 
 .labelFont {
