@@ -126,7 +126,8 @@ class CustomTokenRefreshView(TokenRefreshView):
 
 
 class ValidateToken():
-    def validate_token(self, access_token) -> bool:
+    @staticmethod
+    def validate_token(access_token) -> bool:
         """
             Validate the refresh token.
 
@@ -211,7 +212,7 @@ class InvalidateToken():
         except Http404:
             response_message = {"error": "User has not logged in yet"}
         except Exception as err:
-            response_message = {"error": "Something unxpected happend"}
+            response_message = {"error": str(err)}
         publish_message("logout_response_queue", json.dumps(response_message))
 
     def start_consumer(self):
