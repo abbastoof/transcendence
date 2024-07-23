@@ -1,4 +1,3 @@
-from channels.layers import get_channel_layer
 from game_logic.entities.player import Player
 from game_logic.entities.ball import Ball
 from game_logic.game_defaults import *
