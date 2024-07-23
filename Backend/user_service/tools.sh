@@ -6,10 +6,11 @@ source venv/bin/activate
 pip install -r /app/requirements.txt
 pip install tzdata
 
-while ! psql -U "${DB_USER}" -d "postgres" -c '\q'; do
-	echo >&2 "Postgres is unavailable - sleeping"
-	sleep 5
+until psql -U "${DB_USER}" -d "postgres" -c '\q'; do
+  echo >&2 "Postgres is unavailable - sleeping"
+  sleep 5
 done
+
 export DJANGO_SETTINGS_MODULE=user_service.settings
 python3 /app/user_service/manage.py makemigrations user_app
 python3 /app/user_service/manage.py migrate

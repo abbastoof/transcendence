@@ -1,18 +1,18 @@
 import json
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.http import Http404
-from django.core.exceptions import ValidationError
 from rest_framework import status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework import status
 from rest_framework.exceptions import ValidationError
-from .models import User, FriendRequest
+from django.db.models import Q
+from django.contrib.auth import get_user_model
+from .models import UserProfileModel, FriendRequest, ChatModel
 from .rabbitmq_utils import publish_message, consume_message
 from .serializers import UserSerializer, FriendSerializer
-from django.db.models import Q
 
+User = get_user_model()
 
 def validate_token(request) -> None:
     bearer = request.headers.get("Authorization")
@@ -37,6 +37,16 @@ def validate_token(request) -> None:
             code=status.HTTP_401_UNAUTHORIZED
         )
 
+# def chat_Page(request, username):
+#     user_obj = User.objects.get(username=username)
+#     users = User.objects.exclude(username=request.user.username)
+
+#     if request.user.pk > user_obj.pk: # to make sure the thread name is always the same for both users
+#         thread_name = f'chat_{request.user.pk}-{user_obj.pk}' # thread name should be unique for each chat room to avoid mixing messages
+#     else:
+#         thread_name = f'chat_{user_obj.pk}-{request.user.pk}'
+#     message_objs = ChatModel.objects.filter(thread_name=thread_name) # get all messages in the chat room with the same thread name
+#     return render(request, 'chat.html', {'users': users, 'user_obj': user_obj, 'messages': message_objs, 'thread_name': thread_name})
 
 class UserViewSet(viewsets.ViewSet):
     """
@@ -75,7 +85,7 @@ class UserViewSet(viewsets.ViewSet):
         """
         try:
             validate_token(request)
-            users = User.objects.all()
+            users = UserProfileModel.objects.all()
             serializer = UserSerializer(users, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as err:
@@ -97,7 +107,7 @@ class UserViewSet(viewsets.ViewSet):
         """
         try:
             validate_token(request)
-            data = get_object_or_404(User, id=pk)
+            data = get_object_or_404(UserProfileModel, id=pk)
             serializer = UserSerializer(data)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as err:
@@ -118,13 +128,12 @@ class UserViewSet(viewsets.ViewSet):
         """
         try:
             validate_token(request)
-            data = get_object_or_404(User, id=pk)
+            data = get_object_or_404(UserProfileModel, id=pk)
             if data != request.user and not request.user.is_superuser:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
             serializer = UserSerializer(instance=data, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            # if User updated Username should send message to all microservices to update the username related to this user using Kafka
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
@@ -144,7 +153,7 @@ class UserViewSet(viewsets.ViewSet):
         """
         try:
             validate_token(request)
-            data = get_object_or_404(User, id=pk)
+            data = get_object_or_404(UserProfileModel, id=pk)
             if data != request.user and not request.user.is_superuser:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
             # Should send message to all microservices to delete all data related to this user using Kafka
@@ -179,9 +188,10 @@ class RegisterViewSet(viewsets.ViewSet):
                 Response: The response object containing the user data.
         """
         serializer = UserSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class FriendsViewSet(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
@@ -189,9 +199,9 @@ class FriendsViewSet(viewsets.ViewSet):
 
     def friends_list(self, request, user_pk=None):
         try:
-            
+
             validate_token(request)
-            user = get_object_or_404(User, id=user_pk)
+            user = get_object_or_404(UserProfileModel, id=user_pk)
             serializer = UserSerializer(user.friends.all(), many=True)
             data = [{"username": item["username"], "status": item["status"]} for item in serializer.data]
             return Response(data, status=status.HTTP_200_OK)
@@ -204,8 +214,8 @@ class FriendsViewSet(viewsets.ViewSet):
     def remove_friend(self, request, user_pk=None, pk=None):
         try:
             validate_token(request)
-            user = get_object_or_404(User, id=user_pk)
-            friend = get_object_or_404(User, id=pk)
+            user = get_object_or_404(UserProfileModel, id=user_pk)
+            friend = get_object_or_404(UserProfileModel, id=pk)
             if friend in user.friends.all():
                 user.friends.remove(friend)
                 user.save()
@@ -223,8 +233,8 @@ class FriendsViewSet(viewsets.ViewSet):
             if (user_pk == pk):
                 raise ValidationError(detail={"You can't send a friend request to yourself"}, code=status.HTTP_400_BAD_REQUEST)
 
-            current_user = get_object_or_404(User, id=user_pk)
-            receiver = get_object_or_404(User, id=pk)
+            current_user = get_object_or_404(UserProfileModel, id=user_pk)
+            receiver = get_object_or_404(UserProfileModel, id=pk)
 
             existing_request = FriendRequest.objects.filter(
             (Q(sender_user=current_user) & Q(receiver_user=receiver) & Q(status='pending')) |
@@ -248,8 +258,8 @@ class FriendsViewSet(viewsets.ViewSet):
     def accept_friend_request(self, request, user_pk=None, pk=None):
         try:
             validate_token(request)
-            current_user = get_object_or_404(User, id=user_pk)
-            sender_user = get_object_or_404(User, id=pk)
+            current_user = get_object_or_404(UserProfileModel, id=user_pk)
+            sender_user = get_object_or_404(UserProfileModel, id=pk)
             pending_requests = FriendRequest.objects.filter(receiver_user=current_user, sender_user=sender_user, status='pending')
             if pending_requests.exists():
                 for req in pending_requests:
@@ -265,8 +275,8 @@ class FriendsViewSet(viewsets.ViewSet):
     def reject_friend_request(self, request, user_pk=None, pk=None):
         try:
             validate_token(request)
-            current_user = get_object_or_404(User, id=user_pk)
-            sender_user = get_object_or_404(User, id=pk)
+            current_user = get_object_or_404(UserProfileModel, id=user_pk)
+            sender_user = get_object_or_404(UserProfileModel, id=pk)
             pending_request = FriendRequest.objects.filter(receiver_user=current_user, sender_user=sender_user, status='pending').first()
             if pending_request:
                 pending_request.reject()
@@ -277,11 +287,11 @@ class FriendsViewSet(viewsets.ViewSet):
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
-        
+
     def friend_requests(self, request, user_pk=None): # get user pending list
         try:
             validate_token(request)
-            user = get_object_or_404(User, id = user_pk)
+            user = get_object_or_404(UserProfileModel, id = user_pk)
             pending_requests = FriendRequest.objects.filter(receiver_user=user, status='pending') # filter returns a list
             data = FriendSerializer(pending_requests, many=True)
             return Response(data.data, status=status.HTTP_200_OK)
@@ -289,3 +299,4 @@ class FriendsViewSet(viewsets.ViewSet):
             return Response({"error": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
+

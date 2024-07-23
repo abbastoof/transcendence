@@ -5,8 +5,7 @@ from rest_framework import status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework import status
-from .models import User
+from .models import UserProfileModel as User
 from .rabbitmq_utils import consume_message, publish_message
 from .serializers import UserSerializer
 
@@ -16,12 +15,12 @@ class UserLoginView(viewsets.ViewSet):
     def login(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
-
+        user = authenticate(username=username, password=password)
         if username and password:
             user = authenticate(username=username, password=password)
             if user is not None:
                 if user.is_active:
-                    serializer = UserSerializer(user, data={"status": True}, partial=True)
+                    serializer = UserSerializer(user, data={"online_status": True}, partial=True)
                     serializer.is_valid(raise_exception=True)
                     serializer.save()
                     data = {"id": serializer.data["id"], "username": serializer.data["username"]}
@@ -79,7 +78,7 @@ class UserLogoutView(viewsets.ViewSet):
                 response_message = {"error": response_data}
                 status_code = status.HTTP_401_UNAUTHORIZED
             else:
-                serializer = UserSerializer(instance=user, data={'status':False}, partial=True)
+                serializer = UserSerializer(instance=user, data={'online_status':False}, partial=True)
                 serializer.is_valid()
                 serializer.save()
                 response_message = {"detail": "User logged out successfully"}

@@ -45,7 +45,18 @@ clean:
 # Display the status of all services
 .PHONY: status
 status:
-	docker compose ps
+	docker compose ps -a
+
+.PHONY: info
+info:
+	docker ps -a
+
+.PHONY: bash
+bash:
+	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) /bin/bash
+
+%:
+	@:
 
 # Display help
 .PHONY: help
@@ -62,4 +73,6 @@ help:
 	@echo "  pull       - Pull latest images for all services"
 	@echo "  clean      - Remove stopped containers and unused images, networks, and volumes"
 	@echo "  status     - Display the status of all services"
+	@echo "  info       - Display the status of all services"
+	@echo "  bash       - Open a bash shell in a running container"
 	@echo "  help       - Display this help message"

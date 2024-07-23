@@ -45,6 +45,7 @@ services:
       # - database:/var/lib/postgresql/
     depends_on:
       - rabbitmq
+      - redis
 
   token-service:
     container_name: token-service

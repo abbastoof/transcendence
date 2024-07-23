@@ -1,6 +1,9 @@
 import json
 import pika
 from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Singleton pattern for managing RabbitMQ connection
 class RabbitMQManager:
@@ -14,18 +17,27 @@ class RabbitMQManager:
 
     @classmethod
     def _create_connection(cls):
-        credentials = pika.PlainCredentials(settings.RABBITMQ_USER, settings.RABBITMQ_PASS)
-        parameters = pika.ConnectionParameters(
-            settings.RABBITMQ_HOST, settings.RABBITMQ_PORT, "/", credentials
-        )
-        return pika.BlockingConnection(parameters)
-
+        try:
+            credentials = pika.PlainCredentials(
+                settings.RABBITMQ_USER or 'guest',
+                settings.RABBITMQ_PASS or 'guest'
+            )
+            parameters = pika.ConnectionParameters(
+                host=settings.RABBITMQ_HOST or 'localhost',
+                port=int(settings.RABBITMQ_PORT or 5672),
+                virtual_host="/",
+                credentials=credentials
+            )
+            return pika.BlockingConnection(parameters)
+        except Exception as e:
+            logger.error(f"Error creating RabbitMQ connection: {e}")
+            raise
 
 def publish_message(queue_name, message):
-    connection = RabbitMQManager.get_connection()
-    channel = connection.channel()
-    channel.queue_declare(queue=queue_name, durable=True)
     try:
+        connection = RabbitMQManager.get_connection()
+        channel = connection.channel()
+        channel.queue_declare(queue=queue_name, durable=True)
         # Ensure the message is a JSON string
         message = json.dumps(message) if isinstance(message, dict) else message
         channel.basic_publish(
@@ -34,22 +46,23 @@ def publish_message(queue_name, message):
             body=message,
             properties=pika.BasicProperties(delivery_mode=2),
         ) # Make the message persistent
+        logger.info(f"Message published to queue {queue_name}: {message}")
     except Exception as e:
-        print(f"Error publishing message: {e}")
+        logger.error(f"Error publishing message: {e}")
     finally:
         # Do not close the connection here; let it be managed by the RabbitMQManager
         pass
 
-
 def consume_message(queue_name, callback):
-    connection = RabbitMQManager.get_connection()
-    channel = connection.channel()
-    channel.queue_declare(queue=queue_name, durable=True)
     try:
+        connection = RabbitMQManager.get_connection()
+        channel = connection.channel()
+        channel.queue_declare(queue=queue_name, durable=True)
         channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True) # Auto acknowledge the message
+        logger.info(f"Started consuming messages from queue {queue_name}")
         channel.start_consuming() # Start consuming the messages
     except Exception as e:
-        print(f"Error consuming message: {e}")
+        logger.error(f"Error consuming message: {e}")
     finally:
         # Do not close the connection here; let it be managed by the RabbitMQManager
         pass

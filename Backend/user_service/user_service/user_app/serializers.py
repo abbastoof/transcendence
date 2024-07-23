@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from .models import User, FriendRequest
+from .models import UserProfileModel, FriendRequest
 from .validators import CustomPasswordValidator
 
 
@@ -26,20 +26,20 @@ class UserSerializer(serializers.ModelSerializer):
                 update: Method to update a user.
     """
     email = serializers.EmailField(
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        validators=[UniqueValidator(queryset=UserProfileModel.objects.all())]
     )
     friends = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=User.objects.all(), required=False # required=False means that the field is not required
+        many=True, queryset=UserProfileModel.objects.all(), required=False # required=False means that the field is not required
     )
 
     class Meta:
-        model = User
-        fields = ["id", "username", "email", "password", "avatar", "status", "friends"]
+        model = UserProfileModel
+        fields = ["id", "username", "email", "password", "avatar", "online_status", "friends"]
         extra_kwargs = {"password": {"write_only": True}}
 
         ### Password should be strong password, minimum 8 characters, at least one uppercase letter, one lowercase letter, one number and one special character
 
-    def create(self, validate_data) -> User:
+    def create(self, validate_data) -> UserProfileModel:
         """
             Method to create a new user.
 
@@ -63,7 +63,7 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-    def update(self, instance, validate_data) -> User:
+    def update(self, instance, validate_data) -> UserProfileModel:
         """
             Method to update a user.
 
