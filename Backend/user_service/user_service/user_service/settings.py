@@ -134,7 +134,7 @@ CHANNEL_LAYERS = {
     "BACKEND": "channels_redis.pubsub.RedisPubSubChannelLayer",
     "CONFIG": {
         "hosts":[{
-            "address": "rediss://user@host:port",  # "REDIS_TLS_URL"
+            "address": "redis://redis:6379",
             "ssl_cert_reqs": None,}],
         },
     },
@@ -227,15 +227,22 @@ STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             'hosts': [('redis', 6379)],
+#             "capacity": 1000,
+#                 },
+#     },
+# }
+
 CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [('redis', 6379)],
-            "capacity": 1000,
-                },
-    },
+    'default':{
+        'BACKEND':'channels.layers.InMemoryChannelLayer'
+    }
 }
+
 CORS_ORIGIN_ALLOW_ALL = True
 AUTH_USER_MODEL = "user_app.UserProfileModel"
 AUTHENTICATION_BACKENDS = (

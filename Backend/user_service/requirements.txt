@@ -18,7 +18,7 @@ tomli
 typing-extensions
 gunicorn
 channels
-channels-redis[cryptography]
+# channels-redis
 django-environ
 daphne
 pytest
