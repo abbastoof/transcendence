@@ -1,15 +1,15 @@
-FROM alpine:3.20
+FROM python:3.11-alpine3.20
 
 ENV PYTHONUNBUFFERED=1
 ENV LANG=C.UTF-8
 
 # Update and install dependencies
 # trunk-ignore(hadolint/DL3018)
-RUN apk update && apk add --no-cache python3 py3-pip \
-postgresql16 postgresql16-client \
-bash supervisor curl openssl bash \
-build-base libffi-dev python3-dev nano
-# Set work directory
+RUN apk add --no-cache supervisor \
+    curl openssl bash postgresql16-client \
+    build-base libffi-dev python3-dev
+
+    # Set work directory
 RUN mkdir /run/postgresql && \
     chown postgres:postgres /run/postgresql && \
     mkdir /app && chown -R postgres:postgres /app
@@ -24,9 +24,7 @@ COPY --chown=postgres:postgres ./Backend/user_service/supervisord.conf /etc/supe
 COPY --chown=postgres:postgres ./Backend/user_service/requirements.txt /app/
 COPY --chown=postgres:postgres ./Backend/user_service/user_service /app/user_service
 COPY --chown=postgres:postgres ./Backend/user_service/tools.sh /app
-COPY --chown=postgres:postgres ./Backend/user_service/init_database.sh /app
 COPY --chown=postgres:postgres ./Backend/user_service/run_consumer.sh /app
-RUN chmod +x /app/tools.sh /app/init_database.sh /app/run_consumer.sh
 
 # Ensure supervisord and scripts are executable and owned by postgres
 RUN chown -R postgres:postgres /etc/supervisor && \

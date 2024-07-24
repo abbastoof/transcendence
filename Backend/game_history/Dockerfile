@@ -1,15 +1,13 @@
-FROM alpine:3.20
+FROM python:3.11-alpine3.20
 
 ENV PYTHONUNBUFFERED=1
 ENV LANG=C.UTF-8
 
 # Update and install dependencies
 # trunk-ignore(hadolint/DL3018)
-RUN apk update && apk add --no-cache python3 py3-pip \
-    postgresql16 postgresql16-client \
-    bash supervisor curl openssl bash \
+RUN apk add --no-cache supervisor \
+    curl openssl bash postgresql16-client \
     build-base libffi-dev python3-dev
-
 
 # Set work directory
 RUN mkdir /run/postgresql && \
@@ -26,11 +24,6 @@ COPY --chown=postgres:postgres ./Backend/game_history/supervisord.conf /etc/supe
 COPY --chown=postgres:postgres ./Backend/game_history/requirements.txt .
 COPY --chown=postgres:postgres ./Backend/game_history/game_history /app/game_history
 COPY --chown=postgres:postgres ./Backend/game_history/tools.sh /app
-COPY --chown=postgres:postgres ./Backend/game_history/init_database.sh /app
-
-
-# Install Python packages
-RUN . venv/bin/activate && pip install -r requirements.txt
 
 # Create log files and set permissions
 RUN touch /var/log/django.log /var/log/django.err /var/log/init_database.log /var/log/init_database.err && \
