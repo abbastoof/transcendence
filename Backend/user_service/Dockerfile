@@ -10,9 +10,7 @@ RUN apk add --no-cache supervisor \
     build-base libffi-dev python3-dev
 
     # Set work directory
-RUN mkdir /run/postgresql && \
-    chown postgres:postgres /run/postgresql && \
-    mkdir /app && chown -R postgres:postgres /app
+RUN mkdir /app && chown -R postgres:postgres /app
 
 WORKDIR /app/
 

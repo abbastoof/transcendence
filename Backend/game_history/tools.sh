@@ -6,9 +6,9 @@ pip install --no-cache-dir -r requirements.txt
 pip install tzdata
 
 # Wait for PostgreSQL to be available
-while ! pgsql -h postgresql -U "${DB_USER}" -d "game_history"; do
-    echo >&2 "Postgres is unavailable - sleeping"
-    sleep 5
+while ! psql -h postgresql -U "${DB_USER}" -d "game_history" -c '\q'; do
+	echo >&2 "Postgres is unavailable - sleeping"
+	sleep 5
 done
 
 # Export Django settings and PYTHONPATH

@@ -6,9 +6,9 @@ pip install --no-cache-dir -r /app/requirements.txt
 pip install tzdata
 
 # Wait for PostgreSQL to be available
-while ! pgsql -h postgresql -U "${DB_USER}" -d "user_service"; do
-    echo >&2 "Postgres is unavailable - sleeping"
-    sleep 5
+while ! psql -h postgresql -U "${DB_USER}" -d "user_service" -c '\q'; do
+	echo >&2 "Postgres is unavailable - sleeping"
+	sleep 5
 done
 
 export DJANGO_SETTINGS_MODULE=user_service.settings
