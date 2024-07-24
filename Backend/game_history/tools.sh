@@ -1,17 +1,14 @@
 #!/bin/bash
 
-# Initialize the database
-sh /app/init_database.sh
-
 # Activate the virtual environment
 source venv/bin/activate
-pip install -r requirements.txt
+pip install --no-cache-dir -r requirements.txt
 pip install tzdata
 
 # Wait for PostgreSQL to be available
-while ! pg_isready -q -U "${DB_USER}" -d "postgres"; do
-    echo >&2 "Postgres is unavailable - sleeping"
-    sleep 5
+while ! psql -h postgresql -U "${DB_USER}" -d "game_history" -c '\q'; do
+	echo >&2 "Postgres is unavailable - sleeping"
+	sleep 5
 done
 
 # Export Django settings and PYTHONPATH
