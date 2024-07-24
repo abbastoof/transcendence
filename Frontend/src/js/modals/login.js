@@ -149,8 +149,7 @@ import * as bootstrap from 'bootstrap'
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + userData.token
-            },
-            body: JSON.stringify({ "id": userData.id, "access": userData.token })
+            }
         })
             .then(response => {
                 if (!response.ok) {
