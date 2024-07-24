@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		return;
 	}
 
-	fetch(`/user/${userData.id}/friends`, {
+	fetch(`/user/${userData.id}/friends/`, {
 		method: 'GET',
 		headers: {
 			'Authorization': `Bearer ${userData.token}`

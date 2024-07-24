@@ -51,10 +51,10 @@ export function updateUserProfile() {
                     </div>
                     <button type="submit" class="submit">Submit</button>
                 </form>
+                <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#FriendsModal">Friends</button>
             </div>
             `;
             userProfileContainer.innerHTML = htmlContent;
-            // <img src="${data.imageUrl}" alt="User Profile Image">
 
             const form = document.getElementById('imageUploadForm');
             form.addEventListener('submit', (event) => {
