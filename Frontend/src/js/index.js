@@ -94,7 +94,7 @@ import './modals/login.js';
 
 insertModal('.about', 'aboutModal.html', 'about', 'About');
 
-createModal('Friends', 'Friends', '<div id="Friends"></div>');
+createModal('Friends', 'Friends', '<div id="Friends"></div> <h2 id="friendsList">Friend List</h2>');
 import './modals/friends.js';
 
 createModal('Profile', 'Profile', '<div id="userProfile"></div>');

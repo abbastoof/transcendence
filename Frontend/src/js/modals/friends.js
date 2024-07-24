@@ -1,6 +1,10 @@
 import '../../scss/styles.scss';
 
 document.addEventListener('DOMContentLoaded', function () {
+    updateFriendsList();
+});
+
+export function updateFriendsList() {
 	const userData = JSON.parse(localStorage.getItem('userData'));
 	if (!userData || !userData.id || !userData.token) {
 		console.error('UserData is missing or incomplete');
@@ -41,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	.catch(error => {
 		console.error('Error fetching friends:', error);
 	});
-});
+};
 
 function sendMessage(friendId) {
 	const message = prompt("Enter your message:");
