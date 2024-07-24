@@ -1,12 +1,11 @@
 #! /bin/bash
 
-sh /app/init_database.sh
 # trunk-ignore(shellcheck/SC1091)
 source venv/bin/activate
-pip install -r /app/requirements.txt
+pip install --no-cache-dir -r /app/requirements.txt
 pip install tzdata
 
-while ! psql -U "${DB_USER}" -d "postgres" -c '\q'; do
+while ! psql -h postgresql -U "${DB_USER}" -d "token_service" -c '\q'; do
 	echo >&2 "Postgres is unavailable - sleeping"
 	sleep 5
 done
