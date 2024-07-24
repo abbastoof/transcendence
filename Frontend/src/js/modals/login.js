@@ -137,18 +137,39 @@ import * as bootstrap from 'bootstrap'
         }
 
         // Function to handle logout confirmation
-        window.confirmLogout = function () {
-            // Simulating a successful logout response
-            console.log('Logout successful: Simulated response');
+    window.confirmLogout = function () {
+        var userData = JSON.parse(localStorage.getItem('userData'));
+        if (!userData) {
+            console.error('No user data found in localStorage.');
+            return;
+        }
 
-            localStorage.clear('userData'); // Clear all localStorage items
+        fetch(`/user/${userData.id}/logout/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + userData.token
+            },
+            body: JSON.stringify({ "id": userData.id, "access": userData.token })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Logout failed');
+                }
+                console.log('Logout successful');
 
-            isLoggedIn = false; // Update login state
-            localStorage.setItem('isLoggedIn', 'false'); // Save login state to localStorage
-            updateAuthButton();
-            logoutModal.hide();
-        };
+                localStorage.clear(); // Clear all localStorage items
 
-        // Initially update the button and profile button
-        updateAuthButton();
-    });
+                isLoggedIn = false; // Update login state
+                localStorage.setItem('isLoggedIn', 'false'); // Save login state to localStorage
+                updateAuthButton();
+                logoutModal.hide();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    };
+
+    // Initially update the button and profile button
+    updateAuthButton();
+});
