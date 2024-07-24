@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',  // Listen on all network interfaces for container access
       proxy: {
         '/user': {
-          target: 'http://user-service:8001/',  // Proxy requests to the user service
+          target: 'http://user-service:8001',  // Proxy requests to the user service
           changeOrigin: true,
           ///secure: false,
           //rewrite: (path) => path.replace(/^\/auth/, '/auth'),
@@ -23,10 +23,20 @@ export default defineConfig(({ mode }) => {
           target: 'http://game-history:8002', // game history service
           changeOrigin: true,
         },
-    },
+        '/game-server': {
+          target: 'http://game-server:8010',
+          changeOrigin: true,
+          ws: true,  // Enable WebSocket support
+          rewrite: (path) => path.replace(/^\/game-server/, ''),
+        },
+        '/game-server/socket.io': {
+          target: 'http://game-server:8010/socket.io',
+          changeOrigin: true,
+          ws: true,  // Enable WebSocket support
+        },
     optimizeDeps: {
       include: ['three'],  // Include 'three' in optimized dependencies
     },
   },
-  };
-});
+  },
+}});

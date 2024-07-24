@@ -7,6 +7,12 @@ COPY ./Game_server/ /app
 
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Install network utilities
+RUN apt-get update && \
+    apt-get install -y net-tools lsof iproute2 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+    
 EXPOSE 8010
 
-CMD ["python", "server.py"]
+CMD ["python3", "server.py"]

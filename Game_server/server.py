@@ -8,8 +8,22 @@ import asyncio
 import json
 import time
 
-sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins=["http://localhost:5173"])
+# allowed_origins = [
+#     "*",
+#     # "http://localhost:3000",
+#     # "http://localhost:3001",
+#     # "http://frontend:3000",  # Docker internal IP for frontend
+#     # "http://frontend:3001"   # Docker internal IP for frontend
+# ]
+
+sio = socketio.AsyncServer(
+    async_mode='asgi',
+    cors_allowed_origins="*",  # Specify allowed origins
+#    logger=True,
+#    engineio_logger=True
+)
 app = socketio.ASGIApp(sio)
+
 
 game_instance = None
 
@@ -181,7 +195,7 @@ class PongGame:
 @sio.event
 async def connect(sid, environ):
     global game_instance
-    print('connect ', sid)
+    print(f'Client connected: {sid}, Path: {environ.get("PATH_INFO")}')
     if game_instance is None:
         game_instance = PongGame(1, 1, 2)  # Ensure proper player IDs and game IDs
     game_instance.sid = sid  # Assign the session ID to the game instance
@@ -214,4 +228,4 @@ async def test(sid):
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(app, host='0.0.0.0', port=8011)
+    uvicorn.run(app, host='0.0.0.0', port=8010)

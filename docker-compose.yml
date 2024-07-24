@@ -81,11 +81,9 @@ services:
     env_file:
       - .env
     ports:
-      - 8011:8010
+      - 8010:8010
     networks:
       - transcendence_network
-    depends_on:
-      - rabbitmq
 
   frontend:
     container_name: frontend

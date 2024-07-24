@@ -2,39 +2,35 @@
 import '../scss/styles.scss'
 import { createModal, createGameModal } from './createModal.js'
 import { insert, insertModal } from './insert.js'
-import { startGame } from './pong/pong.js'
+import { startGame, cleanupGame } from './pong/pong.js'
 
 // Import all of Bootstrap's JS
 import * as bootstrap from 'bootstrap'
+// Assuming you have imported necessary modules and functions like startGame, cleanupGame
+document.addEventListener('DOMContentLoaded', function () {
+    // Initialize the modal with options to prevent closing on backdrop click
+    const pongModalElement = document.getElementById('pongModal');
+    const pongModal = new bootstrap.Modal(pongModalElement, {
+        backdrop: 'static',
+        keyboard: true // Optional: prevents closing with ESC key
+    });
+
+    // Show the modal and start the game when it's opened
+    pongModalElement.addEventListener('shown.bs.modal', function () {
+        startGame('pongGameContainer');
+    });
+
+    // Clean up game resources when the modal is closed
+    pongModalElement.addEventListener('hidden.bs.modal', function () {
+        cleanupGame();
+    });
+
+    // Optionally, add event listeners for other modals if needed
+});
+
 
 insert('.headerContainer', 'headerSVG.html');
 insertModal('.tournament', 'tournamentModal.html', 'tournament', 'Tournament');
-
-const gameModal = createGameModal();
-// Select the button that should open the game modal
-console.log(gameModal)
-console.log(typeof gameModal.show); // Check if the show method is a function
-
-const gameButton = document.querySelector('button[data-bs-target="#pongModal"]');
-
-if (gameButton) {
-    // Add an event listener to the button
-    gameButton.addEventListener('click', (event) => {
-        console.log('Game button clicked');
-        // Prevent the default Bootstrap modal from opening
-        event.preventDefault();
-
-        // Open the game modal
-        gameModal.show();
-    });
-} else {
-    console.error('Game button not found');
-}
-
-
-document.getElementById('pongModal').addEventListener('shown.bs.modal', function() {
-    setTimeout(startGame(), 0);
-});
 
 createModal('signUp', 'Sign Up', `
     <form id="signUpForm">

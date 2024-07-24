@@ -1,102 +1,150 @@
-import * as THREE from 'three';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
-import { RGBShiftShader } from 'three/addons/shaders/RGBShiftShader.js';
-import { DotScreenShader } from 'three/addons/shaders/DotScreenShader.js';
-import { GlitchPass } from 'three/addons/postprocessing/GlitchPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import Paddle from './classes/Paddle.js';
-import Ball from './classes/Ball.js';
-import PlayingField from './classes/PlayingField.js';
-import { WIDTH, HEIGHT, LEFT_PADDLE_START, RIGHT_PADDLE_START } from './constants.js';
+// pong.js
+import * as bootstrap from 'bootstrap';
+import GameSession from './classes/GameSession.js';
+
+import { PADDLE_SPEED } from './constants.js';
 import { init } from './init.js';
-// const light = new THREE.PointLight( 0xffffff, 5.1, 100, 0.5 );
-// light.position.set( 0, 0, 0 );
-// scene.add( light );
-export function startGame() {
-    const { renderer, scene, camera, composer } = init();
+import { randomMultiplier, randomX, randomY } from './constants.js';
+let gameSession = new GameSession();
+let gameStarted = false;
+let renderer, scene, camera, composer, animationId;
 
-    var playingField = new PlayingField(scene);
-    //var wall1 = new Wall(0);
-    var leftPaddle = new Paddle(scene, LEFT_PADDLE_START, 0x00ff00);
-    var rightPaddle = new Paddle(scene, RIGHT_PADDLE_START, 0xff0000);
-    var ball = new Ball(scene);
-    leftPaddle.addToScene();
-    rightPaddle.addToScene();
-    ball.addToScene();
-    playingField.addToScene();
+let player1_id = Math.round(randomMultiplier)
+let player2_id = Math.round(randomX)
+let game_id = Math.round(randomY)
 
-// Variables to hold keyboard state
-    var keys = {};
-    document.addEventListener('keydown', function(event) {
+export function cleanupGame() {
+    if (typeof cancelAnimationFrame !== 'undefined') {
+        cancelAnimationFrame(animationId);
+    }
+
+    if (renderer) {
+        renderer.dispose();
+    }
+
+    if (scene) {
+        scene.traverse((object) => {
+            if (!object.isMesh) return;
+            object.geometry.dispose();
+
+            if (object.material.isMaterial) {
+                cleanMaterial(object.material);
+            } else {
+                for (const material of object.material) cleanMaterial(material);
+            }
+        });
+    }
+
+    const gameContainer = document.getElementById('pongGameContainer');
+    if (gameContainer) {
+        gameContainer.innerHTML = '';
+    }
+}
+
+function cleanMaterial(material) {
+    material.dispose();
+    for (const key in material) {
+        const value = material[key];
+        if (value && typeof value === 'object' && 'minFilter' in value) {
+            value.dispose();
+        }
+    }
+}
+
+export function startGame(containerId, isRemote = false) {
+    if (gameStarted) return;
+    gameStarted = true;
+    const container = document.getElementById(containerId);
+    const canvas = document.createElement('canvas');
+    canvas.width = 800;
+    canvas.height = 600;
+    container.appendChild(canvas);
+
+    // Initialize game session
+
+    const { renderer: r, scene: s, camera: c, composer: comp } = init(canvas);
+    renderer = r;
+    scene = s;
+    camera = c;
+    composer = comp;
+
+    if (player1_id === player2_id) {
+        player2_id++;
+    }
+    gameSession.initialize(game_id, player1_id, player2_id, isRemote, scene);
+
+
+    // Keyboard controls
+    const keys = {};
+    document.addEventListener('keydown', (event) => {
         keys[event.key] = true;
     });
-    document.addEventListener('keyup', function(event) {
+    document.addEventListener('keyup', (event) => {
         keys[event.key] = false;
     });
 
-    // Update function to move cubes based on keyboard input
-    function update() {
-        if ((keys['w'] || keys['W']) && !leftPaddle.intersectsWall(playingField.upperWall.boundingBox)) { // Q key
-            leftPaddle.moveUp();
+    // Update function
+    function updatePaddlePosition() {
+        let leftDeltaZ = 0;
+        let rightDeltaZ = 0;
+    
+        if ((keys['q'] || keys['Q']) && !gameSession.leftPaddle.intersectsWall(gameSession.playingField.upperWall.boundingBox)) {
+            leftDeltaZ -= PADDLE_SPEED;
         }
-        if ((keys['s'] || keys['S']) && !leftPaddle.intersectsWall(playingField.lowerWall.boundingBox)) { // A key
-            leftPaddle.moveDown();
+        if ((keys['a'] || keys['A']) && !gameSession.leftPaddle.intersectsWall(gameSession.playingField.lowerWall.boundingBox)) {
+            leftDeltaZ += PADDLE_SPEED;
         }
-        if (keys['ArrowUp'] && !rightPaddle.intersectsWall(playingField.upperWall.boundingBox)) { // Up arrow key
-            rightPaddle.moveUp();
+        if ((keys['ArrowUp']) && !gameSession.rightPaddle.intersectsWall(gameSession.playingField.upperWall.boundingBox)) {
+            rightDeltaZ -= PADDLE_SPEED;
         }
-        if (keys['ArrowDown'] && !rightPaddle.intersectsWall(playingField.lowerWall.boundingBox)) { // Down arrow key
-            rightPaddle.moveDown();
+        if ((keys['ArrowDown']) && !gameSession.rightPaddle.intersectsWall(gameSession.playingField.lowerWall.boundingBox)) {
+            rightDeltaZ += PADDLE_SPEED;
+        }
+        gameSession.leftPaddle.mesh.position.z += leftDeltaZ;
+        gameSession.rightPaddle.mesh.position.z += rightDeltaZ;
+
+        if (leftDeltaZ !== 0 || rightDeltaZ !== 0) {
+            let emitData = JSON.stringify({
+                type: 'move_paddle',
+                game_id: gameSession.gameId,
+                player1_id: gameSession.player1_id, 
+                p1_delta_z: leftDeltaZ,
+                player2_id: gameSession.player2_id,
+                p2_delta_z: rightDeltaZ
+            });
+    
+        gameSession.sendMovement(emitData);
         }
     }
 
-    function checkCollision() {
-        if (ball.boundingSphere.intersectsBox(leftPaddle.boundingBox)) {
-            ball.bounceFromPaddle(leftPaddle.mesh.position);
-            effect2.uniforms[ 'amount' ].value = 0.059;
-            return true;
-        }
-        else if (ball.boundingSphere.intersectsBox(rightPaddle.boundingBox)) {
-            ball.bounceFromPaddle(rightPaddle.mesh.position);
-            effect2.uniforms[ 'amount' ].value = -0.059;
-            return true;
-        }
-        else if (ball.hitsWall(playingField.lowerWall.boundingBox) || ball.hitsWall(playingField.upperWall.boundingBox)) {
-            ball.bounceFromWall();
-            return true;
-        }
-        else
-            return false;
-    }
-
-    var counter = 0;
     function animate() {
-        playingField.shaderMaterial.uniforms.iTime.value = performance.now() / 1000;
-    //    playingField.shaderMaterial.uniforms.ballSpeed.value = ball.speed;
-        requestAnimationFrame(animate);
-        update();
-        ball.update();
-        // if (checkCollision() === false)
-        // {
-        //     if (counter % 77 === 0) {
-        //         effect2.uniforms[ 'amount' ].value = 0.0055;
-        //         // console.log("Counter % 77: " + counter);
-        //     }
-        //     else if (counter % 101 === 0) {
-        //         effect2.uniforms[ 'amount' ].value = 0.019;
-        //         //  console.log("Counter % 101: " + counter);
-        //         }
-        //     else {
-        //     effect2.uniforms[ 'amount' ].value = 0.0015;
-        //     }
-        // }
-        counter++;
-        camera.lookAt(0,0,0);
+        updatePaddlePosition();
+        gameSession.playingField.shaderMaterial.uniforms.iTime.value = performance.now() / 1000;
+        camera.lookAt(0, 0, 0);
         composer.render();
+        animationId = requestAnimationFrame(animate);
     }
     animate();
 }
 
-startGame()
+function cleanUpThreeJS() {
+    if (animationId) cancelAnimationFrame(animationId);
+    if (renderer) renderer.dispose();
+    if (composer) composer.dispose();
+    gameStarted = false;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const pongModal = new bootstrap.Modal(document.getElementById('pongModal'));
+
+    document.querySelector('button[data-bs-target="#pongModal"]').addEventListener('click', () => {
+        setTimeout(() => {
+            startGame('pongGameContainer', false); // Set to true for remote multiplayer
+        }, 500); // Ensure the modal is fully visible
+    });
+
+    document.getElementById('pongModal').addEventListener('hidden.bs.modal', () => {
+        cleanUpThreeJS();
+        gameSession.disconnect();  // Handle socket disconnection
+    });
+});

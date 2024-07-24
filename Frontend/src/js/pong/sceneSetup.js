@@ -20,7 +20,7 @@ export function initializeScene(renderer, scene, camera, composer) {
     composer.addPass( outputPass );
 
     // Camera setup
-    camera.position.set(-400, 400, 400); // Adjust these values for your desired isometric angle
+    camera.position.set(0, 400, 400); // Adjust these values for your desired isometric angle
     camera.lookAt(0, 0, 0);
     camera.zoom = 2.0;
 
@@ -41,4 +41,5 @@ export function initializeScene(renderer, scene, camera, composer) {
     const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
     hemiLight.position.set(0, 200, 0);
     scene.add(hemiLight);
+    console.log("scene was initialized")
 }

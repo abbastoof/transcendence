@@ -7,6 +7,11 @@
   /*top: 1.5%;
   bottom: 1.5%; */
 }
+#threejsContainer {
+  position: relative;
+  width: 800px;
+  height: 600px; /* Adjust the height as needed */
+}
 
 .modal-content {
   display: flex;
