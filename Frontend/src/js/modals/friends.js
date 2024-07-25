@@ -43,7 +43,6 @@ export function updateFriendsList() {
 			<div class="friend-record mb-3">
 				<h3>${friend.name}</h3>
 				<p>Status: ${friend.isOnline ? 'Online' : 'Offline'}</p>
-				<button onclick="sendMessage('${friend.id}')">Send Message</button>
 			</div>
 			`;
 			});
@@ -100,26 +99,51 @@ function getPending(userData) {
             console.error('Pending container not found');
             return;
         }
+		console.log(data);
         let htmlContent = `<div class="container mt-4"><h2>Pending friend requests</h2>`;
         data.forEach(pending => {
             htmlContent += `
-        <div class="pending-record mb-3">
-            <h3>${pending.name}</h3>
-            <button onclick="acceptPending('${pending.id}')">Accept friend request</button>
-        </div>
-        `;
+                <div class="pending-request mb-3">
+                    <h3>User ID: ${pending.sender_user}</h3>
+                    <button class="accept-btn" data-pending-sender_user="${pending.sender_user}">Accept friend request</button>
+                </div>
+            `;
         });
         htmlContent += '</div>';
         pendingContainer.innerHTML = htmlContent;
-    })
-    .then(() => {
-        const form = document.getElementById('friendForm');
-        form.addEventListener('submit', function (event) {
-            event.preventDefault();
-            // INPUT LOGIC FOR ACCEPTING REQUEST
+
+        // Now that the buttons are added to the DOM, add event listeners to them
+        document.querySelectorAll('.accept-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                acceptPending(userData, this.getAttribute('data-pending-sender_user'));
+            });
         });
     })
     .catch(error => {
         console.error('Error fetching pending:', error);
     });
+}
+
+function acceptPending(userData, requestID) {
+	fetch(`/user/${userData.id}/accept/${requestID}/`, {
+		method: 'PUT',
+		headers: {
+			'Authorization': `Bearer ${userData.token}`
+		}
+	})
+		.then(response => {
+			if (!response.ok) {
+				throw new Error('Network response was not ok');
+			}
+			return response.json();
+		})
+		.then(data => {
+			// Handle the accepted friend request
+			console.log('Friend request accepted:', data);
+			// You can update the UI or perform any other necessary actions here
+			updateFriendsList();
+		})
+		.catch(error => {
+			console.error('Error accepting friend request:', error);
+		});
 }
