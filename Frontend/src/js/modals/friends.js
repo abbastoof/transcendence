@@ -1,16 +1,14 @@
-import '../../scss/styles.scss';
-
 document.addEventListener('DOMContentLoaded', function () {
 	updateFriendsList();
 });
 
 export function updateFriendsList() {
+	// Check if user is logged in
 	const userData = JSON.parse(localStorage.getItem('userData'));
 	if (!userData || !userData.id || !userData.token) {
 		console.error('UserData is missing or incomplete');
 		return;
 	}
-
 	fetch(`/user/${userData.id}/friends/`, {
 		method: 'GET',
 		headers: {
@@ -24,7 +22,6 @@ export function updateFriendsList() {
 			return response.json();
 		})
 		.then(data => {
-			console.log(data);
 			const friendsContainer = document.getElementById('friendsList');
 			if (!friendsContainer) {
 				console.error('Friends container not found');
@@ -49,12 +46,12 @@ export function updateFriendsList() {
 			});
 			htmlContent += '</div>';
 			friendsContainer.innerHTML = htmlContent;
-			getPending(userData);
+			getPendingFriendRequests(userData);
 		})
 		.then(() => {
 			const form = document.getElementById('friendForm');
 			form.addEventListener('submit', function (event) {
-				event.preventDefault(); // Prevent form submission
+				event.preventDefault();
 				sendFriendRequest(userData);
 			});
 		})
@@ -65,8 +62,6 @@ export function updateFriendsList() {
 
 function sendFriendRequest(userData) {
 	const friendID = document.getElementById('friendID').value;
-	// Ensure friendID is validated and sanitized here
-
 	fetch(`/user/${userData.id}/request/${friendID}/`, {
 		method: 'POST',
 		headers: {
@@ -74,54 +69,52 @@ function sendFriendRequest(userData) {
 		}
 	})
 		.then(response => {
-				alert(`${response}`);
+			alert(`${response}`);
 		})
 		.catch(error => {
 			console.error('Error:', error);
 		});
 }
 
-function getPending(userData) {
-    fetch(`/user/${userData.id}/pending/`, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${userData.token}`
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then(data => {
-        const pendingContainer = document.getElementById('pendingList');
-        if (!pendingContainer) {
-            console.error('Pending container not found');
-            return;
-        }
-        let htmlContent = `<div class="container mt-4"><h2>Pending friend requests</h2>`;
-        data.forEach(pending => {
-            htmlContent += `
+function getPendingFriendRequests(userData) {
+	fetch(`/user/${userData.id}/pending/`, {
+		method: 'GET',
+		headers: {
+			'Authorization': `Bearer ${userData.token}`
+		}
+	})
+		.then(response => {
+			if (!response.ok) {
+				throw new Error('Network response was not ok');
+			}
+			return response.json();
+		})
+		.then(data => {
+			const pendingContainer = document.getElementById('pendingList');
+			if (!pendingContainer) {
+				console.error('Pending container not found');
+				return;
+			}
+			let htmlContent = `<div class="container mt-4"><h2>Pending friend requests</h2>`;
+			data.forEach(pending => {
+				htmlContent += `
                 <div class="pending-request mb-3">
                     <h3>User ID: ${pending.sender_user}</h3>
                     <button class="accept-btn" data-pending-sender_user="${pending.sender_user}">Accept friend request</button>
                 </div>
             `;
-        });
-        htmlContent += '</div>';
-        pendingContainer.innerHTML = htmlContent;
-
-        // Now that the buttons are added to the DOM, add event listeners to them
-        document.querySelectorAll('.accept-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                acceptPending(userData, this.getAttribute('data-pending-sender_user'));
-            });
-        });
-    })
-    .catch(error => {
-        console.error('Error fetching pending:', error);
-    });
+			});
+			htmlContent += '</div>';
+			pendingContainer.innerHTML = htmlContent;
+			document.querySelectorAll('.accept-btn').forEach(button => {
+				button.addEventListener('click', function () {
+					acceptPending(userData, this.getAttribute('data-pending-sender_user'));
+				});
+			});
+		})
+		.catch(error => {
+			console.error('Error fetching pending:', error);
+		});
 }
 
 function acceptPending(userData, requestID) {
@@ -138,9 +131,8 @@ function acceptPending(userData, requestID) {
 			return response.json();
 		})
 		.then(data => {
-			// Handle the accepted friend request
-			console.log('Friend request accepted:', data);
-			// You can update the UI or perform any other necessary actions here
+			// Notify and update the friend list
+			alert('Friend request accepted:', data);
 			updateFriendsList();
 		})
 		.catch(error => {
