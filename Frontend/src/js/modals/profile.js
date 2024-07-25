@@ -81,7 +81,7 @@ export function updateUserProfile() {
                 console.log('Image uploaded successfully:', data);
                 // Update the user profile with the new image
                 const avatar = document.getElementById('avatar');
-                avatar.src = `${data.imageUrl}?t=${new Date().getTime()}`; // Force reload image
+                avatar.src = `${data.avatar}?t=${new Date().getTime()}`;
                 avatar.onerror = () => {
                     console.error('Error loading new image.');
                     avatar.src = '/media/default.jpg'; // Fallback to default image

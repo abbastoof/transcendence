@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
+from rest_framework.parsers import MultiPartParser, FormParser
 from .models import User, FriendRequest
 from .rabbitmq_utils import publish_message, consume_message
 from .serializers import UserSerializer, FriendSerializer
@@ -60,6 +61,7 @@ class UserViewSet(viewsets.ViewSet):
     """
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser)
 
     def users_list(self, request) -> Response:
         """

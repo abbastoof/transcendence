@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.conf import settings
 # Create your models here.
 from django.utils.text import slugify
 import uuid
@@ -8,7 +9,7 @@ import os
 def user_directory_path(instance, filename):
     ext = filename.split('.')[-1]
     filename = f'{uuid.uuid4()}.{ext}'
-    return os.path.join('', instance.id, filename)
+    return os.path.join(str(instance.id), filename)
 
 class User(AbstractUser):
     """
