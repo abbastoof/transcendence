@@ -37,8 +37,7 @@ export function updateFriendsList() {
                     <input type="text" class="form-control" id="friendID" placeholder="Enter friend ID" required>
                 </div>
                 <button type="submit" class="submit">Send request</button>
-            </form>
-			</div>`;
+            </form>`;
 			data.forEach(friend => {
 				htmlContent += `
 			<div class="friend-record mb-3">
@@ -50,6 +49,7 @@ export function updateFriendsList() {
 			});
 			htmlContent += '</div>';
 			friendsContainer.innerHTML = htmlContent;
+			getPending(userData);
 		})
 		.then(() => {
 			const form = document.getElementById('friendForm');
@@ -64,35 +64,62 @@ export function updateFriendsList() {
 };
 
 function sendFriendRequest(userData) {
-    const friendID = document.getElementById('friendID').value;
-    // Ensure friendID is validated and sanitized here
+	const friendID = document.getElementById('friendID').value;
+	// Ensure friendID is validated and sanitized here
 
-    fetch(`/user/${userData.id}/request/${friendID}/`, {
-        method: 'POST',
+	fetch(`/user/${userData.id}/request/${friendID}/`, {
+		method: 'POST',
+		headers: {
+			'Authorization': `Bearer ${userData.token}`
+		}
+	})
+		.then(response => {
+				alert(`${response}`);
+		})
+		.catch(error => {
+			console.error('Error:', error);
+		});
+}
+
+function getPending(userData) {
+    fetch(`/user/${userData.id}/pending/`, {
+        method: 'GET',
         headers: {
             'Authorization': `Bearer ${userData.token}`
         }
     })
     .then(response => {
-        if (response.ok) {
-            alert('Friend request sent!');
-        } else {
-            alert('Failed to send friend request.');
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
         }
+        return response.json();
+    })
+    .then(data => {
+        const pendingContainer = document.getElementById('pendingList');
+        if (!pendingContainer) {
+            console.error('Pending container not found');
+            return;
+        }
+        let htmlContent = `<div class="container mt-4"><h2>Pending friend requests</h2>`;
+        data.forEach(pending => {
+            htmlContent += `
+        <div class="pending-record mb-3">
+            <h3>${pending.name}</h3>
+            <button onclick="acceptPending('${pending.id}')">Accept friend request</button>
+        </div>
+        `;
+        });
+        htmlContent += '</div>';
+        pendingContainer.innerHTML = htmlContent;
+    })
+    .then(() => {
+        const form = document.getElementById('friendForm');
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            // INPUT LOGIC FOR ACCEPTING REQUEST
+        });
     })
     .catch(error => {
-        console.error('Error:', error);
+        console.error('Error fetching pending:', error);
     });
 }
-
-
-
-// function sendMessage(friendId) {
-// 	const message = prompt("Enter your message:");
-// 	if (message) {
-// 		// Implement the fetch request to send the message to the server
-// 		console.log(`Message to send to ${friendId}: ${message}`);
-// 		// Example:
-// 		// fetch(`/send-message`, { method: 'POST', body: JSON.stringify({ friendId, message }) })
-// 	}
-// }
