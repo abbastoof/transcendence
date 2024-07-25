@@ -223,14 +223,17 @@ class FriendsViewSet(viewsets.ViewSet):
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-    def send_friend_request(self, request, user_pk=None, pk=None):
+    def send_friend_request(self, request, user_pk=None):
         try:
             validate_token(request)
-            if (user_pk == pk):
+            friend_username = request.data.get("username")
+            if not friend_username:
+                return Response({"error": "Username is required"}, status=status.HTTP_400_BAD_REQUEST)
+            receiver = get_object_or_404(User, username=friend_username)
+            if (user_pk == receiver.id):
                 raise ValidationError(detail={"You can't send a friend request to yourself"}, code=status.HTTP_400_BAD_REQUEST)
 
             current_user = get_object_or_404(User, id=user_pk)
-            receiver = get_object_or_404(User, id=pk)
 
             existing_request = FriendRequest.objects.filter(
             (Q(sender_user=current_user) & Q(receiver_user=receiver) & Q(status='pending')) |

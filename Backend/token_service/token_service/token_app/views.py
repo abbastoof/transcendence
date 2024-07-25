@@ -87,9 +87,9 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                         "access": access_token
                     }
                 except Exception as err:
-                    response_message = {"error": err}
+                    response_message = {"error": str(err)}
         except Exception as err:
-            response_message = {"error": err}
+            response_message = {"error": str(err)}
         publish_message("user_token_response_queue", json.dumps(response_message))
 
 
