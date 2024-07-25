@@ -2,126 +2,126 @@
 
 ### Overview
 
-This document provides an overview of how WebSocket integration has been implemented in the Django project, enabling real-time online status updates and notifications. It includes information on the setup, testing, and frontend access to the WebSocket services.
+This document provides an overview of how WebSocket integration has been implemented in the Django project, enabling real-time online status updates and notifications. It includes information on the setup, testing, and how the frontend can access the WebSocket services.
 
-### Setup
+### Backend Setup
 
-1. **Install Dependencies:**
+#### Dependencies
 
-   Ensure that Django Channels and Redis are installed:
+Django Channels and Redis were installed:
 
-   ```bash
-   pip install channels
-   pip install channels-redis
-   ```
+```bash
+pip install channels
+pip install channels-redis
+```
 
-2. **Project Configuration:**
+#### Project Configuration
 
-   - **`settings.py`:**
+- **`settings.py`:**
 
-     Add `channels` to `INSTALLED_APPS` and configure the channel layers with Redis:
+  `channels` was added to `INSTALLED_APPS` and the channel layers were configured with Redis:
 
-     ```python
-     INSTALLED_APPS = [
-         # other apps
-         'channels',
-     ]
+  ```python
+  INSTALLED_APPS = [
+      # other apps
+      'channels',
+  ]
 
-     ASGI_APPLICATION = 'your_project_name.asgi.application'
+  ASGI_APPLICATION = 'your_project_name.asgi.application'
 
-     CHANNEL_LAYERS = {
-         "default": {
-             "BACKEND": "channels_redis.pubsub.RedisPubSubChannelLayer",
-             "CONFIG": {
-                 "hosts": [{
-                     "address": "redis://redis:6379",
-                     "ssl_cert_reqs": None,
-                 }],
-             },
-         },
-     }
-     ```
+  CHANNEL_LAYERS = {
+      "default": {
+          "BACKEND": "channels_redis.pubsub.RedisPubSubChannelLayer",
+          "CONFIG": {
+              "hosts": [{
+                  "address": "redis://redis:6379",
+                  "ssl_cert_reqs": None,
+              }],
+          },
+      },
+  }
+  ```
 
-   - **`asgi.py`:**
+- **`asgi.py`:**
 
-     Ensure `asgi.py` is set up to handle WebSocket connections:
+  `asgi.py` was set up to handle WebSocket connections:
 
-     ```python
-     import os
-     from django.core.asgi import get_asgi_application
-     from channels.routing import ProtocolTypeRouter, URLRouter
-     from channels.auth import AuthMiddlewareStack
-     import user_app.routing
+  ```python
+  import os
+  from django.core.asgi import get_asgi_application
+  from channels.routing import ProtocolTypeRouter, URLRouter
+  from channels.auth import AuthMiddlewareStack
+  import user_app.routing
 
-     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'your_project_name.settings')
+  os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'your_project_name.settings')
 
-     application = ProtocolTypeRouter({
-         'http': get_asgi_application(),
-         'websocket': AuthMiddlewareStack(
-             URLRouter(
-                 user_app.routing.websocket_urlpatterns
-             )
-         )
-     })
-     ```
+  application = ProtocolTypeRouter({
+      'http': get_asgi_application(),
+      'websocket': AuthMiddlewareStack(
+          URLRouter(
+              user_app.routing.websocket_urlpatterns
+          )
+      )
+  })
+  ```
 
-   - **`routing.py`:**
+- **`routing.py`:**
 
-     Define WebSocket URL patterns:
+  WebSocket URL patterns were defined:
 
-     ```python
-     from django.urls import re_path
-     from . import consumers
+  ```python
+  from django.urls import re_path
+  from . import consumers
 
-     websocket_urlpatterns = [
-         re_path(r'ws/notify/', consumers.NotificationConsumer.as_asgi()),
-         re_path(r'ws/online/', consumers.OnlineStatusConsumer.as_asgi()),
-         re_path(r'ws/<int:id>/', consumers.PersonalChatConsumer.as_asgi()),
-     ]
-     ```
+  websocket_urlpatterns = [
+      re_path(r'ws/notify/', consumers.NotificationConsumer.as_asgi()),
+      re_path(r'ws/online/', consumers.OnlineStatusConsumer.as_asgi()),
+      re_path(r'ws/<int:id>/', consumers.PersonalChatConsumer.as_asgi()),
+  ]
+  ```
 
-3. **Nginx Configuration:**
+#### Nginx Configuration
 
-   Ensure Nginx is set up to support WebSocket connections. Update the `nginx.conf`:
+Nginx was set up to support WebSocket connections. The `nginx.conf` was updated:
 
-   ```nginx
-   map $http_upgrade $connection_upgrade {
-       default upgrade;
-       ''      close;
-   }
+```nginx
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
 
-   server {
-       listen 443 ssl;
-       # other configurations
+server {
+    listen 443 ssl;
+    # other configurations
 
-       location /ws/ {
-           proxy_pass http://websocket-service;
-           proxy_http_version 1.1;
-           proxy_set_header Upgrade $http_upgrade;
-           proxy_set_header Connection "upgrade";
-           proxy_set_header Host $host;
-           proxy_set_header X-Real-IP $remote_addr;
-           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-           proxy_set_header X-Forwarded-Proto $scheme;
-       }
-   }
-   ```
+    location /ws/ {
+        proxy_pass http://websocket-service;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
 
-4. **Docker Configuration:**
+#### Docker Configuration
 
-   Ensure the Docker setup includes Redis and Nginx services:
+The Docker setup included Redis and Nginx services:
 
-   ```yaml
-   services:
-     redis:
-       image: redis
-       container_name: redis
-       networks:
-         - transcendence_network
+```yaml
+services:
+  redis:
+    image: redis
+    container_name: redis
+    networks:
+      - transcendence_network
 
-     nginx:
-       # Nginx service definition
-   ```
+  nginx:
+    # Nginx service definition
+```
 
 ### Testing WebSocket Connections
 
@@ -185,8 +185,24 @@ To integrate WebSocket connections in the frontend, follow these steps:
 
 2. **Handling WebSocket Events:**
 
-   Handle WebSocket events to update the frontend UI accordingly.
+   Handle WebSocket events to update the frontend UI accordingly. For example:
+
+   ```javascript
+   socket.onmessage = function(event) {
+       const data = JSON.parse(event.data);
+       if (data.online_status !== undefined) {
+           updateUserStatus(data.username, data.online_status);
+       }
+   };
+
+   function updateUserStatus(username, status) {
+       const userElement = document.getElementById(username);
+       if (userElement) {
+           userElement.className = status ? 'online' : 'offline';
+       }
+   }
+   ```
 
 ### Summary
 
-This setup allows you to handle real-time online status updates and notifications using WebSockets in your Django application. The configuration includes setting up Django Channels, Redis, and Nginx to support WebSocket connections. The frontend can connect to the WebSocket service and handle events to provide real-time updates to users.
+The setup included configuring Django Channels, Redis, and Nginx to support WebSocket connections. The frontend can connect to the WebSocket service and handle events to provide real-time updates to users.
