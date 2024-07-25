@@ -24,6 +24,7 @@ export function updateFriendsList() {
 			return response.json();
 		})
 		.then(data => {
+			console.log(data);
 			const friendsContainer = document.getElementById('friendsList');
 			if (!friendsContainer) {
 				console.error('Friends container not found');
@@ -41,8 +42,8 @@ export function updateFriendsList() {
 			data.forEach(friend => {
 				htmlContent += `
 			<div class="friend-record mb-3">
-				<h3>${friend.name}</h3>
-				<p>Status: ${friend.isOnline ? 'Online' : 'Offline'}</p>
+				<h3>${friend.username}</h3>
+				<p>Status: ${friend.status ? 'Online' : 'Offline'}</p>
 			</div>
 			`;
 			});
@@ -99,7 +100,6 @@ function getPending(userData) {
             console.error('Pending container not found');
             return;
         }
-		console.log(data);
         let htmlContent = `<div class="container mt-4"><h2>Pending friend requests</h2>`;
         data.forEach(pending => {
             htmlContent += `
