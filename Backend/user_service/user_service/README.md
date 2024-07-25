@@ -109,7 +109,7 @@ server {
 
 #### Docker Configuration
 
-The Docker setup included Redis and Nginx services:
+The Docker setup included Redis service:
 
 ```yaml
 services:
@@ -118,10 +118,6 @@ services:
     container_name: redis
     networks:
       - transcendence_network
-
-  nginx:
-    # Nginx service definition
-```
 
 ### Testing WebSocket Connections
 
