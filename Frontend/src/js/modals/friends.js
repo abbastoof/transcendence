@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 export function updateFriendsList() {
-	// Check if user is logged in
 	const userData = JSON.parse(localStorage.getItem('userData'));
 	if (!userData || !userData.id || !userData.token) {
 		console.error('UserData is missing or incomplete');
@@ -69,7 +68,12 @@ function sendFriendRequest(userData) {
 		}
 	})
 		.then(response => {
-			alert(`${response}`);
+			if (response.ok) {
+				alert('Friend request sent!')
+			}
+			else {
+				alert('Something went wrong!')
+			}
 		})
 		.catch(error => {
 			console.error('Error:', error);
@@ -101,14 +105,20 @@ function getPendingFriendRequests(userData) {
                 <div class="pending-request mb-3">
                     <h3>User ID: ${pending.sender_user}</h3>
                     <button class="accept-btn" data-pending-sender_user="${pending.sender_user}">Accept friend request</button>
-                </div>
+					<button class="reject-btn" data-pending-sender_user="${pending.sender_user}">Reject friend request</button>
+					</div>
             `;
 			});
 			htmlContent += '</div>';
 			pendingContainer.innerHTML = htmlContent;
 			document.querySelectorAll('.accept-btn').forEach(button => {
 				button.addEventListener('click', function () {
-					acceptPending(userData, this.getAttribute('data-pending-sender_user'));
+					acceptPendingFriendRequest(userData, this.getAttribute('data-pending-sender_user'));
+				});
+			});
+			document.querySelectorAll('.reject-btn').forEach(button => {
+				button.addEventListener('click', function () {
+					rejectPendingFriendRequest(userData, this.getAttribute('data-pending-sender_user'));
 				});
 			});
 		})
@@ -117,7 +127,7 @@ function getPendingFriendRequests(userData) {
 		});
 }
 
-function acceptPending(userData, requestID) {
+function acceptPendingFriendRequest(userData, requestID) {
 	fetch(`/user/${userData.id}/accept/${requestID}/`, {
 		method: 'PUT',
 		headers: {
@@ -131,11 +141,32 @@ function acceptPending(userData, requestID) {
 			return response.json();
 		})
 		.then(data => {
-			// Notify and update the friend list
 			alert('Friend request accepted:', data);
 			updateFriendsList();
 		})
 		.catch(error => {
 			console.error('Error accepting friend request:', error);
+		});
+}
+
+function rejectPendingFriendRequest(userData, requestID) {
+	fetch(`/user/${userData.id}/reject/${requestID}/`, {
+		method: 'PUT',
+		headers: {
+			'Authorization': `Bearer ${userData.token}`
+		}
+	})
+		.then(response => {
+			if (!response.ok) {
+				throw new Error('Network response was not ok');
+			}
+			return response.json();
+		})
+		.then(data => {
+			alert('Friend request rejected:', data);
+			updateFriendsList();
+		})
+		.catch(error => {
+			console.error('Error rejecting friend request:', error);
 		});
 }
