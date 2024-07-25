@@ -16,7 +16,7 @@ body {
 }
 
 .ErrorMessage {
-    font-size: 20px;
+    font-size: 23px;
     font-family: "Teko", sans-serif;
     color: red;
     margin-top: -10px; /* Space between title and error message */
@@ -28,8 +28,7 @@ body {
     margin-left: 10px;
 }
 
-.Form {
+.form {
     display: flex;
-    align-items: center;
     flex-direction: column;
 }

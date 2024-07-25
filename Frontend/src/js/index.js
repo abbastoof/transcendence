@@ -1,11 +1,6 @@
-// Import our custom CSS
-import '../scss/styles.scss'
 import { createModal, createGameModal } from './createModal.js'
 import { insert, insertModal } from './insert.js'
 import { startGame } from './pong/pong.js'
-
-// Import all of Bootstrap's JS
-import * as bootstrap from 'bootstrap'
 
 insert('.headerContainer', 'headerSVG.html');
 insertModal('.tournament', 'tournamentModal.html', 'tournament', 'Tournament');
@@ -36,8 +31,8 @@ document.getElementById('pongModal').addEventListener('shown.bs.modal', function
     setTimeout(startGame(), 0);
 });
 
-createModal('signUp', 'Sign Up', `
-    <form id="signUpForm">
+createModal('signUp', 'Sign up', `
+    <form id="signUpForm" class="form">
         <div class="form-group">
         <label class="labelFont" for="signUpEmail">Email</label>
             <input type="email" class="form-control" id="signUpEmail" placeholder="Enter email"
@@ -64,7 +59,7 @@ import './modals/signup.js';
 
 import './modals/profile.js';
 createModal('login', 'Log in', `
-            <form id="loginForm" class="text-center">
+            <form id="loginForm" class="form">
                 <div class="form-group">
                     <label class="labelFont" for="loginUsername">Username</label>
                     <input type="text" class="form-control" id="loginUsername" placeholder="Enter username" required>
@@ -82,11 +77,11 @@ createModal('login', 'Log in', `
             </p>`);
 import './modals/signup.js';
 
-createModal('logout', `
+createModal('logout', 'Log out', `
         <div class="modal-body">
             <p class="ErrorMessage">Are you sure you want to log out?</p>
         </div>
-        <div class="submitContainer">
+        <div class="modal-footer">
             <button type="button" class="submit" data-bs-dismiss="modal">Cancel</button>
             <button type="button" class="submit" onclick="confirmLogout()">Yes, Log out</button>
         </div>`);
@@ -94,4 +89,4 @@ import './modals/login.js';
 
 insertModal('.about', 'aboutModal.html', 'about', 'About');
 
-createModal('Profile', '<div id="userProfile"></div>')
+createModal('Profile', 'Profile', '<div id="userProfile"></div>')

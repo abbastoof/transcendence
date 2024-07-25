@@ -1,10 +1,4 @@
-// Import our custom CSS
-import '../../scss/styles.scss';
-
 import { updateUserProfile } from './profile.js';
-
-// Import all of Bootstrap's JS
-import * as bootstrap from 'bootstrap'
 
     document.addEventListener('DOMContentLoaded', function () {
         var loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
