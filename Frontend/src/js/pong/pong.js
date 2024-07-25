@@ -105,14 +105,13 @@ export function startGame(containerId, isRemote = false) {
 
         if (leftDeltaZ !== 0 || rightDeltaZ !== 0) {
             let emitData = JSON.stringify({
-                type: 'move_paddle',
-                game_id: gameSession.gameId,
-                player1_id: gameSession.player1_id, 
-                p1_delta_z: leftDeltaZ,
-                player2_id: gameSession.player2_id,
-                p2_delta_z: rightDeltaZ
+                'type': 'move_paddle',
+                'game_id': gameSession.gameId,
+                'player1_id': gameSession.player1Id, 
+                'p1_delta_z': leftDeltaZ,
+                'player2_id': gameSession.player2Id,
+                'p2_delta_z': rightDeltaZ
             });
-    
         gameSession.sendMovement(emitData);
         }
     }

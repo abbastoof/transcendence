@@ -10,8 +10,8 @@ import { LEFT_PADDLE_START, RIGHT_PADDLE_START } from '../constants.js';
 class GameSession {
     constructor() {
         this.gameId = null;
-        this.localPlayer1Id = null;
-        this.localPlayer2Id = null;
+        this.player1Id = null;
+        this.player2Id = null;
         this.isRemote = false; // Flag to distinguish between remote and local multiplayer
         this.socket = socket;  // Attach the socket instance
         this.playingField = null;
@@ -22,8 +22,8 @@ class GameSession {
 
     initialize(gameId, player1Id, player2Id, isRemote, scene) {
         this.gameId = gameId;
-        this.localPlayer1Id = player1Id;
-        this.localPlayer2Id = player2Id;
+        this.player1Id = player1Id;
+        this.player2Id = player2Id;
         this.isRemote = isRemote;
 
         this.playingField = new PlayingField(scene);
@@ -42,9 +42,17 @@ class GameSession {
            
             console.log("jooh")
         }
+        console.log(`Game Session Initialized: gameId=${gameId}, player1Id=${player1Id}, player2Id=${player2Id}, remote=${isRemote}`);
+        let gameInitData = { 
+            'type': 'start_game',
+            'game_id': gameId, 
+            'player1_id': player1Id,
+            'player2_id': player2Id,
+            'is_remote': isRemote,
+        }
+        this.socket.emit('start_game', gameInitData);
         initializeEventHandlers(this);
 
-        console.log(`Game Session Initialized: gameId=${gameId}, player1Id=${player1Id}, player2Id=${player2Id}, remote=${isRemote}`);
     }
 
     sendMovement(data) {

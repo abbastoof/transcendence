@@ -3,7 +3,6 @@ from game_logic.entities.ball import Ball
 from game_logic.game_defaults import *
 import random
 import time
-import json
 import asyncio
 import logging
 
@@ -126,7 +125,7 @@ class GameState:
         elif player_id == self.player2.id:
             self.player2.move_paddle(delta_z)
         else:
-            raise ValueError("Invalid player ID")
+            logging.error("Invalid player ID")
 
     # increase_ball_speed method
     # increases the speed of the ball by the given increment
@@ -181,57 +180,6 @@ class GameState:
         if self.check_goal() == True:
             self.paused = True
     
-    def render(self) -> None:
-        start_time = time.time()
-        # Clear the terminal screen
-        print('\033c', end='')
-
-        # Create a 2D array for the game field that fits the terminal window
-        field = [[' ' for _ in range(160)] for _ in range(40)]
-
-        # Set the ball and paddles in the field, scaling down their positions to fit the terminal window
-        ball_z = 39 - int(self._ball.z * 40 / FIELD_WIDTH)  # Invert the ball's z-position
-        ball_x = int(self._ball.x * 160 / FIELD_DEPTH)
-        if 0 <= ball_z < 40 and 0 <= ball_x < 160:
-            field[ball_z][ball_x] = 'O'
-        # Correctly calculate the top and bottom positions of paddle1
-        paddle1_top = 39 - int(self._player1.paddle.z * 40 / FIELD_WIDTH - self._player1.paddle.width * 40 / FIELD_WIDTH / 2)
-        paddle1_bottom = 39 - int(self._player1.paddle.z * 40 / FIELD_DEPTH + self._player1.paddle.width * 40 / FIELD_WIDTH / 2)
-        # Ensure the loop correctly iterates from bottom to top for paddle1
-        for z in range(paddle1_bottom, paddle1_top + 1):  # Include paddle1_top in the range
-            if 0 <= z < 40:
-                field[z][0] = '|'
-
-        # Correctly calculate the top and bottom positions of paddle2
-        paddle2_top = 39 - int(self._player2.paddle.z * 40 / FIELD_WIDTH - self._player2.paddle.width * 40 / FIELD_WIDTH / 2)
-        paddle2_bottom = 39 - int(self._player2.paddle.z * 40 / FIELD_WIDTH + self._player2.paddle.width * 40 / FIELD_WIDTH / 2)
-        # Ensure the loop correctly iterates from bottom to top for paddle2
-        for z in range(paddle2_bottom, paddle2_top + 1):  # Include paddle2_top in the range
-            if 0 <= z < 40:
-                field[z][159] = '|'
-
-        # Print the field
-        print('+', '-' * 160, '+', sep='')
-        for row in field:
-            print(' ', ''.join(row), ' ', sep='')
-        print('+', '-' * 160, '+', sep='')
-
-        # Print the game state information
-        print(f"Game ID: {self.game_id}")
-        print(f"Current Rally: {self.current_rally}")
-        print(f"Longest Rally: {self.longest_rally}")
-        print(f"Ball direction: {self.ball.direction}")
-        print(f"Ball speed: {self.ball.speed}")
-        print(f"Ball delta x: {self.ball.delta_x}")
-        print(f"Ball delta z: {self.ball.delta_z}")
-        print(f"Ball pos: {self.ball.x}, {self.ball.z}")
-        print(f"Game Paused: {self._paused}")
-        print(f"Game In Progress: {self._in_progress}")
-        print(f"Player1 hits: {self.player1.hits}")
-        print(f"Player2 hits: {self.player2.hits}")
-        frame_time = time.time() - start_time
-        if frame_time < 1/60:
-            time.sleep(1/60 - frame_time)
     # reset_ball method
     # resets the ball to the center of the field
     # and gives it a random direction

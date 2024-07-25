@@ -9,8 +9,8 @@ export function initializeScene(renderer, scene, camera, composer) {
     // Post-processing effects
     const renderPass = new RenderPass( scene, camera );
     composer.addPass( renderPass );
-    const glitchPass = new GlitchPass();
-    composer.addPass( glitchPass );
+    // const glitchPass = new GlitchPass();
+    // composer.addPass( glitchPass );
 
     const effect2 = new ShaderPass( RGBShiftShader );
     effect2.uniforms[ 'amount' ].value = 0.0015;

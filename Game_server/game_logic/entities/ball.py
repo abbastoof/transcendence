@@ -4,6 +4,7 @@ from game_logic.game_defaults import *
 from game_logic.entities.paddle import Paddle
 from game_logic.game_defaults import *
 import logging
+
 # Ball class
 # Represents a ball in the game
 # Properties:
@@ -151,8 +152,8 @@ class Ball:
         # adjustment: how much the direction of the ball should be adjusted
         adjustment = abs(75 - direction_mod) + 5 * abs(hitpos) + dz_factor
         adjustment = min(adjustment, MAX_BOUNCE_ANGLE_ADJUSTMENT)
-        logging.info(f"before bounce, direction: {self.direction}, delta_x: {self.delta_x}, delta_z: {self.delta_z}")
-        logging.info(f"hitpos: {hitpos}, dz_factor: {dz_factor}, direction_mod: {direction_mod}, adjustment: {adjustment}")
+        # logging.info(f"before bounce, direction: {self.direction}, delta_x: {self.delta_x}, delta_z: {self.delta_z}")
+        # logging.info(f"hitpos: {hitpos}, dz_factor: {dz_factor}, direction_mod: {direction_mod}, adjustment: {adjustment}")
         # if ball hits the middle of the paddle, it bounces with wider angle
         if hitpos >= 0 and hitpos < 0.2 or hitpos < 0 and hitpos > -.2:
             if self.delta_z < 0.0:
@@ -183,12 +184,11 @@ class Ball:
                     else: # if ball hits the bottom area of the paddle
                         self.direction = 190 + adjustment * 0.5 # bounce to bottom left
         self.direction = self.direction % 360 # make sure direction is between 0 and 360
-        logging.info(f"after bounce, direction: {self.direction}, delta_x: {self.delta_x}, delta_z: {self.delta_z}")
+        #logging.info(f"after bounce, direction: {self.direction}, delta_x: {self.delta_x}, delta_z: {self.delta_z}")
+
     # bounce_from_wall method
     # reflects the direction of the ball when it bounces from a wall
     def bounce_from_wall(self) -> None:
         self.direction = (360 - self.direction) % 360
         # reflects the direction when ball bounces from wall
 
-    # def reset_ball(self):
-        # this would reset ball position to the centre 

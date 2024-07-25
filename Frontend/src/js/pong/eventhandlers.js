@@ -11,8 +11,16 @@ export const initializeEventHandlers = (gameSession) => {
     });
 
     socket.on('send_game_state', (data) => {
-        gameSession.handleGameStateUpdate(data);
-    });
+        if (data && data.game_id) {
+            if (data.game_id === gameSession.gameId) {
+                gameSession.handleGameStateUpdate(data);
+            } else {
+                console.log('Received game state for different game, was ' + data.game_id + ', expected ' + gameSession.gameId);
+            }
+        } else {
+            console.log('game_id is undefined or data is malformed:', data);
+        }
+});
 
     socket.on('game_over', (data) => {
         console.log('Game over!');

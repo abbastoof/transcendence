@@ -8,29 +8,57 @@ import asyncio
 import json
 import time
 
-# allowed_origins = [
-#     "*",
-#     # "http://localhost:3000",
-#     # "http://localhost:3001",
-#     # "http://frontend:3000",  # Docker internal IP for frontend
-#     # "http://frontend:3001"   # Docker internal IP for frontend
-# ]
+# Define custom logging configuration
+logging_config = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'default': {
+            'level': 'INFO',
+            'formatter': 'default',
+            'class': 'logging.StreamHandler',
+        },
+        'uvicorn_access': {
+            'level': 'ERROR',  # Set to ERROR to suppress lower-level logs
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['default'],
+            'level': 'INFO',
+        },
+        'uvicorn.access': {
+            'handlers': ['uvicorn_access'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+    'formatters': {
+        'default': {
+            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        },
+    },
+}
 
 sio = socketio.AsyncServer(
     async_mode='asgi',
     cors_allowed_origins="*",  # Specify allowed origins
-#    logger=True,
-#    engineio_logger=True
+    logger=False,              # Disable Socket.IO logging
+    engineio_logger=False      # Disable engineio logging
 )
 app = socketio.ASGIApp(sio)
 
-
-game_instance = None
+active_games = {}
+sid_to_game = {}
 
 class PongGame:
-    def __init__(self, game_id, player1_id, player2_id):
+    def __init__(self, game_id, player1_id, player2_id, is_remote):
+        self.game_id = game_id
         self.game_state = self.init_game(game_id, player1_id, player2_id)
-        self.sid = None
+        self.sids = []
+        self.is_remote = is_remote
+        logging.info("Pongstructor")
 
     def init_game(self, game_id: int, player1_id: int, player2_id: int) -> GameState:
         player1 = Player(player1_id, PLAYER1_START_X)
@@ -65,6 +93,7 @@ class PongGame:
             'send_game_state',
             {
                 'type': 'send_game_state',
+                'game_id': self.game_state.game_id,
                 'ball': {
                     'x': self.game_state.ball.x,
                     'y': self.game_state.ball.y,
@@ -85,6 +114,7 @@ class PongGame:
     async def update_game_state(self):
         self.game_state.ball.update_position()
         self.game_state.handle_collisions()
+        self.game_state.current_rally += 1
         if self.game_state.check_goal():
             self.game_state.paused = True
 
@@ -92,6 +122,7 @@ class PongGame:
             'send_game_state',
             {
                 'type': 'send_game_state',
+                'game_id': self.game_state.game_id,
                 'ball': {
                     'x': self.game_state.ball.x,
                     'y': self.game_state.ball.y,
@@ -127,7 +158,7 @@ class PongGame:
             "game_duration": GAME_DURATION - self.game_state.time_remaining
         }
         await sio.emit('game_over', json_data, room=self.sid)
-        print("Game over")
+        #logging.info("Game over")
 
     async def post_rally_animation(self):
         for _ in range(40):  # Adjust the range to control the duration of the animation
@@ -136,6 +167,7 @@ class PongGame:
                 'send_game_state',
                 {
                     'type': 'send_game_state',
+                    'game_id': self.game_id,
                     'ball': {
                         'x': self.game_state.ball.x,
                         'y': self.game_state.ball.y,
@@ -175,11 +207,16 @@ class PongGame:
         event_type = data.get('type')
 
         if event_type == 'move_paddle':
+            game_id = data.get('game_id')
+            if game_id != self.game_state.game_id:
+                logging.error("Game ID does not match")
+                return
             player1_id = data.get('player1_id')
             p1_delta_z = data.get('p1_delta_z')
             player2_id = data.get('player2_id')
             p2_delta_z = data.get('p2_delta_z')
-
+            logging.info(f"Player1: {player1_id}, Delta Z: {p1_delta_z}")
+            logging.info(f"Player2: {player2_id}, Delta Z: {p2_delta_z}")
             if player1_id is not None and p1_delta_z is not None:
                 self.game_state.move_player(player1_id, p1_delta_z)
             
@@ -187,39 +224,78 @@ class PongGame:
                 self.game_state.move_player(player2_id, p2_delta_z)
             
             # await self.update_game_state()
-            #print("Paddle moved")
+            logging.info("Paddle moved")
         #end_time = time.time()
         #logging.info(f"handle_paddle_movement execution time: {end_time - start_time} seconds")
         
 
 @sio.event
 async def connect(sid, environ):
-    global game_instance
-    print(f'Client connected: {sid}, Path: {environ.get("PATH_INFO")}')
-    if game_instance is None:
-        game_instance = PongGame(1, 1, 2)  # Ensure proper player IDs and game IDs
-    game_instance.sid = sid  # Assign the session ID to the game instance
-    asyncio.create_task(game_instance.run_game(sid))
+    logging.info(f'Client connected: {sid}, Path: {environ.get("PATH_INFO")}')
 
 @sio.event
 async def disconnect(sid):
-    global game_instance
-    print('disconnect ', sid)
-    if game_instance and game_instance.sid == sid:
-        game_instance = None
+    logging.info(f'Disconnect: {sid}')
+    if sid in sid_to_game:
+        game_id = sid_to_game.pop(sid)
+        if game_id in active_games:
+            game_instance = active_games[game_id]
+            if sid in game_instance.sids:
+                game_instance.sids.remove(sid)
+                if not game_instance.sids:
+                    del active_games[game_id]  # Optionally handle cleanup if no players are left
+
 
 @sio.event
 async def message(sid, data):
     logging.info(f"Message received from {sid}: {data}")
 
 @sio.event
+async def start_game(sid, data):
+    # Handle the start_game message
+    logging.info(f"Start game request from {sid}: {data}")
+    required_keys = ['game_id', 'player1_id', 'player2_id', 'is_remote']
+    for key in required_keys:
+        if key not in data:
+            logging.info(f"Missing key in data: {key}")
+            await sio.emit('error', {'message': f'Missing key: {key}'}, room=sid)
+            return
+    game_id = data.get('game_id')
+    player1_id = data.get('player1_id')
+    player2_id = data.get('player2_id')
+    is_remote = data.get('is_remote')
+    logging.info(f"Got game_id: {game_id}, player1_id: {player1_id}, player2_id: {player2_id}, is_remote: {is_remote}")
+    # Validate data
+    if not all([game_id, player1_id, player2_id]) or is_remote is None:
+        await sio.emit('error', {'message': 'Invalid game initialization data'}, room=sid)
+        return
+
+    # Check if the game_id is already in use
+    if game_id in active_games:
+        await sio.emit('error', {'message': 'Game ID already in use'}, room=sid)
+        return
+
+    # Create a new game instance
+    game_instance = PongGame(game_id, player1_id, player2_id, is_remote)
+    active_games[game_id] = game_instance  # Track game instance by game_id
+    game_instance.sids = [sid]  # Initialize with the current session id
+    sid_to_game[sid] = game_id
+    
+    try:
+        asyncio.create_task(game_instance.run_game(sid))
+        logging.info("Game started")
+    except Exception as e:
+        logging.error(f"Error starting game: {e}")
+        await sio.emit('error', {'message': 'Error starting game'}, room=sid)
+
+@sio.event
 async def move_paddle(sid, data):
-    #logging.info(f"Received paddle movement from {sid}: {data}")
-    if game_instance:
+    game_id = sid_to_game.get(sid)
+    if game_id in active_games:
+        game_instance = active_games[game_id]
         await game_instance.handle_paddle_movement(sid, data)
     else:
-        logging.error("No active game instance")
-
+        logging.error(f"No active game instance for sid: {sid}")
 
 
 @sio.event
@@ -228,4 +304,4 @@ async def test(sid):
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(app, host='0.0.0.0', port=8010)
+    uvicorn.run(app, host='0.0.0.0', port=8010, log_level="info", log_config=logging_config)
