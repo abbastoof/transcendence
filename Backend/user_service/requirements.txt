@@ -18,7 +18,6 @@ tomli
 typing-extensions
 gunicorn
 channels
-# channels-redis
 django-environ
 daphne
 pytest
