@@ -96,6 +96,8 @@ class Ball:
         self._direction = value
         self.set_deltas()
 
+    # set_deltas method
+    # calculates the x and z deltas based on the speed and direction of the ball
     def set_deltas(self) -> None:
         radians: float = math.radians(self.direction)
         self._delta_x = math.cos(radians) * self.speed
@@ -185,6 +187,7 @@ class Ball:
                         self.direction = 190 + adjustment * 0.5 # bounce to bottom left
         self.direction = self.direction % 360 # make sure direction is between 0 and 360
         #logging.info(f"after bounce, direction: {self.direction}, delta_x: {self.delta_x}, delta_z: {self.delta_z}")
+        # Reposition ball to avoid being stuck inside paddle
 
     # bounce_from_wall method
     # reflects the direction of the ball when it bounces from a wall

@@ -21,6 +21,17 @@ export const initializeEventHandlers = (gameSession) => {
             console.log('game_id is undefined or data is malformed:', data);
         }
 });
+    socket.on('score', (data) => {
+        if (data && data.game_id) {
+            if (data.game_id === gameSession.gameId) {
+                gameSession.handleScoreUpdate(data);
+            } else {
+                console.log('Received score update for different game, was ' + data.game_id + ', expected ' + gameSession.gameId);
+            }
+        } else {
+            console.log('game_id is undefined or data is malformed:', data);
+        }
+    });
 
     socket.on('game_over', (data) => {
         console.log('Game over!');

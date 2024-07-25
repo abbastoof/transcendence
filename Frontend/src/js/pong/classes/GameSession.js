@@ -18,6 +18,8 @@ class GameSession {
         this.leftPaddle = null;
         this.rightPaddle = null;
         this.ball = null;
+        this.player1Score = 0;
+        this.player2Score = 0;
     }
 
     initialize(gameId, player1Id, player2Id, isRemote, scene) {
@@ -66,6 +68,12 @@ class GameSession {
         this.ball.updatePosition(translatedData.ball);
     }
 
+    handleScoreUpdate(data) {
+        console.log('Received score update:', data);
+        this.player1Score = data.player1_score;
+        this.player2Score = data.player2_score;
+    }
+    
     disconnect() {
         if (this.socket.connected) {
             this.socket.disconnect();

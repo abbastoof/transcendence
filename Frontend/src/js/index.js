@@ -6,6 +6,10 @@ import { startGame, cleanupGame } from './pong/pong.js'
 
 // Import all of Bootstrap's JS
 import * as bootstrap from 'bootstrap'
+
+insert('.headerContainer', 'headerSVG.html');
+insertModal('.tournament', 'tournamentModal.html', 'tournament', 'Tournament');
+
 // Assuming you have imported necessary modules and functions like startGame, cleanupGame
 document.addEventListener('DOMContentLoaded', function () {
     // Initialize the modal with options to prevent closing on backdrop click
@@ -28,9 +32,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // Optionally, add event listeners for other modals if needed
 });
 
-
-insert('.headerContainer', 'headerSVG.html');
-insertModal('.tournament', 'tournamentModal.html', 'tournament', 'Tournament');
 
 createModal('signUp', 'Sign Up', `
     <form id="signUpForm">
