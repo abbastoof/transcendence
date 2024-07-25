@@ -67,7 +67,7 @@ function sendFriendRequest(userData) {
     const friendID = document.getElementById('friendID').value;
     // Ensure friendID is validated and sanitized here
 
-    fetch(`/user/${userData.id}/request/${friendID}`, {
+    fetch(`/user/${userData.id}/request/${friendID}/`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${userData.token}`
@@ -85,12 +85,14 @@ function sendFriendRequest(userData) {
     });
 }
 
-function sendMessage(friendId) {
-	const message = prompt("Enter your message:");
-	if (message) {
-		// Implement the fetch request to send the message to the server
-		console.log(`Message to send to ${friendId}: ${message}`);
-		// Example:
-		// fetch(`/send-message`, { method: 'POST', body: JSON.stringify({ friendId, message }) })
-	}
-}
+
+
+// function sendMessage(friendId) {
+// 	const message = prompt("Enter your message:");
+// 	if (message) {
+// 		// Implement the fetch request to send the message to the server
+// 		console.log(`Message to send to ${friendId}: ${message}`);
+// 		// Example:
+// 		// fetch(`/send-message`, { method: 'POST', body: JSON.stringify({ friendId, message }) })
+// 	}
+// }
