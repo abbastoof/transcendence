@@ -3,6 +3,7 @@ import '../../scss/styles.scss';
 
 // Import all of Bootstrap's JS
 import * as bootstrap from 'bootstrap'
+import { updateFriendsList } from './friends';
 
 document.addEventListener('DOMContentLoaded', function () {
     updateUserProfile();
@@ -56,6 +57,7 @@ export function updateUserProfile() {
             `;
             userProfileContainer.innerHTML = htmlContent;
 
+            updateFriendsList();
             const form = document.getElementById('imageUploadForm');
             form.addEventListener('submit', (event) => {
                 event.preventDefault();

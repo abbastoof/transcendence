@@ -1,7 +1,6 @@
 // Import our custom CSS
 import '../../scss/styles.scss';
 
-import { updateFriendsList } from './friends.js';
 import { updateUserProfile } from './profile.js';
 
 // Import all of Bootstrap's JS
@@ -73,9 +72,6 @@ import * as bootstrap from 'bootstrap'
                     isLoggedIn = true; // Update login state
                     updateAuthButton();
                     addProfileButton(); // Add profile button on login
-                    updateFriendsList();
-                })
-                .then(data => {
                     updateUserProfile();
                 })
                 .catch(error => {
