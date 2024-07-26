@@ -95,8 +95,8 @@ services:
     env_file:
       - .env
     ports:
-      - "3001:3000"  # Development port mapping for Vite
-      - "3000:443"   # Production port mapping for Nginx
+      - "3000:3000"  # Development port mapping for Vite
+      - "80:443"   # Production port mapping for Nginx
     volumes:
       - ./Frontend/src:/app/src  # Mount the source code directory for live reloading in dev mode
       - /app/node_modules  # Prevent overwriting node_modules

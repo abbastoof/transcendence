@@ -1,11 +1,14 @@
-// Import our custom CSS
 import '../scss/styles.scss'
-import { createModal, createGameModal } from './createModal.js'
+import * as bootstrap from 'bootstrap'
+import { createModal } from './createModal.js'
 import { insert, insertModal } from './insert.js'
 import { startGame, cleanupGame } from './pong/pong.js'
+import './modals/signup.js';
+import './modals/profile.js';
+import './modals/login.js';
 
-// Import all of Bootstrap's JS
-import * as bootstrap from 'bootstrap'
+
+
 
 insert('.headerContainer', 'headerSVG.html');
 insertModal('.tournament', 'tournamentModal.html', 'tournament', 'Tournament');
@@ -57,9 +60,7 @@ createModal('signUp', 'Sign Up', `
         </div>
         <button type="submit" class="submit">Sign up</button>
     </form>`)
-import './modals/signup.js';
 
-import './modals/profile.js';
 createModal('login', 'Log in', `
             <form id="loginForm" class="text-center">
                 <div class="form-group">
@@ -77,7 +78,6 @@ createModal('login', 'Log in', `
             <p class="font text-center">
                 Don't have an account? <a href="#" class="signup-link" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#signUpModal">Sign up</a>
             </p>`);
-import './modals/signup.js';
 
 createModal('logout', `
         <div class="modal-body">
@@ -87,7 +87,6 @@ createModal('logout', `
             <button type="button" class="submit" data-bs-dismiss="modal">Cancel</button>
             <button type="button" class="submit" onclick="confirmLogout()">Yes, Log out</button>
         </div>`);
-import './modals/login.js';
 
 insertModal('.about', 'aboutModal.html', 'about', 'About');
 

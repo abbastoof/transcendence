@@ -1,4 +1,3 @@
-import '../../scss/styles.scss';
 
 document.addEventListener('DOMContentLoaded', function () {
 	const userData = JSON.parse(localStorage.getItem('userData'));

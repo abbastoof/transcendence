@@ -1,25 +1,29 @@
-#! /bin/bash
+#!/bin/bash
 
 USER_SERVICE_URL="http://user-service:8001/user/register/"
 
-# Wait until Django server is available
+# Wait until the Django server is available
 while ! curl -s "${USER_SERVICE_URL}" >/dev/null; do
-	echo "Waiting for Django server at ${USER_SERVICE_URL}..."
-	sleep 5
+    echo "Waiting for Django server at ${USER_SERVICE_URL}..."
+    sleep 5
 done
 
 AUTH_SERVICE_URL="http://token-service:8000/"
 
-# Wait until Django server is available
+# Wait until the Auth server is available
 while ! curl -s "${AUTH_SERVICE_URL}" >/dev/null; do
-	echo "Waiting for Django server at ${AUTH_SERVICE_URL}..."
-	sleep 5
+    echo "Waiting for Auth server at ${AUTH_SERVICE_URL}..."
+    sleep 5
 done
 
 if [ "$NODE_ENV" = "development" ]; then
-	echo "Starting development server"
-	npm run dev
+    echo "Starting Vite development server"
+    # Run Vite in the background
+    npm run dev &
+    # Start Nginx in the foreground
+    echo "Starting Nginx"
+    nginx -g "daemon off;"
 else
-	echo "Starting nginx"
-	nginx -g "daemon off;"
+    echo "Starting Nginx"
+    nginx -g "daemon off;"
 fi
