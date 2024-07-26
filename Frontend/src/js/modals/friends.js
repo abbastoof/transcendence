@@ -40,11 +40,17 @@ export function updateFriendsList() {
 			<div class="friend-record mb-3">
 				<h3>${friend.username}</h3>
 				<p>Status: ${friend.status ? 'Online' : 'Offline'}</p>
+				<button class="remove-btn" data-friend-id="${friend.id}">Remove friend</button>
 			</div>
 			`;
 			});
 			htmlContent += '</div>';
 			friendsContainer.innerHTML = htmlContent;
+			document.querySelectorAll('.remove-btn').forEach(button => {
+				button.addEventListener('click', function () {
+					removeFriend(userData, this.getAttribute('data-friend-id'));
+				});
+			});
 			getPendingFriendRequests(userData);
 		})
 		.then(() => {
@@ -60,30 +66,34 @@ export function updateFriendsList() {
 };
 
 function sendFriendRequest(userData) {
-    const friendUsername = document.getElementById('friendUsername').value;
-    fetch(`/user/${userData.id}/request/`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${userData.token}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({"username": friendUsername}),
-    })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                return response.json().then(errorData => {
-                    throw new Error(errorData.message || 'Something went wrong');
-                });
-            }
-        })
-        .then(data => {
-            alert(data.detail);
-        })
-        .catch(error => {
-            alert(`Error sending friend request: ${error.detail}`);
-        });
+	const friendUsername = document.getElementById('friendUsername').value;
+	if (friendUsername === userData.username) {
+		alert('You cannot send a friend request to yourself');
+		throw new Error('You cannot send a friend request to yourself');
+	}
+	fetch(`/user/${userData.id}/request/`, {
+		method: 'POST',
+		headers: {
+			'Authorization': `Bearer ${userData.token}`,
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({ "username": friendUsername }),
+	})
+		.then(response => {
+			if (response.ok) {
+				return response.json();
+			} else {
+				return response.json().then(errorData => {
+					throw new Error(errorData.message || 'Something went wrong');
+				});
+			}
+		})
+		.then(data => {
+			alert(data.detail);
+		})
+		.catch(error => {
+			alert(`Error sending friend request: ${error.message}`);
+		});
 }
 
 function getPendingFriendRequests(userData) {
@@ -177,3 +187,23 @@ function rejectPendingFriendRequest(userData, requestID) {
 			console.error('Error rejecting friend request:', error);
 		});
 }
+
+function removeFriend(userData, friendID) {
+	fetch(`/user/${userData.id}/friends/${friendID}/remove`, {
+		method: 'DELETE',
+		headers: { 'Authorization': `Bearer ${userData.token}` }
+	})
+		.then(response => {
+			if (!response.ok) {
+				throw new Error('Network response was not ok');
+			}
+			return response.json();
+		})
+		.then(data => {
+			alert('Friend removed:', data);
+			updateFriendsList();
+		})
+		.catch(error => {
+			console.error('Error removing friend:', error);
+		});
+};
