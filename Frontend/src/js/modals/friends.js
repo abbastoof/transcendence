@@ -60,25 +60,30 @@ export function updateFriendsList() {
 };
 
 function sendFriendRequest(userData) {
-	const friendUsername = document.getElementById('friendUsername').value;
-	fetch(`/user/${userData.id}/request/`, {
-		method: 'POST',
-		headers: {
-			'Authorization': `Bearer ${userData.token}`
-		},
-		body: JSON.stringify({"username": friendUsername}),
-	})
-		.then(response => {
-			if (response.ok) {
-				alert('Friend request sent!')
-			}
-			else {
-				alert('Something went wrong!')
-			}
-		})
-		.catch(error => {
-			console.error('Error:', error);
-		});
+    const friendUsername = document.getElementById('friendUsername').value;
+    fetch(`/user/${userData.id}/request/`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${userData.token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({"username": friendUsername}),
+    })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                return response.json().then(errorData => {
+                    throw new Error(errorData.message || 'Something went wrong');
+                });
+            }
+        })
+        .then(data => {
+            alert(data.detail);
+        })
+        .catch(error => {
+            alert(`Error sending friend request: ${error.detail}`);
+        });
 }
 
 function getPendingFriendRequests(userData) {
@@ -100,13 +105,14 @@ function getPendingFriendRequests(userData) {
 				console.error('Pending container not found');
 				return;
 			}
+			console.log(data);
 			let htmlContent = `<div class="container mt-4"><h2>Pending friend requests</h2>`;
 			data.forEach(pending => {
 				htmlContent += `
                 <div class="pending-request mb-3">
-                    <h3>User ID: ${pending.sender_user}</h3>
-                    <button class="accept-btn" data-pending-sender_user="${pending.sender_user}">Accept friend request</button>
-					<button class="reject-btn" data-pending-sender_user="${pending.sender_user}">Reject friend request</button>
+                    <h3>User: ${pending.sender_username}</h3>
+                    <button class="accept-btn" data-pending-sender_user="${pending.sender_id}">Accept friend request</button>
+					<button class="reject-btn" data-pending-sender_user="${pending.sender_id}">Reject friend request</button>
 					</div>
             `;
 			});
