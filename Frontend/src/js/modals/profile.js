@@ -53,7 +53,8 @@ export function updateUserProfile() {
                     <button type="submit" class="submit">Submit</button>
                 </form>
                 <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#FriendsModal">Friends</button>
-            </div>
+                <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#HistoryModal">Match History</button>
+                </div>
             `;
             userProfileContainer.innerHTML = htmlContent;
 

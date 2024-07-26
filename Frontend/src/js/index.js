@@ -97,5 +97,8 @@ insertModal('.about', 'aboutModal.html', 'about', 'About');
 createModal('Friends', 'Friends', '<div id="Friends"> <h2 id="friendsList">Friend List</h2> <h2 id="pendingList"> Pending requests </h2> </div>');
 import './modals/friends.js';
 
+createModal('History', 'History', '<div id="History"></div>');
+
+
 createModal('Profile', 'Profile', '<div id="userProfile"></div>');
 

@@ -1,10 +1,13 @@
 document.addEventListener('DOMContentLoaded', function () {
+	updateHistory();
+});
+
+function updateHistory() {
 	const userData = JSON.parse(localStorage.getItem('userData'));
 	if (!userData || !userData.id || !userData.token) {
 		console.error('UserData is missing or incomplete');
 		return;
 	}
-
 	fetch(`/user/${userData.id}/game-history`, {
 		method: 'GET',
 		headers: {
@@ -18,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		return response.json();
 	})
 	.then(data => {
-		const gameHistoryContainer = document.getElementById('gameHistory');
+		const gameHistoryContainer = document.getElementById('History');
 		if (!gameHistoryContainer) {
 			console.error('GameHistory container not found');
 			return;
@@ -39,4 +42,4 @@ document.addEventListener('DOMContentLoaded', function () {
 	.catch(error => {
 		console.error('Error fetching game history:', error);
 	});
-});
+};
