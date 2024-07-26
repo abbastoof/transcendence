@@ -6,6 +6,7 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: '../dist',  // Output directory for production build
     sourcemap: mode === 'development',  // Enable source maps in development mode
+    // minify: 'esbuild',  // Minify using esbuild in production mode
   },
   server: {
     port: 3000,  // Port for Vite development server
