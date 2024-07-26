@@ -30,8 +30,8 @@ export function updateFriendsList() {
 			<div class="container mt-4"><h2>Friends</h2>
 			<form id="friendForm" class="text-center">
                 <div class="form-group">
-                    <label class="labelFont" for="friendID">friend ID</label>
-                    <input type="text" class="form-control" id="friendID" placeholder="Enter friend ID" required>
+                    <label class="labelFont" for="friendUsername">friend Username</label>
+                    <input type="text" class="form-control" id="friendUsername" placeholder="Enter friend username" required>
                 </div>
                 <button type="submit" class="submit">Send request</button>
             </form>`;
@@ -60,12 +60,13 @@ export function updateFriendsList() {
 };
 
 function sendFriendRequest(userData) {
-	const friendID = document.getElementById('friendID').value;
-	fetch(`/user/${userData.id}/request/${friendID}/`, {
+	const friendUsername = document.getElementById('friendUsername').value;
+	fetch(`/user/${userData.id}/request/`, {
 		method: 'POST',
 		headers: {
 			'Authorization': `Bearer ${userData.token}`
-		}
+		},
+		body: JSON.stringify({"username": friendUsername}),
 	})
 		.then(response => {
 			if (response.ok) {
