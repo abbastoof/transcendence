@@ -8,7 +8,7 @@ pip install -r requirements.txt
 pip install tzdata
 
 # Wait for PostgreSQL to be available
-while ! pg_isready -q -U "${DB_USER}" -d "postgres"; do
+while ! psql -h postgresql -U "${DB_USER}" -d "game_server" -c '\q'; do
 	echo >&2 "Postgres is unavailable - sleeping"
 	sleep 5
 done
