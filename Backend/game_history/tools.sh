@@ -31,4 +31,4 @@ python3 /app/game_history/manage.py migrate
 
 # Start the Django application
 cd /app/game_history
-daphne -b 0.0.0.0 -p 8002 game_history.asgi:application
+exec uvicorn game_history.asgi:application --host 0.0.0.0 --port 8002

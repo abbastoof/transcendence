@@ -16,4 +16,4 @@ done
 python3 /app/game_server/manage.py makemigrations
 python3 /app/game_server/manage.py migrate
 cd /app/game_server
-daphne -b 0.0.0.0 -p 8010 game_server_project.asgi:application
+exec uvicorn game_server_project.asgi:application --host 0.0.0.0 --port 8010
