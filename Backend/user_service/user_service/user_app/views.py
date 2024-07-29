@@ -9,6 +9,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.decorators import parser_classes
 from .models import User, FriendRequest
 from .rabbitmq_utils import publish_message, consume_message
 from .serializers import UserSerializer, FriendSerializer
@@ -107,6 +108,7 @@ class UserViewSet(viewsets.ViewSet):
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @parser_classes([MultiPartParser, FormParser])
     def update_user(self, request, pk=None) -> Response:
         """
             Method to update a user.
@@ -201,7 +203,7 @@ class FriendsViewSet(viewsets.ViewSet):
             validate_token(request)
             user = get_object_or_404(User, id=user_pk)
             serializer = UserSerializer(user.friends.all(), many=True)
-            data = [{"username": item["username"], "status": item["status"]} for item in serializer.data]
+            data = [{"id": item["id"], "username": item["username"], "status": item["status"]} for item in serializer.data]
             return Response(data, status=status.HTTP_200_OK)
         except Http404:
             return Response({"error": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)

@@ -17,4 +17,4 @@ python3 /app/user_service/manage.py migrate
 # echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('${DB_USER}', 'admin@example.com', '${DB_USER}')" | python3 /app/user_service/manage.py shell && echo "Superuser created successfully."
 # python3 /app/user_service/manage.py runserver 0.0.0.0:8001
 cd /app/user_service
-daphne -b 0.0.0.0 -p 8001 user_service.asgi:application
+exec uvicorn user_service.asgi:application --host 0.0.0.0 --port 8001

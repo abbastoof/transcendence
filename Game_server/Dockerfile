@@ -1,4 +1,4 @@
-FROM alpine:3.20
+FROM python:3.11-alpine3.20
 
 ENV PYTHONUNBUFFERED=1
 ENV LANG=C.UTF-8
@@ -7,7 +7,7 @@ USER root
 # Update and install dependencies
 # trunk-ignore(hadolint/DL3018)
 RUN apk update && apk add --no-cache python3 py3-pip \
-    postgresql16 postgresql16-client \
+    postgresql16-client \
     bash supervisor curl openssl bash \
     build-base libffi-dev python3-dev nano && \
     mkdir /run/postgresql && \
@@ -23,8 +23,7 @@ COPY --chown=postgres:postgres ./Game_server/game_server_project/ /app/game_serv
 
 # Copy and set permissions for the entrypoint script
 COPY --chown=postgres:postgres ./Game_server/tools.sh /app
-COPY --chown=postgres:postgres ./Game_server/init_database.sh /app
-RUN chmod +x /app/tools.sh /app/init_database.sh && chown -R postgres:postgres /app/game_server
+RUN chmod +x /app/tools.sh && chown -R postgres:postgres /app/game_server
 USER postgres
 
 # Add HEALTHCHECK instruction with delay

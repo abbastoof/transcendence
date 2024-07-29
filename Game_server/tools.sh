@@ -8,7 +8,7 @@ pip install -r requirements.txt
 pip install tzdata
 
 # Wait for PostgreSQL to be available
-while ! pg_isready -q -U "${DB_USER}" -d "postgres"; do
+while ! psql -h postgresql -U "${DB_USER}" -d "game_server" -c '\q'; do
 	echo >&2 "Postgres is unavailable - sleeping"
 	sleep 5
 done
@@ -16,4 +16,4 @@ done
 python3 /app/game_server/manage.py makemigrations
 python3 /app/game_server/manage.py migrate
 cd /app/game_server
-daphne -b 0.0.0.0 -p 8010 game_server_project.asgi:application
+exec uvicorn game_server_project.asgi:application --host 0.0.0.0 --port 8010

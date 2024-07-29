@@ -3,7 +3,7 @@ import { insert, insertModal } from './insert.js'
 import { startGame } from './pong/pong.js'
 
 insert('.headerContainer', 'headerSVG.html');
-insertModal('.tournament', 'tournamentModal.html', 'tournament', 'Tournament');
+//insertModal('.tournament', 'tournamentModal.html', 'tournament', 'Tournament');
 
 const gameModal = createGameModal();
 // Select the button that should open the game modal
@@ -30,6 +30,42 @@ if (gameButton) {
 document.getElementById('pongModal').addEventListener('shown.bs.modal', function() {
     setTimeout(startGame(), 0);
 });
+
+createModal('tournament', 'Tournament', `
+    <form id="playerForm" class="form">
+        <p class="font">Select number of players:</p>
+        <div class="row justify-content-center">
+                <div class="col-md-3">
+                        <div class="form-check">
+                                <input class="form-check-input" type="radio" name="playerCount" id="2vs2" value="2">
+                                <label class="form-check-label font" for="2vs2">2</label>
+                        </div>
+                </div>
+                <div class="col-md-3">
+                        <div class="form-check">
+                                <input class="form-check-input" type="radio" name="playerCount" id="4vs4" value="4">
+                                <label class="form-check-label font" for="4vs4">4</label>
+                        </div>
+                </div>
+                <div class="col-md-3">
+                        <div class="form-check">
+                                <input class="form-check-input" type="radio" name="playerCount" id="6vs6" value="6">
+                                <label class="form-check-label font" for="6vs6">6</label>
+                        </div>
+                </div>
+                <div class="col-md-3">
+                        <div class="form-check">
+                                <input class="form-check-input" type="radio" name="playerCount" id="8vs8" value="8">
+                                <label class="form-check-label font" for="8vs8">8</label>
+                        </div>
+                </div>
+        </div>
+        <div id="playerAliasInputs" style="display: none;">
+                <!-- Player alias inputs will be dynamically added here -->
+        </div>
+        <button type="submit" class="submit">Play</button>
+    </form>`)
+import './modals/tournament.js';
 
 createModal('signUp', 'Sign up', `
     <form id="signUpForm" class="form">
