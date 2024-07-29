@@ -15,4 +15,4 @@ export DJANGO_SETTINGS_MODULE=token_service.settings
 python3 /app/token_service/manage.py makemigrations
 python3 /app/token_service/manage.py migrate
 cd /app/token_service
-daphne -b 0.0.0.0 -p 8000 token_service.asgi:application
+exec uvicorn token_service.asgi:application --host 0.0.0.0 --port 8000
