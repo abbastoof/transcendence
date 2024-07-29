@@ -111,10 +111,10 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
             username = data['username']
             connection_type = data['type']
             print(f'Parsed data: {data}')
-            await self.change_online_status(username, connection_type)
-
             if connection_type == 'close':
                 await self.close()
+            await self.change_online_status(username, connection_type)
+
 
         except json.JSONDecodeError as e:
             print(f'JSON decode error: {e}')
@@ -152,12 +152,11 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def change_online_status(self, username, c_type):
-        from django.contrib.auth.models import User
-        from .models import UserProfileModel
+        from .models import UserProfileModel as User
 
         try:
-            user = User.objects.get(username=username)
-            userprofile = UserProfileModel.objects.get(user=user)
+            userprofile = User.objects.get(username=username)
+            print(f'User profile username: {userprofile.username}')
             if c_type == 'open':
                 userprofile.online_status = True
                 userprofile.save()
@@ -167,7 +166,7 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
             print(f'Changed status for {username} to {c_type}')
         except User.DoesNotExist:
             print(f'User {username} does not exist.')
-        except UserProfileModel.DoesNotExist:
+        except User.DoesNotExist:
             print(f'User profile for {username} does not exist.')
         except Exception as e:
             print(f'Error changing status: {e}')

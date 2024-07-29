@@ -43,7 +43,7 @@ ALLOWED_HOSTS = [
 ]
 
 MEDIA_URL='/media/'
-MEDIA_ROOT=os.path.join(BASE_DIR,'media')
+MEDIA_ROOT='/app/www/avatars/'
 
 # Application definition
 
@@ -72,6 +72,9 @@ SIMPLE_JWT = {
 }
 
 REST_FRAMEWORK = {
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
@@ -129,16 +132,16 @@ ASGI_APPLICATION = "user_service.asgi.application"
 #     },
 # }
 
-CHANNEL_LAYERS = {
-    "default": {
-    "BACKEND": "channels_redis.pubsub.RedisPubSubChannelLayer",
-    "CONFIG": {
-        "hosts":[{
-            "address": "redis://redis:6379",
-            "ssl_cert_reqs": None,}],
-        },
-    },
-}
+# CHANNEL_LAYERS = {
+#     "default": {
+#     "BACKEND": "channels_redis.pubsub.RedisPubSubChannelLayer",
+#     "CONFIG": {
+#         "hosts":[{
+#             "address": "redis://redis:6379",
+#             "ssl_cert_reqs": None,}],
+#         },
+#     },
+# }
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -146,7 +149,8 @@ CHANNEL_LAYERS = {
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "postgres",
+        "NAME": "user_service",
+        "HOST": "postgresql",
         "USER": "root",
         "PASSWORD": "root",
         "PORT": "5432",

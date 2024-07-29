@@ -1,18 +1,15 @@
-FROM alpine:3.20
+FROM python:3.11-alpine3.20
 
 ENV PYTHONUNBUFFERED=1
 ENV LANG=C.UTF-8
 
 # Update and install dependencies
 # trunk-ignore(hadolint/DL3018)
-RUN apk update && apk add --no-cache python3 py3-pip \
-postgresql16 postgresql16-client \
-bash supervisor curl openssl bash \
-build-base libffi-dev python3-dev nano
+RUN apk add --no-cache postgresql16-client \
+    bash supervisor curl openssl \
+    build-base libffi-dev python3-dev
 # Set work directory
-RUN mkdir /run/postgresql && \
-    chown postgres:postgres /run/postgresql && \
-    mkdir /app && chown -R postgres:postgres /app
+RUN mkdir /app && chown -R postgres:postgres /app
 
 WORKDIR /app/
 
@@ -24,7 +21,6 @@ COPY --chown=postgres:postgres ./Backend/token_service/supervisord.conf /etc/sup
 COPY --chown=postgres:postgres ./Backend/token_service/requirements.txt /app/
 COPY --chown=postgres:postgres ./Backend/token_service/token_service /app/token_service
 COPY --chown=postgres:postgres ./Backend/token_service/tools.sh /app
-COPY --chown=postgres:postgres ./Backend/token_service/init_database.sh /app
 COPY --chown=postgres:postgres ./Backend/token_service/run_consumer.sh /app
 COPY --chown=postgres:postgres ./Backend/token_service/run_consumer2.sh /app
 COPY --chown=postgres:postgres ./Backend/token_service/run_consumer3.sh /app

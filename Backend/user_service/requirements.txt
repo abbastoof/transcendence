@@ -16,12 +16,12 @@ pytest
 sqlparse
 tomli
 typing-extensions
-gunicorn
 channels
 django-environ
-daphne
 pytest
 pytest-django
 pytest-mock
 pillow
 twisted[http2,tls]
+uvicorn[standard]
+requests

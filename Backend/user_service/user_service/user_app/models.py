@@ -1,6 +1,12 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+import uuid
+import os
 
+def user_directory_path(instance, filename):
+    ext = filename.split('.')[-1]
+    filename = f'{uuid.uuid4()}.{ext}'
+    return os.path.join(str(instance.id), filename)
 
 class UserProfileModel(AbstractUser):
     """
@@ -13,7 +19,7 @@ class UserProfileModel(AbstractUser):
 
         Email: The email field is required for the user model.
     """
-    avatar = models.ImageField(upload_to='', null=True, blank=True, default='default.jpg')
+    avatar = models.ImageField(upload_to=user_directory_path, null=True, blank=True, default='default.jpg')
     friends = models.ManyToManyField("self", blank=True, symmetrical=True)
     online_status = models.BooleanField(default=False)
     REQUIRED_FIELDS = ["email"]

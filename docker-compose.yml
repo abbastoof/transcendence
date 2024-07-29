@@ -45,7 +45,7 @@ services:
       # - database:/var/lib/postgresql/
     depends_on:
       - rabbitmq
-      - redis
+      - postgresql
 
   token-service:
     container_name: token-service
@@ -59,6 +59,7 @@ services:
       - transcendence_network
     depends_on:
       - rabbitmq
+      - postgresql
 
   game-history:
     container_name: game-history
@@ -72,6 +73,7 @@ services:
       - transcendence_network
     depends_on:
       - rabbitmq
+      - postgresql
 
   game-server:
     container_name: game-server
@@ -88,6 +90,19 @@ services:
     depends_on:
       - rabbitmq
       - redis
+      - postgresql
+
+  postgresql:
+    container_name: postgresql
+    image: postgresql
+    build:
+      context: .
+      dockerfile: ./Backend/postgresql/Dockerfile
+    env_file:
+      - .env
+    networks:
+      - transcendence_network
+
 
   frontend:
     container_name: frontend
@@ -112,6 +127,7 @@ services:
       - token-service
       - game-history
       - game-server
+      - postgresql
 
   redis:
     image: redis

@@ -21,15 +21,6 @@ The API runs on port 8000 and exposed to 8000.
 After running the makefile, you can access the API using the following url:
 
 - `http://localhost:3000/user/register/` "create user record using POST method"
-- `http://localhost:3000/user/` "List users records using GET method"
-- `http://localhost:3000/user/<int:pk>/` "without angel brackets" "retrieve, update and delete user record using GET, PUT and DELETE methods respectively"
-- `http://localhost:3000/user/login/` "login user using POST method"
-- `http://localhost:3000/user/logout/` "logout user using POST method"
-- `"http://localhost:3000/user/<int:user_pk>/friends/"` "List friends of a user using GET method"
-- `"http://localhost:3000/user/<int:user_pk>/friends/<int:pk>/"` send friend request to a user using POST method or withdraw friend request, accept friend request PUT method
-- `"http://localhost:3000/user/<int:user_pk>/pending/"` "List pending friend requests of a user using GET method"
-- `"http://localhost:3000/user/<int:user_pk>/pending/<int:pk>"` "Accept or reject friend request using PUT method"
-- `"http://localhost:3000/user/<int:user_pk>/friends/<int:pk>/remove/"` "Remove friend using DELETE method"
 You should send a JSON object with the following fields:
 
 ```JSON
@@ -39,6 +30,45 @@ You should send a JSON object with the following fields:
     "password": "password"
 }
 ```
+
+- `http://localhost:3000/user/` "List users records using GET method"
+- `http://localhost:3000/user/<int:pk>/` "without angel brackets" "retrieve, update and delete user record using GET, PUT and DELETE methods respectively"
+- `http://localhost:3000/user/login/` "login user using POST method"
+- `http://localhost:3000/user/logout/` "logout user using POST method"
+- `"http://localhost:3000/user/<int:user_pk>/friends/"` "List friends of a user using GET method"
+The endpoint will return value is a JSON object with the following fields:
+```JSON
+[
+    {
+        "id": "id",
+        "username": "xxx",
+        "status": "status"
+    }
+]
+```
+- `"http://localhost:3000/user/<int:user_pk>/request/"` send friend request to a user in a JSON object using POST method the JSON object should contain the following fields:
+```JSON
+{
+    "username": "username",
+}
+```
+- `"http://localhost:3000/user/<int:user_pk>/accept/<int:pk>/"` accept friend request PUT method
+- `"http://localhost:3000/user/<int:user_pk>/pending/"` "List pending friend requests of a user using GET method"
+The endpoint will return value is a JSON object with the following fields:
+```JSON
+[
+    {
+        "sender_id": "id",
+        "sender_username": "xxx",
+        "receiver_id": "id",
+        "receiver_username": "xxx",
+        "status": "status"
+    }
+]
+```
+- `"http://localhost:3000/user/<int:user_pk>/reject/<int:pk>/"` "Accept or reject friend request using PUT method"
+- `"http://localhost:3000/user/<int:user_pk>/friends/<int:pk>/remove/"` "Remove friend using DELETE method"
+
 
 The API will store the username, email and hashed password in the User table.
 The username and email are unique.
