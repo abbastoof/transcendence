@@ -89,7 +89,8 @@ CHANNEL_LAYERS = {
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "postgres",
+        "NAME": "game_server",
+        "HOST": "postgresql",
         "USER": "root",
         "PASSWORD": "root",
         "PORT": "5432",
