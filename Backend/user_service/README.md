@@ -35,7 +35,17 @@ You should send a JSON object with the following fields:
 - `http://localhost:3000/user/<int:pk>/` "without angel brackets" "retrieve, update and delete user record using GET, PUT and DELETE methods respectively"
 - `http://localhost:3000/user/login/` "login user using POST method"
 - `http://localhost:3000/user/logout/` "logout user using POST method"
- - `"http://localhost:3000/user/<int:user_pk>/friends/"` "List friends of a user using GET method"
+- `"http://localhost:3000/user/<int:user_pk>/friends/"` "List friends of a user using GET method"
+The endpoint will return value is a JSON object with the following fields:
+```JSON
+[
+    {
+        "id": "id",
+        "username": "xxx",
+        "status": "status"
+    }
+]
+```
 - `"http://localhost:3000/user/<int:user_pk>/request/"` send friend request to a user in a JSON object using POST method the JSON object should contain the following fields:
 ```JSON
 {
@@ -48,11 +58,11 @@ The endpoint will return value is a JSON object with the following fields:
 ```JSON
 [
     {
-    "sender_id": "id",
-    "sender_username": "xxx",
-    "receiver_id": "id",
-    "receiver_username": "xxx",
-    "status": "status"
+        "sender_id": "id",
+        "sender_username": "xxx",
+        "receiver_id": "id",
+        "receiver_username": "xxx",
+        "status": "status"
     }
 ]
 ```
