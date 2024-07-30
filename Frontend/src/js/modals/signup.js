@@ -1,9 +1,3 @@
-// Import our custom CSS
-import '../../scss/styles.scss';
-
-// Import all of Bootstrap's JS
-import * as bootstrap from 'bootstrap'
-
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the Bootstrap modal
     var signUpModal = new bootstrap.Modal(document.getElementById('signUpModal'));

@@ -5,8 +5,9 @@ FROM alpine:3.20 AS frontend
 RUN apk update && apk add --no-cache nginx openrc openssl openssh curl bash nodejs npm
 
 # Set up the application directory
-RUN addgroup -S www && adduser -D -S -G www www && \
+RUN addgroup -g 1000 www && adduser -D -u 1000 -G www www && \
     mkdir -p /www && \
+    mkdir -p /www/avatars && chown -R www:www /www/avatars && chmod 755 /www/avatars && \
     chown -R www:www /var/lib/nginx && \
     chown -R www:www /var/lib/nginx/logs/ && \
     chown -R www:www /www && \

@@ -40,6 +40,7 @@ class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
+    avatar = serializers.ImageField(required=False)
     friends = serializers.PrimaryKeyRelatedField(
         many=True, queryset=User.objects.all(), required=False # required=False means that the field is not required
     )
