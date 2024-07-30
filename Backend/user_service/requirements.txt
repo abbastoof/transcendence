@@ -25,3 +25,4 @@ pillow
 twisted[http2,tls]
 uvicorn[standard]
 requests
+channels-auth-token-middlewares
