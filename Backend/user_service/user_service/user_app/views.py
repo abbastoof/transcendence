@@ -62,7 +62,6 @@ class UserViewSet(viewsets.ViewSet):
     """
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-    parser_classes = (MultiPartParser, FormParser)
 
     def users_list(self, request) -> Response:
         """
