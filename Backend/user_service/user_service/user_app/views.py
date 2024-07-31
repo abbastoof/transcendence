@@ -131,6 +131,11 @@ class UserViewSet(viewsets.ViewSet):
             serializer.save()
             # if User updated Username should send message to all microservices to update the username related to this user using Kafka
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        except ValidationError as err:
+            item_lists = []
+            for item in err.detail:
+                item_lists.append(item)
+            return Response({'error': item_lists}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -194,7 +199,10 @@ class RegisterViewSet(viewsets.ViewSet):
                     data["email"] = ["A user with that email already exists."]
             return Response({"error":data}, status=status.HTTP_400_BAD_REQUEST)
         except ValidationError as err:
-            return Response({'error': err}, status=status.HTTP_400_BAD_REQUEST)
+            item_lists = []
+            for item in err.detail:
+                item_lists.append(item)
+            return Response({'error': item_lists}, status=status.HTTP_400_BAD_REQUEST)
 
 class FriendsViewSet(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]

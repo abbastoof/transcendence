@@ -68,7 +68,7 @@ class UserSerializer(serializers.ModelSerializer):
         try:
             validate_password(validate_data["password"])
         except ValidationError as err:
-            raise serializers.ValidationError({"password": err.messages}) from err
+            raise serializers.ValidationError(detail=err.messages) from err
         password = validate_data.pop("password", None)
         instance = self.Meta.model(**validate_data)
         if password is not None:
@@ -97,20 +97,14 @@ class UserSerializer(serializers.ModelSerializer):
         for attr, value in validate_data.items():
             if attr == "password" and value is not None:
                 if instance.check_password(value):
-                    raise serializers.ValidationError(
-                        {
-                            "password": "New password must be different from the current password."
-                        }
-                    )
+                    raise serializers.ValidationError(detail="New password must be different from the current password.")
 
                 # Validate the new password using CustomPasswordValidator
                 try:
                     validator = CustomPasswordValidator()
                     validator.validate(value, user=instance)
                 except ValidationError as err:
-                    raise serializers.ValidationError(
-                        {"password": err.messages}
-                    ) from err
+                    raise serializers.ValidationError(detail=err.messages) from err
                 instance.set_password(value)
             else:
                 setattr(instance, attr, value)
