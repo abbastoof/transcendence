@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (errorSpan && errorSpan.parentNode) {
                 errorSpan.parentNode.removeChild(errorSpan);
             }
-        }, 2500);
+        }, 3500);
     }
 
     // Function to clear password fields
