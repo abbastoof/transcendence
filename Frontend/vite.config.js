@@ -21,8 +21,8 @@ export default defineConfig(({ mode }) => ({
         target: 'http://game-history:8002',  // Proxy to game history service
         changeOrigin: true,
       },
-      '/socket.io': {
-        target: 'http://game-server:8010',  // Proxy to game server
+      '/game-server/socket.io': {
+        target: 'http://game-server:8010/socket.io',  // Proxy to game server
         changeOrigin: true,
         ws: true,  // Enable WebSocket support
       },

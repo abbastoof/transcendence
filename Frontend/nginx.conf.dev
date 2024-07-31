@@ -28,8 +28,8 @@ http {
         }
 
         # WebSocket requests
-        location /socket.io/ {
-            proxy_pass http://game-server:8010; 
+        location /game-server/socket.io/ {
+            proxy_pass http://game-server:8010/socket.io; 
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

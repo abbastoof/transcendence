@@ -122,7 +122,7 @@ class PongGame:
         while self.game_state.in_progress:
             self.game_state.current_rally = 0
             self.game_state.reset_ball()
-            logging.info("Rally started")
+            logging.info(f"Rally started, game ID: {self.game_state.game_id}, sids: {self.sids}")
             await self.send_game_state_to_client()
             await asyncio.sleep(0.5) # Little break before start of the rally
             self.game_state.paused = False
@@ -298,7 +298,7 @@ async def connect(sid, environ):
 # This function is called when a client disconnects from the server
 # The 'sid' parameter is the session ID of the client
 # Removes sid from sid_to_game and active_games
-# If no players are left in the game, the game instance is removed
+# If no players are left in the game, the game instance is or should be removed
 @sio.event
 async def disconnect(sid):
     logging.info(f'Disconnect: {sid}')
@@ -309,7 +309,8 @@ async def disconnect(sid):
             if sid in game_instance.sids:
                 game_instance.sids.remove(sid)
                 if not game_instance.sids:
-                    del active_games[game_id]  # Optionally handle cleanup if no players are left
+                    logging.info(f"No players left in game {game_id}") 
+                    del active_games[game_id]  # this cleanup actually does not work
 
 # Event handler for messages
 # This function is called when a client sends a message to the server

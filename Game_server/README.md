@@ -14,7 +14,7 @@ This is the game server for the Mighty Pong Contest. Developed with Python and S
 To start a game session, follow these instructions:
 
 1. **Connect to the Server**
-   - Connect your client to the server using Socket.IO at `http://game-server:8010/socket.io`.
+   - Connect your client to the server using Socket.IO at `http://game-server:8010/game-server/socket.io`.
 
 2. **Prepare Game Initialization Data**
    - Create an object with the following details:
@@ -79,6 +79,11 @@ To start a game session, follow these instructions:
    uvicorn main:app --host 0.0.0.0 --port 8010 --log-level info
    ```
 
+4. **Build and run the app**
+  ```bash
+  make
+  ```
+  
 ### TODO: Remote Play Integration
 
 The backend is working on matchmaking feature which is coming soon, in the meantime remote play needs to be fully integrated, and handling the ending of the game as well.
