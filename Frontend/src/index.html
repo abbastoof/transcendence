@@ -16,9 +16,7 @@
 </head>
 
 <body>
-    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
     <script type="module" src="./js/index.js"></script>
-
     <!-- Header and SVG -->
     <div class="headerContainer"></div>
     <!-- Buttons -->
@@ -41,7 +39,9 @@
                     <h2 class="modal-title" id="pongModalLabel">Local game (press esc to quit)</h2>
                 </div>
                 <div class="col-md-2 text-end">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
             </div>
             <div class="modal-body" id="pongContent">
@@ -56,16 +56,9 @@
       <!-- Tournament Modal -->
     <canvas class="tournament"></canvas>
 
-    <!-- Sign up Modal -->
     <!-- About Modal -->
-    <canvas class="about"></canvas>
-
-    <!-- Profile Modal -->
-    <!-- <script>
-        createModal('Profile', '<div id="userProfile"></div>')
-    </script> -->
-
-    <!-- <script src="src/js/modals/signup.js"></script> -->
+    <div class="about"></div>
+<!-- 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
 </body>
-
 </html>

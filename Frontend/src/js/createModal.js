@@ -5,16 +5,11 @@ export function createModal(modalId, modalTitle, content) {
     <div class="modal fade" id="${modalId}Modal" role="dialog" aria-labelledby="${modalId}ModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
-                <div class="modal-header row col-md-12">
-                    <div class="col-md-4"></div>
-                    <div class="col-md-4">
-                        <h2 class="modal-title" id="${modalId}Label">${modalTitle}</h2>
-                    </div>
-                    <div class="col-md-4">
-                        <button type="button" data-bs-dismiss="modal" class="close" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
+                <div class="modal-header">
+                    <h2 class="modal-title" id="${modalId}Label">${modalTitle}</h2>
+                    <button type="button" data-bs-dismiss="modal" class="close" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
                 <div class="modal-body" id="${modalId}Content">
                     ${content}

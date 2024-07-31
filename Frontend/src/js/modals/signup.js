@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
         errorSpan.textContent = message;
 
         // Insert the error message before the modal body
-        modalBody.parentNode.insertBefore(errorSpan, modalBody.firstChild);
+        modalBody.parentNode.insertBefore(errorSpan, modalBody);
 
         // Hide the error message after 5 seconds
         setTimeout(function() {

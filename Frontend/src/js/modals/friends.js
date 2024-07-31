@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', function () {
 	const userData = JSON.parse(localStorage.getItem('userData'));
 	if (!userData || !userData.id || !userData.token) {

@@ -8,9 +8,21 @@ from .validators import CustomPasswordValidator
 
 
 class FriendSerializer(serializers.ModelSerializer):
+    sender_id = serializers.IntegerField(source="sender_user.id")
+    receiver_id = serializers.IntegerField(source="receiver_user.id")
+    sender_username = serializers.SerializerMethodField()
+    receiver_username = serializers.SerializerMethodField()
     class Meta:
         model=FriendRequest
-        fields = ["sender_user", "receiver_user", "status"]
+        fields = ["sender_id", "sender_username", "receiver_id", "receiver_username", "status"]
+
+    def get_sender_username(self, obj):
+        return obj.sender_user.username
+
+    def get_receiver_username(self, obj):
+        return obj.receiver_user.username
+
+
 class UserSerializer(serializers.ModelSerializer):
     """
         UserSerializer class to define the user serializer.
@@ -28,6 +40,7 @@ class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
+    avatar = serializers.ImageField(required=False)
     friends = serializers.PrimaryKeyRelatedField(
         many=True, queryset=User.objects.all(), required=False # required=False means that the field is not required
     )
@@ -99,11 +112,6 @@ class UserSerializer(serializers.ModelSerializer):
                         {"password": err.messages}
                     ) from err
                 instance.set_password(value)
-            # if attr == "friends" and value is not None:
-            #     friends_list = instance.friends
-            #     for friend in value:
-            #         friends_list.append(friend)
-            #     instance.friends.set(friends_list)
             else:
                 setattr(instance, attr, value)
         instance.save()

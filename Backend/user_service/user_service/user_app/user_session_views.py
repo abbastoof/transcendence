@@ -16,7 +16,7 @@ class UserLoginView(viewsets.ViewSet):
     def login(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
-
+        status_code = 0
         if username and password:
             user = authenticate(username=username, password=password)
             if user is not None:

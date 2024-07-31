@@ -42,7 +42,7 @@ ALLOWED_HOSTS = [
 ]
 
 MEDIA_URL='/media/'
-MEDIA_ROOT=os.path.join(BASE_DIR,'media')
+MEDIA_ROOT='/app/www/avatars/'
 
 # Application definition
 
@@ -70,6 +70,9 @@ SIMPLE_JWT = {
 }
 
 REST_FRAMEWORK = {
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ],
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
@@ -119,7 +122,8 @@ ASGI_APPLICATION = "user_service.asgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "postgres",
+        "NAME": "user_service",
+        "HOST": "postgresql",
         "USER": "root",
         "PASSWORD": "root",
         "PORT": "5432",

@@ -23,16 +23,32 @@ chown -R postgres:postgres /var/lib/postgresql/data
 exec postgres -D /var/lib/postgresql/data &
 
 # Wait for PostgreSQL to start (you may need to adjust the sleep time)
-sleep 5
+sleep 2
 
 # Create a new PostgreSQL user and set the password
 psql -c "CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASS}';"
-psql -c "GRANT ALL PRIVILEGES ON SCHEMA public TO ${DB_USER};"
+psql -c "ALTER USER ${DB_USER} CREATEDB;"
+
+psql -c "CREATE DATABASE game_history;"
+psql -c "CREATE DATABASE game_server;"
+psql -c "CREATE DATABASE user_service;"
+psql -c "CREATE DATABASE token_service;"
+
+# Grant the new user all privileges on the database
+psql -d user_service -c "GRANT ALL PRIVILEGES ON SCHEMA public TO ${DB_USER};"
+psql -d user_service -c "GRANT ALL PRIVILEGES ON DATABASE user_service TO ${DB_USER};"
+psql -d token_service -c "GRANT ALL PRIVILEGES ON SCHEMA public TO ${DB_USER};"
+psql -d token_service -c "GRANT ALL PRIVILEGES ON DATABASE token_service TO ${DB_USER};"
+psql -d game_history -c "GRANT ALL PRIVILEGES ON SCHEMA public TO ${DB_USER};"
+psql -d game_history -c "GRANT ALL PRIVILEGES ON DATABASE game_history TO ${DB_USER};"
+psql -d game_server -c "GRANT ALL PRIVILEGES ON SCHEMA public TO ${DB_USER};"
+psql -d game_server -c "GRANT ALL PRIVILEGES ON DATABASE game_server TO ${DB_USER};"
+
 psql -c "GRANT ALL PRIVILEGES ON DATABASE postgres TO ${DB_USER};"
 
 # Stop the PostgreSQL server after setting the password
 pg_ctl stop -D /var/lib/postgresql/data
 
-sleep 5
+sleep 2
 # Start the PostgreSQL server as the postgres user, keeping it in the foreground
-pg_ctl start -D /var/lib/postgresql/data
+exec postgres -D /var/lib/postgresql/data

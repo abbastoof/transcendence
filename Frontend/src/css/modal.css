@@ -35,10 +35,9 @@
   color:white;
   text-align: center;
   font-family: "Teko", sans-serif;
-  border-bottom: none;
 }
 
-$modal-header {
+.modal-header {
   border-bottom: none;
 }
 
@@ -114,4 +113,10 @@ $modal-header {
   font-size: 25px;
   margin-bottom: -5px;
   text-shadow: -2px 0 black, 0 2px black, 1px 0 black, 0 -2px black;
+}
+
+.modal-footer {
+  border-top: none;
+  display: flex;
+  justify-content: center;
 }

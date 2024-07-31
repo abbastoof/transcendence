@@ -1,4 +1,5 @@
 import json
+import logging
 from django.http import Http404
 from rest_framework import status
 from token_service import settings
@@ -12,6 +13,9 @@ from .rabbitmq_utils import consume_message, publish_message
 from .serializers import CustomTokenObtainPairSerializer
 from .models import UserTokens
 import jwt
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     """
@@ -49,7 +53,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 access_token = str(refresh.access_token)
                 user.token_data = {
                     "refresh": str(refresh),
-                    "token": access_token
+                    "access": access_token
                 }
                 user.save()
                 response_message = {
@@ -83,9 +87,9 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                         "access": access_token
                     }
                 except Exception as err:
-                    response_message = {"error": err}
+                    response_message = {"error": str(err)}
         except Exception as err:
-            response_message = {"error": err}
+            response_message = {"error": str(err)}
         publish_message("user_token_response_queue", json.dumps(response_message))
 
 
@@ -122,6 +126,7 @@ class CustomTokenRefreshView(TokenRefreshView):
 
 
 class ValidateToken():
+    @staticmethod
     def validate_token(access_token) -> bool:
         """
             Validate the refresh token.
@@ -158,19 +163,29 @@ class ValidateToken():
         """
         data = json.loads(body)
         access_token = data.get("access")
+        id = data.get("id")
+        response = {}
         try:
-            if ValidateToken.validate_token(access_token):
-                user = get_object_or_404(UserTokens, token_data__access=access_token)
-                response = {"access_token": "Valid token"}
-            else:
-                response = {"error": "Invalid token"}
+            result = self.validate_token(access_token)
+            if result:
+                logger.info("result= %s", result)
+                user = UserTokens.objects.filter(id = id, token_data__access = access_token).first()
+
+                logger.info("user.username= %s", user.username)
+                logger.info("user.token_data['access']= %s", user.token_data["access"])
+                if result:
+                    response = {"access_token": "Valid token"}
+                else:
+                    response = {"error": "token mismatch"}
         except jwt.ExpiredSignatureError:
             response = {"error": "token is expired"}
         except jwt.InvalidTokenError:
             response = {"error": "Invalid token"}
+        except Http404:
+            response = {"error": "User has not logged in yet!!"}
         except Exception as err:
-            response = {"error": "Invalid token"}
-
+            response = {"error": str(err)}
+        logger.info("response = %s", response)
         publish_message("validate_token_response_queue", json.dumps(response))
 
     def start_consumer(self) -> None:
@@ -197,7 +212,7 @@ class InvalidateToken():
         except Http404:
             response_message = {"error": "User has not logged in yet"}
         except Exception as err:
-            response_message = {"error": "Something unxpected happend"}
+            response_message = {"error": str(err)}
         publish_message("logout_response_queue", json.dumps(response_message))
 
     def start_consumer(self):

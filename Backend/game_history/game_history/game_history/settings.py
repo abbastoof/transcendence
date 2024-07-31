@@ -115,7 +115,8 @@ ASGI_APPLICATION = 'game_history.asgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "postgres",
+        "NAME": "game_history",
+        "HOST": "postgresql",
         "USER": "root",
         "PASSWORD": "root",
         "PORT": "5432",
