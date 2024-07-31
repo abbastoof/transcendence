@@ -13,6 +13,7 @@ class GameSession {
         this.player1Id = null;
         this.player2Id = null;
         this.isRemote = false; // Flag to distinguish between remote and local multiplayer
+        this.isLocalTournament = false; // Flag to distinguish between local tournament and regular game
         this.socket = socket;  // Attach the socket instance
         this.playingField = null;
         this.leftPaddle = null;
@@ -22,11 +23,12 @@ class GameSession {
         this.player2Score = 0;
     }
 
-    initialize(gameId, player1Id, player2Id, isRemote, scene) {
+    initialize(gameId, player1Id, player2Id, isRemote, isLocalTournament, scene) {
         this.gameId = gameId;
         this.player1Id = player1Id;
         this.player2Id = player2Id;
         this.isRemote = isRemote;
+        this.isLocalTournament = isLocalTournament;
 
         this.playingField = new PlayingField(scene);
         this.leftPaddle = new Paddle(scene, LEFT_PADDLE_START, 0x00ff00);
@@ -41,8 +43,6 @@ class GameSession {
         // Always connect to the server
         if (!this.socket.connected) {
             this.socket.connect();
-           
-            console.log("jooh")
         }
         console.log(`Game Session Initialized: gameId=${gameId}, player1Id=${player1Id}, player2Id=${player2Id}, remote=${isRemote}`);
         let gameInitData = { 
@@ -51,8 +51,14 @@ class GameSession {
             'player1_id': player1Id,
             'player2_id': player2Id,
             'is_remote': isRemote,
+            'is_local_tournament': isLocalTournament,
         }
-        this.socket.emit('start_game', gameInitData);
+        if (isRemote === false) {
+            this.socket.emit('start_game', gameInitData);
+        }
+        else {
+            this.socket.emit('join_game', gameInitData);
+        }
         initializeEventHandlers(this);
 
     }

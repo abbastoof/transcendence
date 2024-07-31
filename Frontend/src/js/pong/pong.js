@@ -9,10 +9,6 @@ let gameSession = new GameSession();
 let gameStarted = false;
 let renderer, scene, camera, composer, animationId;
 
-let player1_id = Math.round(randomMultiplier)
-let player2_id = Math.round(randomX)
-let game_id = Math.round(randomY)
-
 export function cleanupGame() {
     if (typeof cancelAnimationFrame !== 'undefined') {
         cancelAnimationFrame(animationId);
@@ -51,7 +47,15 @@ function cleanMaterial(material) {
     }
 }
 
-export function startGame(containerId, isRemote = false) {
+export function startGame(containerId, config = {}) {
+    console.log('Config object:', config);  // Debugging line
+
+    const {
+        isRemote = false,
+        playerIDs = [],
+        gameID = null,
+        isLocalTournament = false
+    } = config;
     if (gameStarted) return;
     gameStarted = true;
     const container = document.getElementById(containerId);
@@ -67,12 +71,27 @@ export function startGame(containerId, isRemote = false) {
     scene = s;
     camera = c;
     composer = comp;
-
-    if (player1_id === player2_id) {
-        player2_id++;
+    let game_id, player1_id, player2_id;
+    // if (player1_id === player2_id) {
+    //     player2_id++;
+    // }
+    // gameSession.initialize(game_id, player1_id, player2_id, isRemote, scene);
+    if (isLocalTournament === true && isRemote === false) {
+        game_id = gameID; // Use pre-generated game ID for tournaments
+        player1_id = playerIDs[0]; // Use pre-generated player IDs
+        player2_id = playerIDs[1];
+    } else if (isRemote === true && isLocalTournament === false) {
+        game_id = gameID; // Use provided game ID for remote games
+        player1_id = playerIDs[0];
+        player2_id = playerIDs[1];
+    } else {
+        // Generate player IDs for local games
+        player1_id = Math.round(randomMultiplier);
+        player2_id = Math.round(randomX);
+        if (player1_id === player2_id) player2_id++;
+        game_id = Math.round(randomY);
     }
-    gameSession.initialize(game_id, player1_id, player2_id, isRemote, scene);
-
+    gameSession.initialize(game_id, player1_id, player2_id, isRemote, isLocalTournament, scene);
 
     // Keyboard controls
     const keys = {};
@@ -138,7 +157,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelector('button[data-bs-target="#pongModal"]').addEventListener('click', () => {
         setTimeout(() => {
-            startGame('pongGameContainer', false); // Set to true for remote multiplayer
+            startGame('pongGameContainer', {
+                isRemote: false,  // Set to true for remote multiplayer
+                playerIDs: [1234, 5192],    // Specify player IDs if needed
+                gameID: null,     // Specify game ID if needed
+                isLocalTournament: false  // Set to true for local tournaments
+            }); // Set to true for remote multiplayer
         }, 500); // Ensure the modal is fully visible
     });
 
