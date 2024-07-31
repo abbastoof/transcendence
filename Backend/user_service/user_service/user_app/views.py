@@ -282,6 +282,7 @@ class FriendsViewSet(viewsets.ViewSet):
             pending_request = FriendRequest.objects.filter(receiver_user=current_user, sender_user=sender_user, status='pending').first()
             if pending_request:
                 pending_request.reject()
+                pending_request.delete()
                 return Response({"detail": "Request rejected"}, status=status.HTTP_202_ACCEPTED)
             return Response({"detail": "No pending requests found"}, status=status.HTTP_404_NOT_FOUND)
         except Http404:
