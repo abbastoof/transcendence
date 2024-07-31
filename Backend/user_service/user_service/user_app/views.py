@@ -190,7 +190,7 @@ class RegisterViewSet(viewsets.ViewSet):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             if serializer.errors:
                 data = serializer.errors
-                if data["email"]:
+                if "email" in data:
                     data["email"] = ["A user with that email already exists."]
             return Response({"error":data}, status=status.HTTP_400_BAD_REQUEST)
         except ValidationError as err:
