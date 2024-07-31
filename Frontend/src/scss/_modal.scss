@@ -13,6 +13,37 @@
   height: 600px; /* Adjust the height as needed */
 }
 
+.game-modal { 
+  .modal-title {
+    display: flex;
+    justify-content: center;
+    color: white;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    font-family: "Teko", sans-serif;
+    font-size: 30px;
+    margin-bottom: -5px;
+    box-shadow: none;
+    text-align: center;
+    text-shadow: -2px 0 black, 0 2px black, 1px 0 black, 0 -2px black;
+  
+  }
+    .modal-dialog {
+      max-width: 800px; // Set specific width for game modal
+      margin: auto; // Center the modal
+    }
+  
+    .modal-content {
+      width: 100%; // Ensure the content takes the full width of the dialog
+      background: radial-gradient(ellipse at bottom, #0d1d31 0%, #0c0d13 100%);
+    }
+  
+    .modal-body {
+      padding: 0px; // Adjust padding if needed
+    }
+  }
+
 .modal-content {
   display: flex;
   justify-content: center;

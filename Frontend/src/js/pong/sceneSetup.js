@@ -9,8 +9,8 @@ export function initializeScene(renderer, scene, camera, composer) {
     // Post-processing effects
     const renderPass = new RenderPass( scene, camera );
     composer.addPass( renderPass );
-    const glitchPass = new GlitchPass();
-    composer.addPass( glitchPass );
+    // const glitchPass = new GlitchPass();
+    // composer.addPass( glitchPass );
 
     const effect2 = new ShaderPass( RGBShiftShader );
     effect2.uniforms[ 'amount' ].value = 0.0015;
@@ -41,4 +41,5 @@ export function initializeScene(renderer, scene, camera, composer) {
     const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
     hemiLight.position.set(0, 200, 0);
     scene.add(hemiLight);
+    console.log("scene was initialized")
 }

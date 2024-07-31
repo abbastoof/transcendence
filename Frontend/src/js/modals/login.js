@@ -1,3 +1,4 @@
+import * as bootstrap from 'bootstrap';
 import { updateUserProfile } from './profile.js';
 
     document.addEventListener('DOMContentLoaded', function () {
