@@ -1,3 +1,9 @@
+import { updateFriendsList } from './friends.js';
+
+document.addEventListener('DOMContentLoaded', function () {
+    updateUserProfile();
+});
+
 export function updateUserProfile() {
     // Check if the user is logged in
     const userData = JSON.parse(localStorage.getItem('userData'));
@@ -58,8 +64,53 @@ export function updateUserProfile() {
                     </div>
                     <button type="submit" class="submit">Submit</button>
                 </form>
+                <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#FriendsModal">Friends</button>
             </div>
-        `;
+            `;
+            userProfileContainer.innerHTML = htmlContent;
+
+            updateFriendsList();
+            const form = document.getElementById('imageUploadForm');
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const imageInput = document.getElementById('imageInput');
+                const file = imageInput.files[0];
+                if (!file) {
+                    console.error('No image selected');
+                    return;
+                }
+                const formData = new FormData();
+                formData.append('image', file);
+
+                // Send the image data to the server
+                fetch(`/user/${userData.id}/image`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${userData.token}`
+                    },
+                    body: formData
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Image uploaded successfully:', data);
+                        // Update the user profile with the new image
+                        const userProfileImage = document.createElement('img');
+                        userProfileImage.src = data.imageUrl;
+                        userProfileContainer.appendChild(userProfileImage);
+                    })
+                    .catch(error => {
+                        console.error('Error uploading image:', error);
+                    });
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching user data:', error);
+        ;
         userProfileContainer.innerHTML = htmlContent;
 
         // Toggle email update form visibility

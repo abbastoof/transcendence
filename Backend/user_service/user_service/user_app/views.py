@@ -190,7 +190,7 @@ class RegisterViewSet(viewsets.ViewSet):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             if serializer.errors:
                 data = serializer.errors
-                if data["email"]:
+                if "email" in data:
                     data["email"] = ["A user with that email already exists."]
             return Response({"error":data}, status=status.HTTP_400_BAD_REQUEST)
         except ValidationError as err:
@@ -259,9 +259,10 @@ class FriendsViewSet(viewsets.ViewSet):
                         else:
                             response_message = {"error": "You have a pending friend from this user."}
                             status_code = status.HTTP_400_BAD_REQUEST
-                    FriendRequest.objects.create(sender_user=current_user, receiver_user=receiver, status='pending')
-                    response_message = {"detail": "Friend request sent"}
-                    status_code = status.HTTP_201_CREATED
+                    else:
+                        FriendRequest.objects.create(sender_user=current_user, receiver_user=receiver, status='pending')
+                        response_message = {"detail": "Friend request sent"}
+                        status_code = status.HTTP_201_CREATED
             return Response(response_message, status=status_code)
         except Http404:
             return Response({"error": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)

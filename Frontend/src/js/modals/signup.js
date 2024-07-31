@@ -36,10 +36,12 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify({ email, username, password }),
         })
         .then(response => {
-            if (!response.ok) {
-                throw new Error(response.statusText);
-            }
-            return response.json();
+            return response.json().then(data => {
+                if (!response.ok) {
+                    throw data;
+                }
+                return data;
+            });
         })
         .then(data => {
             console.log('Success:', data);
@@ -48,7 +50,16 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Error:', error);
-            showErrorMessage('Sign up failed: ' + error.message);
+            if (error.error) {
+                if (error.error.username) {
+                    showErrorMessage('Sign up failed: ' + error.error.username.join(' '));
+                }
+                if (error.error.email) {
+                    showErrorMessage('Sign up failed: ' + error.error.email.join(' '));
+                }
+            } else {
+                showErrorMessage('Sign up failed: Something went wrong');
+            }
             clearPasswordFields();
         });
     });
@@ -74,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (errorSpan && errorSpan.parentNode) {
                 errorSpan.parentNode.removeChild(errorSpan);
             }
-        }, 2500);
+        }, 3500);
     }
 
     // Function to clear password fields
