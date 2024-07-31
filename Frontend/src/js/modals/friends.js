@@ -84,7 +84,7 @@ function sendFriendRequest(userData) {
 				return response.json();
 			} else {
 				return response.json().then(errorData => {
-					throw new Error(errorData.message || 'Something went wrong');
+					throw new Error(errorData.error || 'Something went wrong');
 				});
 			}
 		})
@@ -158,7 +158,7 @@ function acceptPendingFriendRequest(userData, requestID) {
 			return response.json();
 		})
 		.then(data => {
-			alert('Friend request accepted:', data);
+			alert('Friend request accepted');
 			updateFriendsList();
 		})
 		.catch(error => {
@@ -180,7 +180,7 @@ function rejectPendingFriendRequest(userData, requestID) {
 			return response.json();
 		})
 		.then(data => {
-			alert('Friend request rejected:', data);
+			alert('Friend request rejected');
 			updateFriendsList();
 		})
 		.catch(error => {
