@@ -41,7 +41,7 @@ services:
     networks:
       - transcendence_network
     volumes:
-      - www_data:/www/avatars
+      - www_data:/app/www/avatars
       # - database:/var/lib/postgresql/
     depends_on:
       - rabbitmq

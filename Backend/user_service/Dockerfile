@@ -5,12 +5,14 @@ ENV LANG=C.UTF-8
 
 # Update and install dependencies
 # trunk-ignore(hadolint/DL3018)
+RUN addgroup -g 1000 postgres && adduser -D -u 1000 -G postgres postgres
+
 RUN apk add --no-cache supervisor \
     curl openssl bash postgresql16-client \
     build-base libffi-dev python3-dev
 
     # Set work directory
-RUN mkdir /app && chown -R postgres:postgres /app
+RUN mkdir /app && chown -R postgres:postgres /app && mkdir -p /app/www/avatars && chown -R postgres:postgres /app/www/avatars
 
 WORKDIR /app/
 

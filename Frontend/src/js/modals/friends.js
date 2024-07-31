@@ -189,21 +189,29 @@ function rejectPendingFriendRequest(userData, requestID) {
 }
 
 function removeFriend(userData, friendID) {
-	fetch(`/user/${userData.id}/friends/${friendID}/remove`, {
-		method: 'DELETE',
-		headers: { 'Authorization': `Bearer ${userData.token}` }
-	})
-		.then(response => {
-			if (!response.ok) {
-				throw new Error('Network response was not ok');
-			}
-			return response.json();
-		})
-		.then(data => {
-			alert('Friend removed:', data);
-			updateFriendsList();
-		})
-		.catch(error => {
-			console.error('Error removing friend:', error);
-		});
+    fetch(`/user/${userData.id}/friends/${friendID}/remove/`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${userData.token}` }
+    })
+    .then(response => {
+        if (response.status === 204) {
+            alert('Friend removed successfully');
+            updateFriendsList();
+        } else if (!response.ok) {
+            return response.json().then(errData => {
+                throw new Error(errData.error || 'Network response was not ok');
+            });
+        } else {
+            return response.json();
+        }
+    })
+    .then(data => {
+        if (data) {
+            alert('Friend removed:', data);
+            updateFriendsList();
+        }
+    })
+    .catch(error => {
+        console.error('Error removing friend:', error);
+    });
 };
