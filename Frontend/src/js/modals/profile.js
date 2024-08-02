@@ -64,7 +64,7 @@ export function updateUserProfile() {
                     </div>
                     <button type="submit" class="submit">Submit</button>
                 </form>
-                <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#FriendsModal">Friends</button>
+                <button type="button" class="submit" data-bs-toggle="modal" data-bs-target="#FriendsModal">Friends</button>
             </div>
         `;
         userProfileContainer.innerHTML = htmlContent;
