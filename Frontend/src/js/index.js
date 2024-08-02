@@ -129,7 +129,7 @@ createModal('Friends', 'Friends', '<div id="Friends"> <h2 id="friendsList">Frien
 import './modals/friends.js';
 
 createModal('History', 'History', '<div id="History"></div>');
-
+import './modals/history.js';
 
 createModal('Profile', 'Profile', '<div id="userProfile"></div>');
 
