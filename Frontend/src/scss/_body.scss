@@ -1,0 +1,45 @@
+body {
+    overflow: hidden;
+    background-image: url("../assets/images/Pong.jpg");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    color: lightgrey;
+}
+
+.font {
+    color: white;
+    display: flex;
+    justify-content: center;
+    font-family: "Teko", sans-serif;
+    font-size: 20px;
+}
+
+.ErrorMessage {
+    font-size: 23px;
+    font-family: "Teko", sans-serif;
+    color: red;
+    margin-top: -10px; /* Space between title and error message */
+    margin-bottom: -10px; /* Space between error message and body */
+    text-align: center;
+}
+
+.signup-link {
+    margin-left: 10px;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+}
+
+#imageInput {
+    display: none;
+}
+
+#playerForm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}

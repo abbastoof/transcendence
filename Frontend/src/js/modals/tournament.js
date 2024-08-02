@@ -1,3 +1,5 @@
+import * as bootstrap from 'bootstrap';
+
 document.addEventListener('DOMContentLoaded', function () {
     const playerForm = document.getElementById('playerForm');
     const playerAliasInputs = document.getElementById('playerAliasInputs');

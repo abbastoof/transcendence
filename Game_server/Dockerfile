@@ -1,31 +1,18 @@
-FROM python:3.11-alpine3.20
+# Use an official Python runtime as a parent image
+FROM python:3.8
 
-ENV PYTHONUNBUFFERED=1
-ENV LANG=C.UTF-8
+WORKDIR /app
 
-USER root
-# Update and install dependencies
-# trunk-ignore(hadolint/DL3018)
-RUN apk update && apk add --no-cache python3 py3-pip \
-    postgresql16-client \
-    bash supervisor curl openssl bash \
-    build-base libffi-dev python3-dev nano && \
-    mkdir /run/postgresql && \
-    chown -R postgres:postgres /run/postgresql
-WORKDIR /app/
-RUN chown -R postgres:postgres /app/ && \
-python3 -m venv venv && chown -R postgres:postgres venv
+COPY ./Game_server/ /app
 
-COPY --chown=postgres:postgres ./Game_server/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application code
-COPY --chown=postgres:postgres ./Game_server/game_server_project/ /app/game_server
+# Install network utilities
+RUN apt-get update && \
+    apt-get install -y net-tools lsof iproute2 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+    
+EXPOSE 8010
 
-# Copy and set permissions for the entrypoint script
-COPY --chown=postgres:postgres ./Game_server/tools.sh /app
-RUN chmod +x /app/tools.sh && chown -R postgres:postgres /app/game_server
-USER postgres
-
-# Add HEALTHCHECK instruction with delay
-# HEALTHCHECK --interval=30s --timeout=2s --start-period=60s --retries=3 CMD curl -sSf http://localhost:8000/auth/api/token/ > /dev/null &&  echo "success" || echo "failure"
-ENTRYPOINT [ "sh", "./tools.sh" ]
+CMD ["python3", "server.py"]

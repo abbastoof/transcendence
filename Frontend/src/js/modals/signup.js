@@ -1,6 +1,14 @@
+import * as bootstrap from 'bootstrap'
+
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the Bootstrap modal
-    var signUpModal = new bootstrap.Modal(document.getElementById('signUpModal'));
+    var signUpModalElement = document.getElementById('signUpModal');
+    if (!signUpModalElement) {
+        console.error('Sign Up modal element not found');
+        return;
+    }
+    var signUpModal = new bootstrap.Modal(signUpModalElement);
+        
     var modalTitle = document.getElementById('signUpLabel');
     var modalBody = document.querySelector('#signUpModal .modal-body');
 
@@ -46,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             console.log('Success:', data);
             signUpModal.hide();
-            this.reset();
+            document.getElementById('signUpForm').reset();
         })
         .catch(error => {
             console.error('Error:', error);

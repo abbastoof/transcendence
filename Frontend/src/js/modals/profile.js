@@ -114,15 +114,16 @@ export function updateUserProfile() {
         ;
         userProfileContainer.innerHTML = htmlContent;
 
+        updateFriendsList(); // Ensure this function is not modifying the HTML in unexpected ways
+
         // Toggle email update form visibility
-        const changeEmailButton = document.getElementById('changeEmailButton');
-        const updateEmailForm = document.getElementById('updateEmailForm');
-        changeEmailButton.addEventListener('click', () => {
-            updateEmailForm.style.display = updateEmailForm.style.display === 'none' ? 'block' : 'none';
+        document.getElementById('changeEmailButton').addEventListener('click', () => {
+            document.getElementById('updateEmailForm').style.display = 
+                document.getElementById('updateEmailForm').style.display === 'none' ? 'block' : 'none';
         });
 
         // Handle email update
-        updateEmailForm.addEventListener('submit', (event) => {
+        document.getElementById('updateEmailForm').addEventListener('submit', (event) => {
             event.preventDefault();
             const newEmail = document.getElementById('newEmail').value;
             if (!newEmail) {
@@ -130,7 +131,6 @@ export function updateUserProfile() {
                 return;
             }
 
-            // Send the email update request to the server
             fetch(`/user/${userData.id}/`, {
                 method: 'PUT',
                 headers: {
@@ -147,10 +147,8 @@ export function updateUserProfile() {
             })
             .then(data => {
                 console.log('Email updated successfully:', data);
-                // Update the email displayed in the profile
                 document.getElementById('emailText').innerText = data.email;
-                // Hide the email update form
-                updateEmailForm.style.display = 'none';
+                document.getElementById('updateEmailForm').style.display = 'none';
             })
             .catch(error => {
                 console.error('Error updating email:', error);
@@ -158,14 +156,13 @@ export function updateUserProfile() {
         });
 
         // Toggle password update form visibility
-        const changePasswordButton = document.getElementById('changePasswordButton');
-        const updatePasswordForm = document.getElementById('updatePasswordForm');
-        changePasswordButton.addEventListener('click', () => {
-            updatePasswordForm.style.display = updatePasswordForm.style.display === 'none' ? 'block' : 'none';
+        document.getElementById('changePasswordButton').addEventListener('click', () => {
+            document.getElementById('updatePasswordForm').style.display = 
+                document.getElementById('updatePasswordForm').style.display === 'none' ? 'block' : 'none';
         });
 
         // Handle password update
-        updatePasswordForm.addEventListener('submit', (event) => {
+        document.getElementById('updatePasswordForm').addEventListener('submit', (event) => {
             event.preventDefault();
             const newPassword = document.getElementById('newPassword').value;
             if (!newPassword) {
@@ -173,7 +170,6 @@ export function updateUserProfile() {
                 return;
             }
 
-            // Send the password update request to the server
             fetch(`/user/${userData.id}/`, {
                 method: 'PUT',
                 headers: {
@@ -190,10 +186,8 @@ export function updateUserProfile() {
             })
             .then(data => {
                 console.log('Password updated successfully:', data);
-                // Optionally, you could provide feedback to the user that the password was updated
                 alert('Password updated successfully');
-                // Hide the password update form
-                updatePasswordForm.style.display = 'none';
+                document.getElementById('updatePasswordForm').style.display = 'none';
             })
             .catch(error => {
                 console.error('Error updating password:', error);
@@ -201,14 +195,13 @@ export function updateUserProfile() {
         });
 
         // Toggle profile picture update form visibility
-        const changeProfilePictureButton = document.getElementById('changeProfilePictureButton');
-        const imageUploadForm = document.getElementById('imageUploadForm');
-        changeProfilePictureButton.addEventListener('click', () => {
-            imageUploadForm.style.display = imageUploadForm.style.display === 'none' ? 'block' : 'none';
+        document.getElementById('changeProfilePictureButton').addEventListener('click', () => {
+            document.getElementById('imageUploadForm').style.display = 
+                document.getElementById('imageUploadForm').style.display === 'none' ? 'block' : 'none';
         });
 
         // Handle image upload
-        imageUploadForm.addEventListener('submit', (event) => {
+        document.getElementById('imageUploadForm').addEventListener('submit', (event) => {
             event.preventDefault();
             const imageInput = document.getElementById('imageInput');
             const file = imageInput.files[0];
@@ -217,9 +210,8 @@ export function updateUserProfile() {
                 return;
             }
             const formData = new FormData();
-            formData.append("avatar", file);
+            formData.append('avatar', file);
 
-            // Send the image data to the server
             fetch(`/user/${userData.id}/`, {
                 method: 'PUT',
                 headers: {
@@ -235,20 +227,14 @@ export function updateUserProfile() {
             })
             .then(data => {
                 console.log('Image uploaded successfully:', data);
-                // Update the user profile with the new image
-                const avatar = document.getElementById('avatar');
-                avatar.src = `${data.avatar}?t=${new Date().getTime()}`;
-                avatar.onerror = () => {
-                    console.error('Error loading new image.');
-                    avatar.src = '/media/default.jpg'; // Fallback to default image
-                };
-                // Hide the profile picture update form
-                imageUploadForm.style.display = 'none';
+                document.getElementById('avatar').src = `${data.avatar}?t=${new Date().getTime()}`;
+                document.getElementById('imageUploadForm').style.display = 'none';
             })
             .catch(error => {
                 console.error('Error uploading image:', error);
             });
         });
+
     })
     .catch(error => {
         console.error('Error fetching user data:', error);
