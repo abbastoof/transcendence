@@ -30,7 +30,7 @@ class GameSession {
         this.player2Id = player2Id;
         this.isRemote = isRemote;
         this.isLocalTournament = isLocalTournament;
-        this.playingField = new PlayingField(scene);
+        this.playingField = new PlayingField(scene, gameId, player1Id, player2Id);
         this.leftPaddle = new Paddle(scene, LEFT_PADDLE_START, 0x00ff00);
         this.rightPaddle = new Paddle(scene, RIGHT_PADDLE_START, 0xff0000);
         this.ball = new Ball(scene);
@@ -83,7 +83,7 @@ class GameSession {
         this.player2Score = data.player2_score;
     }
 
-    endGame(data) {
+    handleGameOver(data) {
         console.log('Game over!');
         console.log(data);
         if (this.isRemote) {
@@ -109,8 +109,6 @@ class GameSession {
                 console.log('Player 2 wins!');
             }
         }
-        
-        this.disconnect();
     }
     
     disconnect() {

@@ -56,9 +56,67 @@ export function startGame(containerId, config = {}) {
         gameId = null,
         isLocalTournament = false
     } = config;
-
+    console.log('playerIds:', playerIds);  // Debugging line
+    if (playerIds !== null && (!Array.isArray(playerIds) || playerIds.length !== 2) || !playerIds.every(Number.isInteger)) {
+        console.error('Invalid player IDs:', playerIds[0], playerIds[1]);
+        return;
+    }
+    if (gameId !== null && !gameId.isInteger) {
+        console.error('Invalid game ID:', gameId);
+        return;
+    }
+    if (typeof isRemote !== 'boolean' || typeof isLocalTournament !== 'boolean') {
+        console.error('Invalid boolean value for isRemote or isLocalTournament:', isRemote, isLocalTournament);
+        return;
+    }
     if (gameStarted) return;
-    gameStarted = true;
+    let player1Id, player2Id, localPlayerId, finalGameId;
+    // if (player1_id === player2_id) {
+    //     player2_id++;
+    // }
+    // gameSession.initialize(game_id, player1_id, player2_id, isRemote, scene);
+    if (isLocalTournament === true && isRemote === true) {
+        console.error('Local tournaments cannot be remote!');
+        return;
+    }
+    if (isLocalTournament === true) {
+        player1Id = playerIds[0]; // Use pre-generated player IDs
+        player2Id = playerIds[1];
+        finalGameId = gameId;
+    }
+    else if (isRemote === true) {
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        console.log('UserData:', userData); // Debugging line
+        if (!userData || !userData.id || !userData.token) {
+            console.error('UserData is missing or incomplete! Cannot start remote game!');
+            return;
+        }
+        else {
+            localPlayerId = userData.id;
+        }
+        if (localPlayerId === playerIds[0] || localPlayerId === playerIds[1]) {
+        player1Id = playerIds[0];
+        player2Id = playerIds[1];
+        } 
+        else {
+            console.error('Local player ID does not match player IDs:', localPlayerId, playerIds[0], playerIds[1]);
+            return;
+        }
+    }
+    else {
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        console.log('UserData:', userData); // Debugging line
+        if (!userData || !userData.id || !userData.token) {
+            console.error('UserData is missing or incomplete!');
+        }
+        else {
+            localPlayerId = userData.id;
+        }
+        player1Id = Math.round(randFloat(1000, 1999));
+        player2Id = Math.round(randFloat(2000, 2999));
+        finalGameId = Math.round(randFloat(5000, 9999));
+    }
+    
     const container = document.getElementById(containerId);
     const canvas = document.createElement('canvas');
     canvas.width = 800;
@@ -72,44 +130,8 @@ export function startGame(containerId, config = {}) {
     scene = s;
     camera = c;
     composer = comp;
-    let player1Id, player2Id, localPlayerId, finalGameId;
-    // if (player1_id === player2_id) {
-    //     player2_id++;
-    // }
-    // gameSession.initialize(game_id, player1_id, player2_id, isRemote, scene);
-    if (isLocalTournament === true && isRemote === false) {
-        player1Id = playerIds[0]; // Use pre-generated player IDs
-        player2Id = playerIds[1];
-        finalGameId = gameId;
-    }
-    else if (isRemote === true && isLocalTournament === false) {
-        const userData = JSON.parse(localStorage.getItem('userData'));
-        console.log('UserData:', userData); // Debugging line
-        if (!userData || !userData.id || !userData.token) {
-            console.error('UserData is missing or incomplete! Cannot start remote game!');
-            return;
-        }
-        else {
-            localPlayerId = userData.id;
-        }
-        player1_id = playerIDs[0];
-        player2_id = playerIDs[1];
-        } 
-        else {
-        const userData = JSON.parse(localStorage.getItem('userData'));
-        console.log('UserData:', userData); // Debugging line
-        if (!userData || !userData.id || !userData.token) {
-            console.error('UserData is missing or incomplete!');
-        }
-        else {
-            localPlayerId = userData.id;
-        }
-        player1Id = Math.round(randFloat(1000, 1999));
-        player2Id = Math.round(randFloat(2000, 2999));
-        finalGameId = Math.round(randFloat(5000, 9999));
-    }
     gameSession.initialize(finalGameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene);
-
+    gameStarted = true;
     // Keyboard controls
     const keys = {};
     document.addEventListener('keydown', (event) => {
@@ -120,10 +142,10 @@ export function startGame(containerId, config = {}) {
     });
 
     // Update function
-    function updatePaddlePosition() {
+    function localGameControls() {
         let leftDeltaZ = 0;
         let rightDeltaZ = 0;
-    
+
         if ((keys['q'] || keys['Q']) && !gameSession.leftPaddle.intersectsWall(gameSession.playingField.upperWall.boundingBox)) {
             leftDeltaZ -= PADDLE_SPEED;
         }
@@ -143,7 +165,6 @@ export function startGame(containerId, config = {}) {
             let emitData = JSON.stringify({
                 'type': 'move_paddle',
                 'game_id': gameSession.gameId,
-                'local_player_id': gameSession.localPlayerId,
                 'player1_id': gameSession.player1Id, 
                 'p1_delta_z': leftDeltaZ,
                 'player2_id': gameSession.player2Id,
@@ -152,9 +173,17 @@ export function startGame(containerId, config = {}) {
         gameSession.sendMovement(emitData);
         }
     }
+    function remoteGameControls() {
+        // Add remote game controls here
 
+    }
+    let controlFunction
+    if (isRemote)
+        controlFunction = remoteGameControls;
+    else
+        controlFunction = localGameControls;
     function animate() {
-        updatePaddlePosition();
+        controlFunction();
         gameSession.playingField.shaderMaterial.uniforms.iTime.value = performance.now() / 1000;
         camera.lookAt(0, 0, 0);
         composer.render();
@@ -176,15 +205,21 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             startGame('pongGameContainer', {
                 isRemote: false,  // Set to true for remote multiplayer
-                playerIDs: [1234, 5192],    // Specify player IDs if needed
-                gameID: null,     // Specify game ID if needed
-                isLocalTournament: false  // Set to true for local tournaments
+                playerIds: [1234, 1],    // Specify player IDs if needed
+                gameId: null,     // Specify game ID if needed
+                isLocalTournament: false,  // Set to true for local tournaments
             });
         }, 500); // Ensure the modal is fully visible
     });
 
     document.getElementById('pongModal').addEventListener('hidden.bs.modal', () => {
         gameSession.disconnect();  // Handle socket disconnection
-        cleanUpGame();
-    });
+        endGame();
+    });    
 });
+
+export function endGame()
+{
+    cleanUpGame();
+    gameStarted = false;
+}
