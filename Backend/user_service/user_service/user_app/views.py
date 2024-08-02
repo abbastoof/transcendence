@@ -194,7 +194,7 @@ class RegisterViewSet(viewsets.ViewSet):
                     data["email"] = ["A user with that email already exists."]
             return Response({"error":data}, status=status.HTTP_400_BAD_REQUEST)
         except ValidationError as err:
-            return Response({'error': err}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
 class FriendsViewSet(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
