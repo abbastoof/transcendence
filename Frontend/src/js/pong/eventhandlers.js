@@ -1,5 +1,6 @@
 import socket from './socket';
 import GameSession from './classes/GameSession';
+import { cleanUpGame } from './pong.js';
 
 export const initializeEventHandlers = (gameSession) => {
     socket.on('connect', () => {
@@ -34,8 +35,8 @@ export const initializeEventHandlers = (gameSession) => {
     });
 
     socket.on('game_over', (data) => {
-        console.log('Game over!');
-        console.log(data);
+        gameSession.endGame(data)
+        cleanUpGame();
     });
 
     // Add other event handlers as needed

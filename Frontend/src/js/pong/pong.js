@@ -1,15 +1,14 @@
 // pong.js
 import * as bootstrap from 'bootstrap';
 import GameSession from './classes/GameSession.js';
-
 import { PADDLE_SPEED } from './constants.js';
 import { init } from './init.js';
-import { randomMultiplier, randomX, randomY } from './constants.js';
+import { randFloat } from 'three/src/math/MathUtils.js';
 let gameSession = new GameSession();
 let gameStarted = false;
 let renderer, scene, camera, composer, animationId;
 
-export function cleanupGame() {
+export function cleanUpGame() {
     if (typeof cancelAnimationFrame !== 'undefined') {
         cancelAnimationFrame(animationId);
     }
@@ -30,7 +29,8 @@ export function cleanupGame() {
             }
         });
     }
-
+    if (composer) composer.dispose();
+    gameStarted = false;
     const gameContainer = document.getElementById('pongGameContainer');
     if (gameContainer) {
         gameContainer.innerHTML = '';
@@ -52,10 +52,11 @@ export function startGame(containerId, config = {}) {
 
     const {
         isRemote = false,
-        playerIDs = [],
-        gameID = null,
+        playerIds = [],
+        gameId = null,
         isLocalTournament = false
     } = config;
+
     if (gameStarted) return;
     gameStarted = true;
     const container = document.getElementById(containerId);
@@ -71,27 +72,43 @@ export function startGame(containerId, config = {}) {
     scene = s;
     camera = c;
     composer = comp;
-    let game_id, player1_id, player2_id;
+    let player1Id, player2Id, localPlayerId, finalGameId;
     // if (player1_id === player2_id) {
     //     player2_id++;
     // }
     // gameSession.initialize(game_id, player1_id, player2_id, isRemote, scene);
     if (isLocalTournament === true && isRemote === false) {
-        game_id = gameID; // Use pre-generated game ID for tournaments
-        player1_id = playerIDs[0]; // Use pre-generated player IDs
-        player2_id = playerIDs[1];
-    } else if (isRemote === true && isLocalTournament === false) {
-        game_id = gameID; // Use provided game ID for remote games
+        player1Id = playerIds[0]; // Use pre-generated player IDs
+        player2Id = playerIds[1];
+        finalGameId = gameId;
+    }
+    else if (isRemote === true && isLocalTournament === false) {
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        console.log('UserData:', userData); // Debugging line
+        if (!userData || !userData.id || !userData.token) {
+            console.error('UserData is missing or incomplete! Cannot start remote game!');
+            return;
+        }
+        else {
+            localPlayerId = userData.id;
+        }
         player1_id = playerIDs[0];
         player2_id = playerIDs[1];
-    } else {
-        // Generate player IDs for local games
-        player1_id = Math.round(randomMultiplier);
-        player2_id = Math.round(randomX);
-        if (player1_id === player2_id) player2_id++;
-        game_id = Math.round(randomY);
+        } 
+        else {
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        console.log('UserData:', userData); // Debugging line
+        if (!userData || !userData.id || !userData.token) {
+            console.error('UserData is missing or incomplete!');
+        }
+        else {
+            localPlayerId = userData.id;
+        }
+        player1Id = Math.round(randFloat(1000, 1999));
+        player2Id = Math.round(randFloat(2000, 2999));
+        finalGameId = Math.round(randFloat(5000, 9999));
     }
-    gameSession.initialize(game_id, player1_id, player2_id, isRemote, isLocalTournament, scene);
+    gameSession.initialize(finalGameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene);
 
     // Keyboard controls
     const keys = {};
@@ -126,6 +143,7 @@ export function startGame(containerId, config = {}) {
             let emitData = JSON.stringify({
                 'type': 'move_paddle',
                 'game_id': gameSession.gameId,
+                'local_player_id': gameSession.localPlayerId,
                 'player1_id': gameSession.player1Id, 
                 'p1_delta_z': leftDeltaZ,
                 'player2_id': gameSession.player2Id,
@@ -148,8 +166,7 @@ export function startGame(containerId, config = {}) {
 function cleanUpThreeJS() {
     if (animationId) cancelAnimationFrame(animationId);
     if (renderer) renderer.dispose();
-    if (composer) composer.dispose();
-    gameStarted = false;
+
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -162,12 +179,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 playerIDs: [1234, 5192],    // Specify player IDs if needed
                 gameID: null,     // Specify game ID if needed
                 isLocalTournament: false  // Set to true for local tournaments
-            }); // Set to true for remote multiplayer
+            });
         }, 500); // Ensure the modal is fully visible
     });
 
     document.getElementById('pongModal').addEventListener('hidden.bs.modal', () => {
-        cleanUpThreeJS();
         gameSession.disconnect();  // Handle socket disconnection
+        cleanUpGame();
     });
 });

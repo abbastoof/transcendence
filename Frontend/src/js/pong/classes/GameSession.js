@@ -12,6 +12,7 @@ class GameSession {
         this.gameId = null;
         this.player1Id = null;
         this.player2Id = null;
+        this.localPlayerId = null;
         this.isRemote = false; // Flag to distinguish between remote and local multiplayer
         this.isLocalTournament = false; // Flag to distinguish between local tournament and regular game
         this.socket = socket;  // Attach the socket instance
@@ -23,13 +24,12 @@ class GameSession {
         this.player2Score = 0;
     }
 
-    initialize(gameId, player1Id, player2Id, isRemote, isLocalTournament, scene) {
+    initialize(gameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene) {
         this.gameId = gameId;
         this.player1Id = player1Id;
         this.player2Id = player2Id;
         this.isRemote = isRemote;
         this.isLocalTournament = isLocalTournament;
-
         this.playingField = new PlayingField(scene);
         this.leftPaddle = new Paddle(scene, LEFT_PADDLE_START, 0x00ff00);
         this.rightPaddle = new Paddle(scene, RIGHT_PADDLE_START, 0xff0000);
@@ -44,15 +44,18 @@ class GameSession {
         if (!this.socket.connected) {
             this.socket.connect();
         }
-        console.log(`Game Session Initialized: gameId=${gameId}, player1Id=${player1Id}, player2Id=${player2Id}, remote=${isRemote}`);
         let gameInitData = { 
             'type': 'start_game',
-            'game_id': gameId, 
+            'game_id': gameId,
+            'local_player_id': localPlayerId,
             'player1_id': player1Id,
             'player2_id': player2Id,
             'is_remote': isRemote,
             'is_local_tournament': isLocalTournament,
         }
+        console.log('Game Session Initialized');
+        console.log('Game Init Data:', gameInitData);
+
         if (isRemote === false) {
             this.socket.emit('start_game', gameInitData);
         }
@@ -78,6 +81,36 @@ class GameSession {
         console.log('Received score update:', data);
         this.player1Score = data.player1_score;
         this.player2Score = data.player2_score;
+    }
+
+    endGame(data) {
+        console.log('Game over!');
+        console.log(data);
+        if (this.isRemote) {
+            if (data.winner_id === this.localPlayerId) {
+                console.log('You win!');
+            }
+            else {
+                console.log('You lose!');
+            }
+        }
+        else { 
+            if (this.isLocalTournament) {
+                console.log('Tournament match over!');
+                // at this point we send winner to the tournament logic
+            }
+            else {
+                console.log('Local game over!');
+            }
+            if (data.winner_id === this.player1Id) {
+                console.log('Player 1 wins!');
+            }
+            else {
+                console.log('Player 2 wins!');
+            }
+        }
+        
+        this.disconnect();
     }
     
     disconnect() {
