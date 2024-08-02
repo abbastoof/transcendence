@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
-	updateHistory();
+	updateMatchHistory();
 });
 
-function updateHistory() {
+export function updateMatchHistory() {
 	const userData = JSON.parse(localStorage.getItem('userData'));
 	if (!userData || !userData.id || !userData.token) {
 		console.error('UserData is missing or incomplete');

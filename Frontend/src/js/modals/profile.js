@@ -1,4 +1,5 @@
 import { updateFriendsList } from './friends.js';
+import { updateMatchHistory } from './history.js';
 
 document.addEventListener('DOMContentLoaded', function () {
     updateUserProfile();
@@ -71,6 +72,7 @@ export function updateUserProfile() {
             userProfileContainer.innerHTML = htmlContent;
 
             updateFriendsList();
+            updateMatchHistory();
             const form = document.getElementById('imageUploadForm');
             form.addEventListener('submit', (event) => {
                 event.preventDefault();
@@ -113,8 +115,6 @@ export function updateUserProfile() {
             console.error('Error fetching user data:', error);
         ;
         userProfileContainer.innerHTML = htmlContent;
-
-        updateFriendsList(); // Ensure this function is not modifying the HTML in unexpected ways
 
         // Toggle email update form visibility
         document.getElementById('changeEmailButton').addEventListener('click', () => {
