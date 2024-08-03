@@ -72,20 +72,3 @@ export function startRemoteGame(gameId, playerIds) {
     window.pongModal.show();
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-    document.getElementById('startGameButton').addEventListener('click', function () {
-        const gameId = document.getElementById('gameId').value.trim();
-        const playerId1 = document.getElementById('playerId1').value.trim();
-        const playerId2 = document.getElementById('playerId2').value.trim();
-
-        if (!gameId || !playerId1 || !playerId2) {
-            console.error('Please provide a game ID and both player IDs.');
-            return;
-        }
-
-        // Call the function from playonline.js
-        import('./playonline.js').then(module => {
-            module.startRemoteGame(gameId, [playerId1, playerId2]);
-        });
-    });
-});

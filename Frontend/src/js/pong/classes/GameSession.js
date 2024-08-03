@@ -46,7 +46,7 @@ class GameSession {
             this.socket.connect();
         }
         let gameInitData = { 
-            'type': 'start_game',
+            'type': null,
             'game_id': gameId,
             'local_player_id': localPlayerId,
             'player1_id': player1Id,
@@ -58,9 +58,11 @@ class GameSession {
         console.log('Game Init Data:', gameInitData);
 
         if (isRemote === false) {
+            gameInitData['type'] = 'start_game';
             this.socket.emit('start_game', gameInitData);
         }
         else {
+            gameInitData['type'] = 'join_game';
             this.socket.emit('join_game', gameInitData);
         }
         initializeEventHandlers(this);
