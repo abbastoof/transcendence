@@ -59,4 +59,3 @@ export function convertToRange(num, minRange, maxRange, minNum = 0, maxNum = 100
     // Scale to the desired range
     return scaleToRange(normalized, minRange, maxRange);
 }
-

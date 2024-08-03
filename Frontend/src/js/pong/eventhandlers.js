@@ -38,7 +38,6 @@ export const initializeEventHandlers = (gameSession) => {
         if (data && data.game_id) {
             if (data.game_id === gameSession.gameId) {
                 gameSession.handleGameOver(data);
-                endGame();
             } else {
                 console.log('Received game over for different game, was ' + data.game_id + ', expected ' + gameSession.gameId);
             }

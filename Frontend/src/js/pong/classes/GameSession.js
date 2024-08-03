@@ -6,6 +6,7 @@ import Paddle from './Paddle.js';
 import Ball from './Ball.js';
 import PlayingField from './PlayingField.js';
 import { LEFT_PADDLE_START, RIGHT_PADDLE_START } from '../constants.js';
+import { changeCameraAngle } from '../pong.js';
 
 class GameSession {
     constructor() {
@@ -84,32 +85,32 @@ class GameSession {
     }
 
     handleGameOver(data) {
-        console.log('Game over!');
+        this.leftPaddle.removeFromScene();
+        this.rightPaddle.removeFromScene();
+        changeCameraAngle();
         console.log(data);
+        let resultMessage = "Final score: " + data.player1_score + " - " + data.player2_score + ". ";
         if (this.isRemote) {
-            if (data.winner_id === this.localPlayerId) {
-                console.log('You win!');
+            if (data.winner === this.localPlayerId) {
+                resultMessage = 'You win!';
+            } else {
+                resultMessage = 'You lose!';
             }
-            else {
-                console.log('You lose!');
-            }
-        }
-        else { 
-            if (this.isLocalTournament) {
-                console.log('Tournament match over!');
-                // at this point we send winner to the tournament logic
-            }
-            else {
-                console.log('Local game over!');
-            }
-            if (data.winner_id === this.player1Id) {
-                console.log('Player 1 wins!');
-            }
-            else {
-                console.log('Player 2 wins!');
+        } else { 
+            if (data.winner === this.player1Id) {
+                resultMessage += ' Player 1 wins!';
+            } else {
+                resultMessage += ' Player 2 wins!';
             }
         }
+        // Display the result message
+        console.log(resultMessage);
+        setTimeout(() => {
+            console.log("9 second timeout");
+        }, 9000);
+
     }
+    
     
     disconnect() {
         if (this.socket.connected) {

@@ -47,6 +47,13 @@ function cleanMaterial(material) {
     }
 }
 
+/**
+ * startGame
+ * Function called to start the game
+ * @param {*} containerId container for running the game
+ * @param {*} config game properties (id, players, online, tournament)
+ * @returns if config is invalid, otherwise runs the game
+ */
 export function startGame(containerId, config = {}) {
     console.log('Config object:', config);  // Debugging line
 
@@ -56,6 +63,7 @@ export function startGame(containerId, config = {}) {
         gameId = null,
         isLocalTournament = false
     } = config;
+    
     console.log('playerIds:', playerIds);  // Debugging line
     if (playerIds !== null && (!Array.isArray(playerIds) || playerIds.length !== 2) || !playerIds.every(Number.isInteger)) {
         console.error('Invalid player IDs:', playerIds[0], playerIds[1]);
@@ -222,4 +230,10 @@ export function endGame()
 {
     cleanUpGame();
     gameStarted = false;
+}
+
+export function changeCameraAngle()
+{
+    camera.position.set(0, 400, 400);
+    camera.lookAt(0, 0, 0)
 }
