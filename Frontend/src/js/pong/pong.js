@@ -88,11 +88,28 @@ export function startGame(containerId, config = {}) {
         return;
     }
     if (isLocalTournament === true) {
+        if (gameId === null) {
+            console.error('Game ID is missing! Cannot start local tournament game!');
+            return;
+        }
+        if (playerIds.length !== 2) {
+            console.error('Player IDs are missing or incomplete! Cannot start local tournament game!');
+            return;
+        }
         player1Id = playerIds[0]; // Use pre-generated player IDs
         player2Id = playerIds[1];
         finalGameId = gameId;
     }
     else if (isRemote === true) {
+        if (gameId === null) {
+            console.error('Game ID is missing! Cannot start remote game!');
+            return;
+        }
+        else finalGameId = gameId;
+        if (playerIds.length !== 2) {
+            console.error('Player IDs are missing or incomplete! Cannot start remote game!');
+            return;
+        }
         const userData = JSON.parse(localStorage.getItem('userData'));
         console.log('UserData:', userData); // Debugging line
         if (!userData || !userData.id || !userData.token) {
