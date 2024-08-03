@@ -2,7 +2,7 @@
 FROM alpine:3.20 AS frontend
 
 # Install necessary packages
-RUN apk update && apk add --no-cache nginx openrc openssl openssh curl bash nodejs npm websocat
+RUN apk update && apk add --no-cache nginx openrc openssl openssh curl bash nodejs npm
 
 # Set up the application directory
 RUN addgroup -g 1000 www && adduser -D -u 1000 -G www www && \
