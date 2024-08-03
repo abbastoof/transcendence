@@ -1,5 +1,6 @@
 import socket from './socket';
 import GameSession from './classes/GameSession';
+import { endGame } from './pong.js';
 
 export const initializeEventHandlers = (gameSession) => {
     socket.on('connect', () => {
@@ -34,8 +35,13 @@ export const initializeEventHandlers = (gameSession) => {
     });
 
     socket.on('game_over', (data) => {
-        console.log('Game over!');
-        console.log(data);
+        if (data && data.game_id) {
+            if (data.game_id === gameSession.gameId) {
+                gameSession.handleGameOver(data);
+            } else {
+                console.log('Received game over for different game, was ' + data.game_id + ', expected ' + gameSession.gameId);
+            }
+        }
     });
 
     // Add other event handlers as needed

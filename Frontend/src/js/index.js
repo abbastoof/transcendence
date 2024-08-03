@@ -2,7 +2,7 @@ import '../scss/styles.scss'
 import * as bootstrap from 'bootstrap'
 import { createModal } from './createModal.js'
 import { insert, insertModal } from './insert.js'
-import { startGame, cleanupGame } from './pong/pong.js'
+import { startGame, cleanUpGame } from './pong/pong.js'
 import './modals/signup.js';
 import './modals/profile.js';
 import './modals/login.js';
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Clean up game resources when the modal is closed
     pongModalElement.addEventListener('hidden.bs.modal', function () {
-        cleanupGame();
+        cleanUpGame();
     });
     // Make modal available globally if needed
     window.pongModal = pongModal;
