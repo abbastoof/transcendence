@@ -65,11 +65,11 @@ export function startGame(containerId, config = {}) {
     } = config;
     
     console.log('playerIds:', playerIds);  // Debugging line
-    if (playerIds !== null && (!Array.isArray(playerIds) || playerIds.length !== 2) || !playerIds.every(Number.isInteger)) {
+    if (playerIds !== null && (!Array.isArray(playerIds) || !playerIds.every(item => item === null || Number.isInteger(item)) || (playerIds.length !== 0 && playerIds.length !== 2))) {
         console.error('Invalid player IDs:', playerIds[0], playerIds[1]);
         return;
     }
-    if (gameId !== null && !gameId.isInteger) {
+    if (gameId !== null && !Number.isInteger(gameId)) {
         console.error('Invalid game ID:', gameId);
         return;
     }
@@ -150,13 +150,14 @@ export function startGame(containerId, config = {}) {
 
     // Initialize game session
 
-    const { renderer: r, scene: s, camera: c, composer: comp } = init(canvas);
+    const { renderer: r, scene: s, camera: c, composer: comp } = init(canvas, player2Id === localPlayerId);
     renderer = r;
     scene = s;
     camera = c;
     composer = comp;
     gameSession.initialize(finalGameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene);
     gameStarted = true;
+
     // Keyboard controls
     const keys = {};
     document.addEventListener('keydown', (event) => {
@@ -171,10 +172,10 @@ export function startGame(containerId, config = {}) {
         let leftDeltaZ = 0;
         let rightDeltaZ = 0;
 
-        if ((keys['q'] || keys['Q']) && !gameSession.leftPaddle.intersectsWall(gameSession.playingField.upperWall.boundingBox)) {
+        if ((keys['w'] || keys['W']) && !gameSession.leftPaddle.intersectsWall(gameSession.playingField.upperWall.boundingBox)) {
             leftDeltaZ -= PADDLE_SPEED;
         }
-        if ((keys['a'] || keys['A']) && !gameSession.leftPaddle.intersectsWall(gameSession.playingField.lowerWall.boundingBox)) {
+        if ((keys['s'] || keys['S']) && !gameSession.leftPaddle.intersectsWall(gameSession.playingField.lowerWall.boundingBox)) {
             leftDeltaZ += PADDLE_SPEED;
         }
         if ((keys['ArrowUp']) && !gameSession.rightPaddle.intersectsWall(gameSession.playingField.upperWall.boundingBox)) {
@@ -199,10 +200,36 @@ export function startGame(containerId, config = {}) {
         }
     }
     function remoteGameControls() {
-        // Add remote game controls here
-
+        let deltaZ = 0;
+    
+        // Capture input for the local player’s paddle
+        if (keys['w'] || keys['W']) {
+            deltaZ -= PADDLE_SPEED;
+        }
+        if (keys['s'] || keys['S']) {
+            deltaZ += PADDLE_SPEED;
+        }
+    
+        // Update the local player's paddle
+        if (localPlayerId === gameSession.player1Id) {
+            gameSession.leftPaddle.mesh.position.z += deltaZ;
+        } else {
+            gameSession.rightPaddle.mesh.position.z -= deltaZ;
+        }
+    
+        // Send movement data to the server for the local player’s paddle
+        if (deltaZ !== 0) {
+            let emitData = JSON.stringify({
+                'type': 'move_paddle',
+                'game_id': gameSession.gameId,
+                'player_id': localPlayerId,
+                'delta_z': deltaZ
+            });
+            gameSession.sendMovement(emitData);
+        }
     }
-    let controlFunction
+            // Add remote game controls here
+    let controlFunction;
     if (isRemote)
         controlFunction = remoteGameControls;
     else
@@ -230,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             startGame('pongGameContainer', {
                 isRemote: false,  // Set to true for remote multiplayer
-                playerIds: [1234, 1],    // Specify player IDs if needed
+                playerIds: [],    // Specify player IDs if needed
                 gameId: null,     // Specify game ID if needed
                 isLocalTournament: false,  // Set to true for local tournaments
             });

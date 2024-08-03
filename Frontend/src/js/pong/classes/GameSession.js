@@ -73,8 +73,14 @@ class GameSession {
 
     handleGameStateUpdate(data) {
         const translatedData = translateCoordinates(data);
-        this.leftPaddle.updatePosition(translatedData.player1_position);
-        this.rightPaddle.updatePosition(translatedData.player2_position);
+        if (this.isRemote && (this.localPlayerId !== this.player1Id)) {
+            this.leftPaddle.updatePosition(translatedData.player2_position);
+            this.rightPaddle.updatePosition(translatedData.player1_position);
+        }
+        else {
+            this.leftPaddle.updatePosition(translatedData.player1_position);
+            this.rightPaddle.updatePosition(translatedData.player2_position);
+        }
         this.ball.updatePosition(translatedData.ball);
     }
 

@@ -4,7 +4,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { initializeScene } from './sceneSetup.js';
 import { WIDTH, HEIGHT } from './constants.js';
 
-export function init(canvas) {
+export function init(canvas, flipView) {
     // Create renderer
     if (!canvas) {
         console.error('Canvas element is not provided.');
@@ -31,7 +31,7 @@ export function init(canvas) {
     // composer.addPass(new OutputPass());
     console.log(scene)
     // Initialize the scene
-    initializeScene(renderer, scene, camera, composer);
+    initializeScene(renderer, scene, camera, composer, flipView);
 
     return { renderer, scene, camera, composer };
 }
