@@ -32,7 +32,8 @@ document.addEventListener('DOMContentLoaded', function () {
     pongModalElement.addEventListener('hidden.bs.modal', function () {
         cleanupGame();
     });
-
+    // Make modal available globally if needed
+    window.pongModal = pongModal;
     // Optionally, add event listeners for other modals if needed
 });
 

@@ -40,8 +40,23 @@
                 </div>
                 <div class="modal-body">
                     <p id="lobbyMessage">Waiting for players...</p>
+                    <p>set custom values for game id's and player id's</p>
+                    <div class="mb-3">
+                        <label for="gameId" class="form-label">Game ID</label>
+                        <input type="text" class="form-control" id="gameId" placeholder="Enter game ID">
+                      </div>
+                      <div class="mb-3">
+                        <label for="playerId1" class="form-label">Player ID 1</label>
+                        <input type="text" class="form-control" id="playerId1" placeholder="Enter player ID 1">
+                      </div>
+                      <div class="mb-3">
+                        <label for="playerId2" class="form-label">Player ID 2</label>
+                        <input type="text" class="form-control" id="playerId2" placeholder="Enter player ID 2">
+                      </div>
+
                 </div>
                 <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="startGameButton" data-bs-target="#pongModal">Start Game</button>
                     <button type="button" class="submit" data-bs-dismiss="modal">Cancel</button>
                 </div>
             </div>
