@@ -6,6 +6,9 @@ from game_logic.entities.ball import Ball
 import logging
 import asyncio
 import json
+import threading
+import uvicorn 
+import time
 
 # Define custom logging configuration
 logging_config = {
@@ -58,6 +61,9 @@ active_games = {}
 
 # Define a dictionary to store the game instance associated with each session ID
 sid_to_game = {}
+
+# This will hold all the pendind game requests
+remote_game_requests = []
 
 # PongGame class
 # Represents a game of Pong
@@ -236,12 +242,12 @@ class PongGame:
     # Handles paddle movement
     # The 'data' parameter is a dictionary containing the paddle movement data
     async def handle_paddle_movement(self, sid, data):
-        if isinstance(data, str):
-            try:
-                data = json.loads(data)  # Parse the JSON string into a dictionary
-            except json.JSONDecodeError:
-                logging.error("Received data is not valid JSON")
-                return
+        #if isinstance(data, str):
+        #    try:
+        #        data = json.loads(data)  # Parse the JSON string into a dictionary
+        #    except json.JSONDecodeError:
+        #        logging.error("Received data is not valid JSON")
+        #        return
 
         if not isinstance(data, dict):  # Ensure data is a dictionary
             logging.error("Received data is not a dictionary")
@@ -261,7 +267,7 @@ class PongGame:
                         # Handle local and remote games differently
             if self.is_remote:
                 # Remote game: Use sid to player ID mapping
-                player_id = self.sid_to_player_id.get(sid)
+                player_id = data.get("player_id")
                 if not player_id:
                     logging.error(f"No player ID associated with sid: {sid}")
                     return
@@ -284,6 +290,29 @@ class PongGame:
                 if player2_id is not None and p2_delta_z is not None:
                     self.game_state.move_player(player2_id, p2_delta_z)
 
+
+class GameRequest:
+    def __init__(self, sid, game_id, player_id, is_remote):
+        self.time_stamp = time.time()
+        self.game_id = game_id
+        self.sid = sid
+        self.player_id = player_id
+        #self.player2_id = player2_id
+        self.is_remote = is_remote
+
+    async def has_timed_out(self):
+        curr_time = time.time()
+        if (curr_time - self.time_stamp) > 30.0:
+            logging.info("Request g ame has timed out, sending game_over!\n")
+            json_data = {
+                    "type": "game_over",
+                    "game_id": self.game_id,
+                    "player1_id": self.player1_id,
+                    "player2_id": self.player2_id,
+                    }
+            await sio.emit('game_over', json_data, room=self.sid)
+            return True
+        return False
 
 # Event handler for new connections
 # This function is called when a new client connects to the server
@@ -319,6 +348,42 @@ async def disconnect(sid):
 async def message(sid, data):
     logging.info(f"Message received from {sid}: {data}")
 
+
+async def validate_data(data):
+    # List of required keys
+    required_keys = ['game_id', 'player1_id', 'player2_id', 'is_remote']
+
+    # Check for missing keys
+    for key in required_keys:
+        if key not in data:
+            logging.info(f"Missing key in data: {key}")
+            await sio.emit('error', {'message': f'Missing key: {key}'}, room=sid)
+            return False
+    # Extract values
+    game_id = data.get('game_id')
+    player1_id = data.get('player1_id')
+    player2_id = data.get('player2_id')
+    is_remote = data.get('is_remote')
+
+    # Log extracted values
+    logging.info(f"Got game_id: {game_id},\
+                    player1_id: {player1_id}, \
+                    player2_id: {player2_id}, \
+                    is_remote: {is_remote}")
+
+    # Validate extracted values
+    if not all([game_id, player1_id, player2_id]) or is_remote is None:
+        await sio.emit('error', {'message': 'Invalid game initialization data'}, room=sid)
+        logging.error("Invalid game initialization data")
+        return
+
+    # Check if the game_id is already in use
+    if game_id in active_games:
+        await sio.emit('error', {'message': 'Game ID already in use'}, room=sid)
+        logging.error(f"Game ID {game_id} already in use")
+        return
+    return True
+
 # Event handler for start_game message
 # This function is called when a client sends a start_game message to the server
 # The 'data' parameter is a dictionary containing the game initialization data
@@ -331,36 +396,14 @@ async def start_game(sid, data):
     # Log the received data
     logging.info(f"Start game request from {sid}: {data}")
     
-    # List of required keys
-    required_keys = ['game_id', 'player1_id', 'player2_id', 'is_remote']
-    
-    # Check for missing keys
-    for key in required_keys:
-        if key not in data:
-            logging.info(f"Missing key in data: {key}")
-            await sio.emit('error', {'message': f'Missing key: {key}'}, room=sid)
-            return
-    
+    if await validate_data(data) is False:
+        return
+
     # Extract values
     game_id = data.get('game_id')
     player1_id = data.get('player1_id')
     player2_id = data.get('player2_id')
     is_remote = data.get('is_remote')
-
-    # Log extracted values
-    logging.info(f"Got game_id: {game_id}, player1_id: {player1_id}, player2_id: {player2_id}, is_remote: {is_remote}")
-    
-    # Validate extracted values
-    if not all([game_id, player1_id, player2_id]) or is_remote is None:
-        await sio.emit('error', {'message': 'Invalid game initialization data'}, room=sid)
-        logging.error("Invalid game initialization data")
-        return
-    
-    # Check if the game_id is already in use
-    if game_id in active_games:
-        await sio.emit('error', {'message': 'Game ID already in use'}, room=sid)
-        logging.error(f"Game ID {game_id} already in use")
-        return
 
     # Create a new game instance
     try:
@@ -375,6 +418,60 @@ async def start_game(sid, data):
     except Exception as e:
         logging.error(f"Error starting game: {e}")
         await sio.emit('error', {'message': 'Error starting game'}, room=sid)
+
+
+async def start_online_game(p1_sid, p2_sid, game_id, player1_id, player2_id):
+
+    # Create a new game instance
+    try:
+        game_instance = PongGame(game_id, player1_id, player2_id, True)
+        active_games[game_id] = game_instance  # Track game instance by game_id
+        game_instance.sids = [p1_sid, p2_sid]  # Initialize with the current session id
+        #game_instance.add_player(p1_sid, player1_id)
+        #game_instance.add_player(p2_sid, player2_id)
+        sid_to_game[p1_sid] = game_id
+        sid_to_game[p2_sid] = game_id
+        
+        # Start the game in a separate task
+        asyncio.create_task(game_instance.run_game())
+        logging.info("Game started")
+    except Exception as e:
+        logging.error(f"Error starting game: {e}")
+        await sio.emit('error', {'message': 'Error starting game'}, room=sid)
+
+@sio.event
+async def join_game(sid, data):
+    # Log the received data
+    logging.info(f"Join game request from {sid}: {data}")
+    
+    if await validate_data(data) is False:
+        return
+
+    # Extract values
+    game_id = data.get('game_id')
+    local_player_id = data.get('local_player_id')
+    player1_id = data.get('player1_id')
+    player2_id = data.get('player2_id')
+    is_remote = data.get('is_remote')
+
+    if remote_game_requests:
+        first_request = remote_game_requests.pop(0)
+        if player1_id == local_player_id:
+            player1_sid = sid
+            player2_sid = first_request.sid
+        else:
+            player1_sid = first_request.sid
+            player2_sid = sid
+        await start_online_game(player1_sid, player2_sid, game_id, player1_id, player2_id)
+    else: 
+        game_request = GameRequest(sid, game_id, local_player_id, is_remote)
+        remote_game_requests.append(game_request)
+        return
+
+
+
+
+
 
 # Event handler for move_paddle message
 # This function is called when a client sends a move_paddle message to the server
@@ -400,6 +497,22 @@ async def move_paddle(sid, data):
 async def test(sid):
     await sio.emit('test', {'message': 'Test message'}, room=sid)
 
-if __name__ == '__main__':
-    import uvicorn
+def start_uvicorn():
     uvicorn.run(app, host='0.0.0.0', port=8010, log_level="info", log_config=logging_config)
+
+async def check_timed_out_requests():
+    for request in remote_game_requests[:]: #make a shallow coppy so it doesnt affect current for loop
+        if await request.has_timed_out() is True:
+            remote_game_requests.remove(request)
+
+
+async def main():
+    uvicorn_thread = threading.Thread(target=start_uvicorn, daemon=True)
+    uvicorn_thread.start()
+    while 1:
+        await check_timed_out_requests();
+    uvicorn_thread.join()
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
