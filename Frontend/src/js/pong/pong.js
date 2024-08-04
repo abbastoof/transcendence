@@ -8,6 +8,12 @@ let gameSession = new GameSession();
 let gameStarted = false;
 let renderer, scene, camera, composer, animationId;
 
+function callBackTestFunction(data) {
+    console.log(data);
+    console.log("callback called back");
+    endGame();
+}
+
 export function cleanUpGame() {
     if (typeof cancelAnimationFrame !== 'undefined') {
         cancelAnimationFrame(animationId);
@@ -52,9 +58,10 @@ function cleanMaterial(material) {
  * Function called to start the game
  * @param {*} containerId container for running the game
  * @param {*} config game properties (id, players, online, tournament)
+ * @param {*} onGameEnd callback function that will be called in the end of game
  * @returns if config is invalid, otherwise runs the game
  */
-export function startGame(containerId, config = {}) {
+export function startGame(containerId, config = {}, onGameEnd = null) {
     console.log('Config object:', config);  // Debugging line
 
     const {
@@ -155,7 +162,7 @@ export function startGame(containerId, config = {}) {
     scene = s;
     camera = c;
     composer = comp;
-    gameSession.initialize(finalGameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene);
+    gameSession.initialize(finalGameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene, onGameEnd);
     gameStarted = true;
 
     // Keyboard controls
@@ -250,6 +257,7 @@ function cleanUpThreeJS() {
 
 }
 
+
 document.addEventListener('DOMContentLoaded', () => {
     const pongModal = new bootstrap.Modal(document.getElementById('pongModal'));
 
@@ -260,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 playerIds: [],    // Specify player IDs if needed
                 gameId: null,     // Specify game ID if needed
                 isLocalTournament: false,  // Set to true for local tournaments
-            });
+            }, callBackTestFunction);
         }, 500); // Ensure the modal is fully visible
     });
 
@@ -281,3 +289,4 @@ export function changeCameraAngle()
     camera.position.set(0, 400, 400);
     camera.lookAt(0, 0, 0)
 }
+

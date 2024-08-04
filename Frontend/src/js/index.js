@@ -2,7 +2,7 @@ import '../scss/styles.scss'
 import * as bootstrap from 'bootstrap'
 import { createModal } from './createModal.js'
 import { insert, insertModal } from './insert.js'
-import { startGame, cleanUpGame } from './pong/pong.js'
+import './pong/pong.js'
 import './modals/signup.js';
 import './modals/profile.js';
 import './modals/login.js';
@@ -14,27 +14,27 @@ import './modals/tournament.js';
 insert('.headerContainer', 'headerSVG.html');
 //insertModal('.tournament', 'tournamentModal.html', 'tournament', 'Tournament');
 
-// Assuming you have imported necessary modules and functions like startGame, cleanupGame
-document.addEventListener('DOMContentLoaded', function () {
-    // Initialize the modal with options to prevent closing on backdrop click
-    const pongModalElement = document.getElementById('pongModal');
-    const pongModal = new bootstrap.Modal(pongModalElement, {
-        backdrop: 'static',
-        keyboard: true // Optional: prevents closing with ESC key
-    });
+// // Assuming you have imported necessary modules and functions like startGame, cleanupGame
+// document.addEventListener('DOMContentLoaded', function () {
+//     // Initialize the modal with options to prevent closing on backdrop click
+//     const pongModalElement = document.getElementById('pongModal');
+//     const pongModal = new bootstrap.Modal(pongModalElement, {
+//         backdrop: 'static',
+//         keyboard: true // Optional: prevents closing with ESC key
+//     });
 
-    // Show the modal and start the game when it's opened
-    pongModalElement.addEventListener('shown.bs.modal', function () {
-        startGame('pongGameContainer');
-    });
+//     // Show the modal and start the game when it's opened
+//     pongModalElement.addEventListener('shown.bs.modal', function () {
+//         startGame('pongGameContainer');
+//     });
 
-    // Clean up game resources when the modal is closed
-    pongModalElement.addEventListener('hidden.bs.modal', function () {
-        cleanUpGame();
-    });
+//     // Clean up game resources when the modal is closed
+//     pongModalElement.addEventListener('hidden.bs.modal', function () {
+//         cleanUpGame();
+//     });
 
-    // Optionally, add event listeners for other modals if needed
-});
+//     // Optionally, add event listeners for other modals if needed
+// });
 
 
 createModal('tournament', 'Tournament', `

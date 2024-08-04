@@ -23,19 +23,22 @@ class GameSession {
         this.ball = null;
         this.player1Score = 0;
         this.player2Score = 0;
+        this.onGameEndCallback = null;
     }
 
-    initialize(gameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene) {
+    initialize(gameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene, onGameEnd) {
         this.gameId = gameId;
         this.player1Id = player1Id;
         this.player2Id = player2Id;
         this.isRemote = isRemote;
         this.isLocalTournament = isLocalTournament;
+        this.onGameEndCallback = typeof onGameEnd === 'function' ? onGameEnd : null; // Ensure it's a function
         this.playingField = new PlayingField(scene, gameId, player1Id, player2Id);
         this.leftPaddle = new Paddle(scene, LEFT_PADDLE_START, 0x00ff00);
         this.rightPaddle = new Paddle(scene, RIGHT_PADDLE_START, 0xff0000);
         this.ball = new Ball(scene);
-    
+        console.log("Type of onGameEndCallback:", typeof this.onGameEndCallback);
+
         this.playingField.addToScene();
         this.leftPaddle.addToScene();
         this.rightPaddle.addToScene();
@@ -94,27 +97,16 @@ class GameSession {
         this.leftPaddle.removeFromScene();
         this.rightPaddle.removeFromScene();
         changeCameraAngle();
-        console.log(data);
-        let resultMessage = "Final score: " + data.player1_score + " - " + data.player2_score + ". ";
-        if (this.isRemote) {
-            if (data.winner === this.localPlayerId) {
-                resultMessage = 'You win!';
-            } else {
-                resultMessage = 'You lose!';
-            }
-        } else { 
-            if (data.winner === this.player1Id) {
-                resultMessage += ' Player 1 wins!';
-            } else {
-                resultMessage += ' Player 2 wins!';
-            }
-        }
-        // Display the result message
-        console.log(resultMessage);
+        this.disconnect();
         setTimeout(() => {
-            console.log("9 second timeout");
-        }, 9000);
-
+            endGame();
+            if (typeof this.onGameEndCallback === 'function') {
+                this.onGameEndCallback(data);
+                console.log("Game end callback executed.");
+            } else {
+                console.log("No game end callback defined.");
+            }
+        }, 2000);
     }
     
     
