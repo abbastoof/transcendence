@@ -5,6 +5,7 @@ import { translateCoordinates } from '../utils.js';
 import Paddle from './Paddle.js';
 import Ball from './Ball.js';
 import PlayingField from './PlayingField.js';
+import ScoreBoard from './ScoreBoard.js';
 import { LEFT_PADDLE_START, RIGHT_PADDLE_START } from '../constants.js';
 import { changeCameraAngle } from '../pong.js';
 
@@ -24,6 +25,7 @@ class GameSession {
         this.player1Score = 0;
         this.player2Score = 0;
         this.onGameEndCallback = null;
+        this.scoreBoard = null;
     }
 
     initialize(gameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene, onGameEnd) {
@@ -37,6 +39,8 @@ class GameSession {
         this.leftPaddle = new Paddle(scene, LEFT_PADDLE_START, 0x00ff00);
         this.rightPaddle = new Paddle(scene, RIGHT_PADDLE_START, 0xff0000);
         this.ball = new Ball(scene);
+        this.scoreBoard = new ScoreBoard(scene);
+        this.scoreBoard.createScoreBoard("Player 1: 0\nPlayer 2: 0");
         console.log("Type of onGameEndCallback:", typeof this.onGameEndCallback);
 
         this.playingField.addToScene();
@@ -91,12 +95,14 @@ class GameSession {
         console.log('Received score update:', data);
         this.player1Score = data.player1_score;
         this.player2Score = data.player2_score;
+        this.scoreBoard.updateScores(this.player1Score, this.player2Score);
     }
 
     handleGameOver(data) {
         this.leftPaddle.removeFromScene();
         this.rightPaddle.removeFromScene();
         changeCameraAngle();
+        this.scoreBoard.scores.position.set(0, 0, 0);
         this.disconnect();
         setTimeout(() => {
             endGame();

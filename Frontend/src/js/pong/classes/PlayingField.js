@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import Wall from "./Wall.js";
 import { degreesToRads, convertToRange } from '../utils.js';
 import { vertexShader } from '../shaders/vertexShader.js';
-import { fragmentShader } from '../shaders/fragmentShader.js';
+import { playingFieldShader } from '../shaders/playingFieldShader.js';
 import { WIDTH, HEIGHT, randomX, randomY, randomMultiplier } from '../constants.js'; 
 
 class PlayingField {
@@ -10,7 +10,7 @@ class PlayingField {
         this.planeGeometry = new THREE.PlaneGeometry(WIDTH, HEIGHT);
         this.shaderMaterial = new THREE.ShaderMaterial({
             vertexShader: vertexShader,
-            fragmentShader: fragmentShader,
+            fragmentShader: playingFieldShader,
             transparent: true,
             depthWrite: false,
             uniforms: {

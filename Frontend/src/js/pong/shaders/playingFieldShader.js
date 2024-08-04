@@ -1,4 +1,4 @@
-export const fragmentShader = `
+export const playingFieldShader = `
     uniform float iTime;
     uniform vec2 iResolution;
     uniform float xRand;
