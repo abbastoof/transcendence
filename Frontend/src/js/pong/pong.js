@@ -4,6 +4,7 @@ import GameSession from './classes/GameSession.js';
 import { PADDLE_SPEED } from './constants.js';
 import { init } from './init.js';
 import { randFloat } from 'three/src/math/MathUtils.js';
+
 let gameSession = new GameSession();
 let gameStarted = false;
 let renderer, scene, camera, composer, animationId;
@@ -61,7 +62,9 @@ export function startGame(containerId, config = {}) {
         isRemote = false,
         playerIds = [],
         gameId = null,
-        isLocalTournament = false
+        localPlayerId = null,
+        isLocalTournament = false,
+        isTest = false,
     } = config;
     
     console.log('playerIds:', playerIds);  // Debugging line
@@ -78,7 +81,7 @@ export function startGame(containerId, config = {}) {
         return;
     }
     if (gameStarted) return;
-    let player1Id, player2Id, localPlayerId, finalGameId;
+    let player1Id, player2Id, finalGameId;//localPlayerId, ;
     // if (player1_id === player2_id) {
     //     player2_id++;
     // }
@@ -110,14 +113,17 @@ export function startGame(containerId, config = {}) {
             console.error('Player IDs are missing or incomplete! Cannot start remote game!');
             return;
         }
-        const userData = JSON.parse(localStorage.getItem('userData'));
-        console.log('UserData:', userData); // Debugging line
-        if (!userData || !userData.id || !userData.token) {
-            console.error('UserData is missing or incomplete! Cannot start remote game!');
-            return;
-        }
-        else {
-            localPlayerId = userData.id;
+        if (isTest == false) {
+            const userData = JSON.parse(localStorage.getItem('userData'));
+            console.log('UserData:', userData); // Debugging line
+            if (!userData || !userData.id || !userData.token) {
+                console.error('UserData is missing or incomplete! Cannot start remote game!');
+                endGame();
+                return;
+            }
+            else {
+                localPlayerId = userData.id;
+            }
         }
         if (localPlayerId === playerIds[0] || localPlayerId === playerIds[1]) {
         player1Id = playerIds[0];
