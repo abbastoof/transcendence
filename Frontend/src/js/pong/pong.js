@@ -113,18 +113,18 @@ export function startGame(containerId, config = {}) {
             console.error('Player IDs are missing or incomplete! Cannot start remote game!');
             return;
         }
-        if (isTest == false) {
-            const userData = JSON.parse(localStorage.getItem('userData'));
-            console.log('UserData:', userData); // Debugging line
-            if (!userData || !userData.id || !userData.token) {
-                console.error('UserData is missing or incomplete! Cannot start remote game!');
-                endGame();
-                return;
-            }
-            else {
-                localPlayerId = userData.id;
-            }
-        }
+        // if (isTest == false) {
+        //     const userData = JSON.parse(localStorage.getItem('userData'));
+        //     console.log('UserData:', userData); // Debugging line
+        //     if (!userData || !userData.id || !userData.token) {
+        //         console.error('UserData is missing or incomplete! Cannot start remote game!');
+        //         endGame();
+        //         return;
+        //     }
+        //     else {
+        //         localPlayerId = userData.id;
+        //     }
+        // }
         if (localPlayerId === playerIds[0] || localPlayerId === playerIds[1]) {
         player1Id = playerIds[0];
         player2Id = playerIds[1];
@@ -135,14 +135,14 @@ export function startGame(containerId, config = {}) {
         }
     }
     else {
-        const userData = JSON.parse(localStorage.getItem('userData'));
-        console.log('UserData:', userData); // Debugging line
-        if (!userData || !userData.id || !userData.token) {
-            console.error('UserData is missing or incomplete!');
-        }
-        else {
-            localPlayerId = userData.id;
-        }
+        // const userData = JSON.parse(localStorage.getItem('userData'));
+        // console.log('UserData:', userData); // Debugging line
+        // if (!userData || !userData.id || !userData.token) {
+        //     console.error('UserData is missing or incomplete!');
+        // }
+        // else {
+        //     localPlayerId = userData.id;
+        // }
         player1Id = Math.round(randFloat(1000, 1999));
         player2Id = Math.round(randFloat(2000, 2999));
         finalGameId = Math.round(randFloat(5000, 9999));
@@ -194,14 +194,14 @@ export function startGame(containerId, config = {}) {
         gameSession.rightPaddle.mesh.position.z += rightDeltaZ;
 
         if (leftDeltaZ !== 0 || rightDeltaZ !== 0) {
-            let emitData = JSON.stringify({
+            let emitData = {
                 'type': 'move_paddle',
                 'game_id': gameSession.gameId,
                 'player1_id': gameSession.player1Id, 
                 'p1_delta_z': leftDeltaZ,
                 'player2_id': gameSession.player2Id,
                 'p2_delta_z': rightDeltaZ
-            });
+            };
         gameSession.sendMovement(emitData);
         }
     }
@@ -220,17 +220,18 @@ export function startGame(containerId, config = {}) {
         if (localPlayerId === gameSession.player1Id) {
             gameSession.leftPaddle.mesh.position.z += deltaZ;
         } else {
-            gameSession.rightPaddle.mesh.position.z -= deltaZ;
+            deltaZ *= -1;
+            gameSession.rightPaddle.mesh.position.z += deltaZ;
         }
     
         // Send movement data to the server for the local player’s paddle
         if (deltaZ !== 0) {
-            let emitData = JSON.stringify({
+            let emitData = {
                 'type': 'move_paddle',
                 'game_id': gameSession.gameId,
-                'player_id': localPlayerId,
+                'player_id': gameSession.localPlayerId,
                 'delta_z': deltaZ
-            });
+            };
             gameSession.sendMovement(emitData);
         }
     }

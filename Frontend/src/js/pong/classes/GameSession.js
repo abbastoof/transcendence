@@ -27,6 +27,7 @@ class GameSession {
 
     initialize(gameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene) {
         this.gameId = gameId;
+        this.localPlayerId = localPlayerId
         this.player1Id = player1Id;
         this.player2Id = player2Id;
         this.isRemote = isRemote;
@@ -74,15 +75,17 @@ class GameSession {
     }
 
     handleGameStateUpdate(data) {
+        console.log(this.localPlayerId, this.player1Id);
         const translatedData = translateCoordinates(data);
-        if (this.isRemote && (this.localPlayerId !== this.player1Id)) {
-            this.leftPaddle.updatePosition(translatedData.player2_position);
-            this.rightPaddle.updatePosition(translatedData.player1_position);
-        }
-        else {
+        // if (this.isRemote && (this.localPlayerId !== this.player1Id)) {
+        //     console.log(translatedData.player1_position, translatedData.player2_position);
+        //     // this.leftPaddle.updatePosition(translatedData.player2_position);
+            // this.rightPaddle.updatePosition(translatedData.player1_position);
+        // }
+        // else {
             this.leftPaddle.updatePosition(translatedData.player1_position);
             this.rightPaddle.updatePosition(translatedData.player2_position);
-        }
+        
         this.ball.updatePosition(translatedData.ball);
     }
 

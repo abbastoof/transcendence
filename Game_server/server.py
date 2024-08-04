@@ -509,8 +509,8 @@ async def check_timed_out_requests():
 async def main():
     uvicorn_thread = threading.Thread(target=start_uvicorn, daemon=True)
     uvicorn_thread.start()
-    while 1:
-        await check_timed_out_requests();
+    # while 1:
+    #     await check_timed_out_requests()
     uvicorn_thread.join()
 
 
