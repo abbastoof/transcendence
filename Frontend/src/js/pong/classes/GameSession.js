@@ -8,6 +8,7 @@ import PlayingField from './PlayingField.js';
 import ScoreBoard from './ScoreBoard.js';
 import { LEFT_PADDLE_START, RIGHT_PADDLE_START } from '../constants.js';
 import { changeCameraAngle, endGame } from '../pong.js';
+import { globalState } from '../globalState.js';
 
 class GameSession {
     constructor() {
@@ -26,10 +27,9 @@ class GameSession {
         this.player2Score = 0;
         this.onGameEndCallback = null;
         this.scoreBoard = null;
-        this.flipView = false;
     }
 
-    initialize(gameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene, onGameEnd, flipView) {
+    initialize(gameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene, onGameEnd) {
         this.gameId = gameId;
         this.player1Id = player1Id;
         this.player2Id = player2Id;
@@ -40,7 +40,7 @@ class GameSession {
         this.leftPaddle = new Paddle(scene, LEFT_PADDLE_START, 0x00ff00);
         this.rightPaddle = new Paddle(scene, RIGHT_PADDLE_START, 0xff0000);
         this.ball = new Ball(scene);
-        this.scoreBoard = new ScoreBoard(scene, flipView);
+        this.scoreBoard = new ScoreBoard(scene);
         this.scoreBoard.createScoreBoard("Player 1: 0\nPlayer 2: 0");
         console.log("Type of onGameEndCallback:", typeof this.onGameEndCallback);
 
@@ -90,11 +90,18 @@ class GameSession {
             this.rightPaddle.updatePosition(translatedData.player2Pos);
         }
         this.ball.updatePosition(translatedData.ball);
-        if (data.ballDelta.dx > 0) {
-            this.playingField.shaderMaterial.uniforms.ballDx.value = 1.0;
+        if (data.ballDelta.dx > 0  && globalState.playingFieldMaterial !==  null) {
+            globalState.playingFieldMaterial.uniforms.ballDx.value = 1.0;
+        }
+        else if (globalState.playingFieldMaterial !==  null) {
+            globalState.playingFieldMaterial.uniforms.ballDx.value = -1.0;
+        }
+        if (data.bounce === true) {
+            console.log('Bounce detected');
+            globalState.rgbShift.uniforms.amount.value = 0.015;
         }
         else {
-            this.playingField.shaderMaterial.uniforms.ballDx.value = -1.0;
+            globalState.rgbShift.uniforms.amount.value = 0.0;
         }
     }
 
@@ -109,7 +116,7 @@ class GameSession {
     }
 
     handleGameOver(data) {
-        this.playingField.shaderMaterial.uniforms.ballDx.value = 0.0;
+        globalState.playingFieldMaterial.uniforms.ballDx.value = 0.0;
         this.leftPaddle.removeFromScene();
         this.rightPaddle.removeFromScene();
         changeCameraAngle();

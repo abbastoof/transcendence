@@ -7,37 +7,37 @@ import { vertexShader } from '../shaders/vertexShader.js';
 import { scoreBoardShader} from '../shaders/scoreBoardShader.js';
 import { WIDTH, HEIGHT } from '../constants.js';
 import { convertToRange } from '../utils.js';
+import { globalState } from '../globalState.js';
+
 class ScoreBoard {
-    constructor(scene, flipView) {
+    constructor(scene) {
         this.scene = scene;
         this.scoreMesh = null;
         this.font = new FontLoader().parse(fontJson);
-        this.flipView = flipView;
-        this.iTime = 0.0
     }
 
-    createText(text, size, color = 0xFFFFFF, flipView = false, base, speed) {
+    createText(text, size, color = 0xFFFFFF, base, speed) {
         const geometry = new TextGeometry(text, {
             font: this.font,
             size: size,
-            depth: 7,
+            depth: 4,
             curveSegments: 12,
         });
-        this.material = new THREE.ShaderMaterial({ 
+        globalState.scoreBoardMaterial = new THREE.ShaderMaterial({ 
             vertexShader: vertexShader,
             fragmentShader: scoreBoardShader,
             transparent: true,
             depthWrite: false,
             uniforms: {
                 color: { value: new THREE.Color(color) },
-                iTime: { value: this.iTime },
+                iTime: { value: globalState.iTime },
                 base: { value: base },
                 speed: { value: speed }
                 // iResolution: { value: new THREE.Vector2(WIDTH, HEIGHT) },
  
             }
         });
-        const mesh = new THREE.Mesh(geometry, this.material);
+        const mesh = new THREE.Mesh(geometry, globalState.scoreBoardMaterial);
 
         // Compute the bounding box of the geometry
         geometry.computeBoundingBox();
@@ -53,8 +53,8 @@ class ScoreBoard {
         // Set the mesh position to the desired position
         mesh.position.set(0, 90.0, 300.0);
 
-        // Rotate the mesh 180 degrees (PI radians) around the Y-axis if flipView is true
-        if (flipView === true) {
+        // Rotate the mesh 180 degrees (PI radians) around the Y-axis if invertedView is true
+        if (globalState.invertedView === true) {
             mesh.rotation.y = THREE.MathUtils.degToRad(180);
         } else {
             mesh.position.z = -300.0;
@@ -63,7 +63,7 @@ class ScoreBoard {
     }
 
     createScoreBoard(text) {
-        this.scoreMesh = this.createText(text, 50, 0xFF0000, this.flipView, 0.9, 2.);
+        this.scoreMesh = this.createText(text, 50, 0xFF0000, 1.0, 2.);
         this.scene.add(this.scoreMesh);
     }
 
@@ -76,7 +76,7 @@ class ScoreBoard {
     showGoalText() {
         this.clearScores();
         console.log("nyt pitäs näyttää maaliteksti")
-        this.scoreMesh = this.createText('GOAL', 50, 0xFFFF00, this.flipView, 0.3, 9.);
+        this.scoreMesh = this.createText('GOAL', 50, 0xFFFF00, 0.3, 9.);
         this.scene.add(this.scoreMesh);
     }
 
@@ -89,10 +89,6 @@ class ScoreBoard {
         }
     }
 
-    updateITime() {
-        this.iTime = performance.now() / 1000;
-        this.material.uniforms.iTime.value = this.iTime;
-    }
 }
 
 export default ScoreBoard;

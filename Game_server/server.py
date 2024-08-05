@@ -185,6 +185,7 @@ class PongGame:
                 'x': self.game_state.player2.paddle.x,
                 'z': self.game_state.player2.paddle.z,
             },
+            'bounce' : self.game_state.bounce,
         },
         for sid in self.sids:
             await sio.emit('send_game_state', game_state_data, room=sid)

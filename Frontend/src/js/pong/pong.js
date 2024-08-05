@@ -4,9 +4,10 @@ import GameSession from './classes/GameSession.js';
 import { PADDLE_SPEED } from './constants.js';
 import { init } from './init.js';
 import { randFloat } from 'three/src/math/MathUtils.js';
+import { globalState } from './globalState.js';
 
 let gameSession = new GameSession();
-let gameStarted, flipView = false;
+let gameStarted = false;
 let renderer, scene, camera, composer, animationId;
 
 function callBackTestFunction(data) {
@@ -149,7 +150,7 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
         player2Id = Math.round(randFloat(2000, 2999));
         finalGameId = Math.round(randFloat(5000, 9999));
     }
-    flipView = player2Id === localPlayerId
+    globalState.invertedView = player2Id === localPlayerId
     const container = document.getElementById(containerId);
     const canvas = document.createElement('canvas');
     canvas.width = 800;
@@ -158,12 +159,12 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
 
     // Initialize game session
 
-    const { renderer: r, scene: s, camera: c, composer: comp } = init(canvas, flipView);
+    const { renderer: r, scene: s, camera: c, composer: comp } = init(canvas);
     renderer = r;
     scene = s;
     camera = c;
     composer = comp;
-    gameSession.initialize(finalGameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene, onGameEnd, flipView);
+    gameSession.initialize(finalGameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene, onGameEnd);
     gameStarted = true;
 
     // Keyboard controls
@@ -177,15 +178,13 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
 
     function flip() {
         if (keys['f'] || keys['F']) {
-            gameSession.flipView = true;
-            gameSession.scoreBoard.flipView = true;
+            globalState.invertedView = true;
             camera.position.set(400, 400, -400);
             gameSession.scoreBoard.clearScores();
             gameSession.scoreBoard.createScoreBoard("Player 1: 0\nPlayer 2: 0");
         }
         if (keys['r'] || keys['R']) {
-            gameSession.flipView = false;
-            gameSession.scoreBoard.flipView = false;
+            globalState.invertedView = false;
             camera.position.set(-400, 400, 400);
             gameSession.scoreBoard.clearScores();
             gameSession.scoreBoard.createScoreBoard("Player 1: 0\nPlayer 2: 0");
@@ -262,8 +261,7 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
     function animate() {
         controlFunction();
         flip();
-        gameSession.playingField.shaderMaterial.uniforms.iTime.value = performance.now() / 1000;
-        gameSession.scoreBoard.updateITime();
+        updateITimes();
         camera.lookAt(0, 0, 0);
         composer.render();
         animationId = requestAnimationFrame(animate);
@@ -277,7 +275,13 @@ function cleanUpThreeJS() {
 
 }
 
-
+function updateITimes() {
+    globalState.iTime = performance.now() / 1000;
+    if (globalState.playingFieldMaterial)
+        globalState.playingFieldMaterial.uniforms.iTime.value = globalState.iTime;
+    if (globalState.scoreBoardMaterial)
+        globalState.scoreBoardMaterial.uniforms.iTime.value = globalState.iTime;
+}
 document.addEventListener('DOMContentLoaded', () => {
     const pongModal = new bootstrap.Modal(document.getElementById('pongModal'));
 

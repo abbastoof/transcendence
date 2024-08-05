@@ -4,23 +4,27 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+import { globalState } from './globalState.js';
 
-export function initializeScene(renderer, scene, camera, composer, flipView) {
+const rgbShift = new ShaderPass( RGBShiftShader );
+globalState.rgbShift = rgbShift;
+
+export function initializeScene(renderer, scene, camera, composer) {
     // Post-processing effects
     const renderPass = new RenderPass( scene, camera );
     composer.addPass( renderPass );
     // const glitchPass = new GlitchPass();
     // composer.addPass( glitchPass );
 
-    const effect2 = new ShaderPass( RGBShiftShader );
-    effect2.uniforms[ 'amount' ].value = 0.0015;
-    composer.addPass( effect2 );
+
+    rgbShift.uniforms[ 'amount' ].value = 0.0015;
+    composer.addPass( rgbShift );
 
     const outputPass = new OutputPass();
     composer.addPass( outputPass );
 
     // Camera setup
-   if (flipView) {
+   if (globalState.invertedView === true) {
         camera.position.set(400, 400, -400); // Adjust these values for your desired isometric angle
    }
     else {
