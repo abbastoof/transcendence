@@ -16,11 +16,20 @@ up:
 # Stop all services
 .PHONY: down
 down:
-	docker compose down --rmi all --volumes --remove-orphans
+	docker compose down --remove-orphans --volumes
+
+# Stop all services and remove all containers
+.PHONY: down-all
+down-all:
+	@if [ -n "$(shell docker ps -aq)" ]; then \
+		for container in $(shell docker ps -aq); do \
+			docker rm -f $$container; \
+		done \
+	fi
 
 # Restart all services
 .PHONY: re
-re: down clean up
+re: down-all clean up
 
 # Show logs for all services
 .PHONY: logs
@@ -59,13 +68,6 @@ status:
 .PHONY: info
 info:
 	docker ps -a
-
-.PHONY: bash
-bash:
-	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) /bin/bash
-
-%:
-	@:
 
 .PHONY: bvenv
 bvenv:
