@@ -93,31 +93,40 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             'count':count
         }))
 
+user_channels = {}
 @method_decorator(csrf_exempt, name='dispatch')
 class OnlineStatusConsumer(AsyncWebsocketConsumer):
-
+    waiting_list = []
     async def connect(self):
         token = self.get_token_from_query_string()
+        if token is None:
+            await self.close(code=4001)
+            return
         self.scope['user'] = await self.get_user_from_token(token)
         self.room_group_name = 'online_status'
+
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
         )
         await self.accept()
         await self.change_online_status(self.scope['user'], 'open')
+        user_channels[self.scope['user'].username] = self.channel_name
         # print(f'Connected to WebSocket: {self.room_group_name}')
+        await self.add_player_to_lobby(self.scope['user'])
 
     def get_token_from_query_string(self):
         query_string = self.scope['query_string'].decode()
-        params = dict(param.split('=') for param in query_string.split('&'))
-        return params.get('token')
+        if '=' in query_string:
+            params = dict(param.split('=') for param in query_string.split('&'))
+            return params.get('token')
+        return None
 
     @database_sync_to_async
     def get_user_from_token(self, token):
         from django.contrib.auth.models import AnonymousUser
         from .models import UserProfileModel
-        from rest_framework_simplejwt.tokens import AccessToken, TokenError 
+        from rest_framework_simplejwt.tokens import AccessToken, TokenError
         from rest_framework_simplejwt.exceptions import InvalidToken
         try:
             access_token = AccessToken(token)
@@ -125,18 +134,77 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
             return UserProfileModel.objects.get(id=user_id)
         except (UserProfileModel.DoesNotExist, TokenError, InvalidToken):
             return AnonymousUser()
-    
+
+    async def add_player_to_lobby(self, user):
+        if user not in self.waiting_list:
+            self.waiting_list.append(user)
+            if len(self.waiting_list) > 1:
+                player1 = self.waiting_list.pop(0)
+                player2 = self.waiting_list.pop(0)
+                await self.match_players(player1, player2)
+        else:
+            pass
+
+    async def match_players(self, player1, player2):
+        await self.channel_layer.send(
+            user_channels[player1.username],
+            {
+                'type': 'match_found',
+                'message': f'Match found with {player2.username}',
+                'player': player2.username
+            }
+        )
+        await self.channel_layer.send(
+            user_channels[player2.username],
+            {
+                'type': 'match_found',
+                'message': f'Match found with {player1.username}',
+                'player': player1.username
+            }
+        )
+        pass
+
+    async def match_found(self, event):
+        message = event['message']
+        player = event['player']
+        # Handle the match found event here
+        await self.send(text_data=json.dumps({
+            'message': message,
+            'player': player
+        }))
+
+    async def disconnect(self, code):
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+        await self.change_online_status(self.scope['user'], 'close')
+        # print(f'Disconnected from WebSocket: {self.room_group_name} with code: {code}')
+        if self.scope['user'] in self.waiting_list:
+            self.waiting_list.remove(self.scope['user'])
+
     async def receive(self, text_data: str = "", bytes_data=None):
         # print(f'Received message: {text_data}')
         try:
             data = json.loads(text_data)
-            username = data['username']
-            connection_type = data['type']
-            # print(f'Parsed data: {data}')
-            if connection_type == 'close':
-                await self.close()
-            await self.change_online_status(username, connection_type)
+            if "username" in data:
+                username = data['username']
+                connection_type = data['type']
+                # print(f'Parsed data: {data}')
+                if connection_type == 'close':
+                    await self.close()
+                await self.change_online_status(username, connection_type)
 
+            if "player" in data:
+                player = data["player"]
+                connection_type = data['type']
+                if connection_type == "match_accepted":
+                    opponent = user_channels.get(player)
+                    if opponent:
+                        await player.send(text_data=json.dumps({
+                            'message': 'challenge accepted',
+                            'player': player
+                        }))
 
         except json.JSONDecodeError as e:
             # print(f'JSON decode error: {e}')
@@ -165,13 +233,6 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             print(f'Error in send_onlineStatus: {e}')
 
-    async def disconnect(self, code):
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
-        await self.change_online_status(self.scope['user'], 'close')
-        # print(f'Disconnected from WebSocket: {self.room_group_name} with code: {code}')
 
     @database_sync_to_async
     def change_online_status(self, username, c_type):
