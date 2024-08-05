@@ -20,9 +20,9 @@ export function initializeScene(renderer, scene, camera, composer, flipView) {
     composer.addPass( outputPass );
 
     // Camera setup
-    if (flipView) {
+   if (flipView) {
         camera.position.set(400, 400, -400); // Adjust these values for your desired isometric angle
-    }
+   }
     else {
         camera.position.set(-400, 400, 400); // Adjust these values for your desired isometric angle
     }

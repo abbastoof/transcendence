@@ -4,8 +4,9 @@ import GameSession from './classes/GameSession.js';
 import { PADDLE_SPEED } from './constants.js';
 import { init } from './init.js';
 import { randFloat } from 'three/src/math/MathUtils.js';
+
 let gameSession = new GameSession();
-let gameStarted = false;
+let gameStarted, flipView = false;
 let renderer, scene, camera, composer, animationId;
 
 function callBackTestFunction(data) {
@@ -148,7 +149,7 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
         player2Id = Math.round(randFloat(2000, 2999));
         finalGameId = Math.round(randFloat(5000, 9999));
     }
-    
+    flipView = player2Id === localPlayerId
     const container = document.getElementById(containerId);
     const canvas = document.createElement('canvas');
     canvas.width = 800;
@@ -157,12 +158,12 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
 
     // Initialize game session
 
-    const { renderer: r, scene: s, camera: c, composer: comp } = init(canvas, player2Id === localPlayerId);
+    const { renderer: r, scene: s, camera: c, composer: comp } = init(canvas, flipView);
     renderer = r;
     scene = s;
     camera = c;
     composer = comp;
-    gameSession.initialize(finalGameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene, onGameEnd);
+    gameSession.initialize(finalGameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene, onGameEnd, flipView);
     gameStarted = true;
 
     // Keyboard controls
@@ -173,6 +174,23 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
     document.addEventListener('keyup', (event) => {
         keys[event.key] = false;
     });
+
+    function flip() {
+        if (keys['f'] || keys['F']) {
+            gameSession.flipView = true;
+            gameSession.scoreBoard.flipView = true;
+            camera.position.set(400, 400, -400);
+            gameSession.scoreBoard.clearScores();
+            gameSession.scoreBoard.createScoreBoard("Player 1: 0\nPlayer 2: 0");
+        }
+        if (keys['r'] || keys['R']) {
+            gameSession.flipView = false;
+            gameSession.scoreBoard.flipView = false;
+            camera.position.set(-400, 400, 400);
+            gameSession.scoreBoard.clearScores();
+            gameSession.scoreBoard.createScoreBoard("Player 1: 0\nPlayer 2: 0");
+        }
+    }
 
     // Update function
     function localGameControls() {
@@ -237,13 +255,15 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
     }
             // Add remote game controls here
     let controlFunction;
-    if (isRemote)
+    if (isRemote === true)
         controlFunction = remoteGameControls;
     else
         controlFunction = localGameControls;
     function animate() {
         controlFunction();
+        flip();
         gameSession.playingField.shaderMaterial.uniforms.iTime.value = performance.now() / 1000;
+        gameSession.scoreBoard.updateITime();
         camera.lookAt(0, 0, 0);
         composer.render();
         animationId = requestAnimationFrame(animate);

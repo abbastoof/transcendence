@@ -26,9 +26,10 @@ class GameSession {
         this.player2Score = 0;
         this.onGameEndCallback = null;
         this.scoreBoard = null;
+        this.flipView = false;
     }
 
-    initialize(gameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene, onGameEnd) {
+    initialize(gameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene, onGameEnd, flipView) {
         this.gameId = gameId;
         this.player1Id = player1Id;
         this.player2Id = player2Id;
@@ -39,7 +40,7 @@ class GameSession {
         this.leftPaddle = new Paddle(scene, LEFT_PADDLE_START, 0x00ff00);
         this.rightPaddle = new Paddle(scene, RIGHT_PADDLE_START, 0xff0000);
         this.ball = new Ball(scene);
-        this.scoreBoard = new ScoreBoard(scene);
+        this.scoreBoard = new ScoreBoard(scene, flipView);
         this.scoreBoard.createScoreBoard("Player 1: 0\nPlayer 2: 0");
         console.log("Type of onGameEndCallback:", typeof this.onGameEndCallback);
 
@@ -103,7 +104,7 @@ class GameSession {
         this.player2Score = data.player2Score;
         this.scoreBoard.showGoalText();
         setTimeout(() => {
-            this.scoreBoard.updateScores(this.player1Score, this.player2Score);
+        this.scoreBoard.updateScores(this.player1Score, this.player2Score);
         }, 2000);
     }
 
@@ -112,7 +113,6 @@ class GameSession {
         this.leftPaddle.removeFromScene();
         this.rightPaddle.removeFromScene();
         changeCameraAngle();
-        this.scoreBoard.scores.position.set(0, 0, 0);
         this.disconnect();
         setTimeout(() => {
             endGame();

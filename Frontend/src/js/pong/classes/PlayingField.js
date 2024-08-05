@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import Wall from "./Wall.js";
 import { degreesToRads, convertToRange } from '../utils.js';
 import { vertexShader } from '../shaders/vertexShader.js';
-import { playingFieldShader, toinenShaderi } from '../shaders/playingFieldShader.js';
+import { playingFieldShader } from '../shaders/playingFieldShader.js';
+import { scoreBoardShader } from '../shaders/scoreBoardShader.js';
 import { WIDTH, HEIGHT, randomX, randomY, randomMultiplier } from '../constants.js'; 
 
 class PlayingField {
