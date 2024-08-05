@@ -14,37 +14,34 @@ class CustomPasswordValidator:
         errors = []
 
         if len(password) < self.minlength:
-            errors.append(
+            raise ValidationError(
                 _("This password must contain at least {minlength} characters.").format(minlength=self.minlength)
             )
 
         if sum(1 for c in password if c.islower()) < self.minlower:
-            errors.append(
+            raise ValidationError(
                 _("This password must contain at least {minlower} lowercase letter(s).").format(minlower=self.minlower)
             )
 
         if sum(1 for c in password if c.isupper()) < self.minupper:
-            errors.append(
+            raise ValidationError(
                 _("This password must contain at least {minupper} uppercase letter(s).").format(minupper=self.minupper)
             )
 
         if sum(1 for c in password if c.isdigit()) < self.mindigit:
-            errors.append(
+            raise ValidationError(
                 _("This password must contain at least {mindigit} digit(s).").format(mindigit=self.mindigit)
             )
 
         if sum(1 for c in password if c in self.special_characters) < self.minspecial:
-            errors.append(
+            raise ValidationError(
                 _("This password must contain at least {minspecial} special character(s) from {specials}.").format(minspecial=self.minspecial, specials=self.special_characters)
             )
 
         if user and user.check_password(password):
-            errors.append(
+            raise ValidationError(
                 _("The new password cannot be the same as the old password.")
             )
-
-        if errors:
-            raise ValidationError(errors)
 
     def get_help_text(self):
         """

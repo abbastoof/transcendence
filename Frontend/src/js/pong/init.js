@@ -4,18 +4,16 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { initializeScene } from './sceneSetup.js';
 import { WIDTH, HEIGHT } from './constants.js';
 
-export function init() {
+export function init(canvas, flipView) {
     // Create renderer
-    const renderer = new THREE.WebGLRenderer();
-    const container = document.getElementById('pongCanvas');
+    if (!canvas) {
+        console.error('Canvas element is not provided.');
+        return;
+    }
+    const renderer = new THREE.WebGLRenderer({ canvas });
+    renderer.setSize(canvas.width, canvas.height);
+    renderer.setPixelRatio(window.devicePixelRatio); // Handle high-DPI displays
     
-    if (container !== null) {
-        renderer.setSize(WIDTH, HEIGHT);
-        container.appendChild(renderer.domElement);
-    }
-    else {
-        setTimeout(init, 0);
-    }
     const scene = new THREE.Scene();
 
     const aspect = WIDTH / HEIGHT;
@@ -30,9 +28,10 @@ export function init() {
     );
     // Create composer for postprocessing
     const composer = new EffectComposer( renderer );
- 
+    // composer.addPass(new OutputPass());
+    console.log(scene)
     // Initialize the scene
-    initializeScene(renderer, scene, camera, composer);
+    initializeScene(renderer, scene, camera, composer, flipView);
 
     return { renderer, scene, camera, composer };
 }

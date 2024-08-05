@@ -138,6 +138,11 @@ class UserViewSet(viewsets.ViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        except ValidationError as err:
+            item_lists = []
+            for item in err.detail:
+                item_lists.append(item)
+            return Response({'error': item_lists}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -197,11 +202,14 @@ class RegisterViewSet(viewsets.ViewSet):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             if serializer.errors:
                 data = serializer.errors
-                if data["email"]:
-                    data["email"] = "A user with that email already exists."
-            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                if "email" in data:
+                    data["email"] = ["A user with that email already exists."]
+            return Response({"error":data}, status=status.HTTP_400_BAD_REQUEST)
         except ValidationError as err:
-            return Response({'error': err}, status=status.HTTP_400_BAD_REQUEST)
+            item_lists = []
+            for item in err.detail:
+                item_lists.append(item)
+            return Response({'error': item_lists}, status=status.HTTP_400_BAD_REQUEST)
 
 class FriendsViewSet(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]
@@ -238,35 +246,43 @@ class FriendsViewSet(viewsets.ViewSet):
 
 
     def send_friend_request(self, request, user_pk=None):
+        response_message = {}
+        status_code = 0
         try:
             validate_token(request)
+            current_user = get_object_or_404(UserProfileModel, id=user_pk)
             friend_username = request.data.get("username")
             if not friend_username:
-                return Response({"error": "Username is required"}, status=status.HTTP_400_BAD_REQUEST)
-            receiver = get_object_or_404(UserProfileModel, username=friend_username)
-            if (user_pk == receiver.id):
-                raise ValidationError(detail={"You can't send a friend request to yourself"}, code=status.HTTP_400_BAD_REQUEST)
+                response_message = {"error": "Username is required"}
+                status_code = status.HTTP_400_BAD_REQUEST
+            else:
+                receiver = get_object_or_404(UserProfileModel, username=friend_username)
+                if (user_pk == receiver.id):
+                    response_message = {"error":"You can't send a friend request to yourself"}
+                    status_code =status.HTTP_400_BAD_REQUEST
+                else:
+                    existing_request = FriendRequest.objects.filter(
+                    (Q(sender_user=current_user) & Q(receiver_user=receiver) & Q(status='pending')) |
+                    (Q(sender_user=receiver) & Q(receiver_user=current_user) & Q(status='pending'))
+                    ).first()
 
-            current_user = get_object_or_404(UserProfileModel, id=user_pk)
-
-            existing_request = FriendRequest.objects.filter(
-            (Q(sender_user=current_user) & Q(receiver_user=receiver) & Q(status='pending')) |
-            (Q(sender_user=receiver) & Q(receiver_user=current_user) & Q(status='pending'))
-            ).first()
-
-            if existing_request:
-                if existing_request.sender_user == current_user:
-                    existing_request.delete()
-                    return Response({"detail": "You withdrew your request"}, status=status.HTTP_200_OK)
-                return Response({"detail": "You have a pending friend from this user."}, status=status.HTTP_400_BAD_REQUEST)
-
-            FriendRequest.objects.create(sender_user=current_user, receiver_user=receiver, status='pending')
-            return Response({"detail": "Friend request sent"}, status=status.HTTP_201_CREATED)
+                    if existing_request:
+                        if existing_request.sender_user == current_user:
+                            existing_request.delete()
+                            response_message = {"detail": "You withdrew your request"}
+                            status_code = status.HTTP_200_OK
+                        else:
+                            response_message = {"error": "You have a pending friend from this user."}
+                            status_code = status.HTTP_400_BAD_REQUEST
+                    else:
+                        FriendRequest.objects.create(sender_user=current_user, receiver_user=receiver, status='pending')
+                        response_message = {"detail": "Friend request sent"}
+                        status_code = status.HTTP_201_CREATED
+            return Response(response_message, status=status_code)
         except Http404:
             return Response({"error": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
-
 
     def accept_friend_request(self, request, user_pk=None, pk=None):
         try:
@@ -292,7 +308,7 @@ class FriendsViewSet(viewsets.ViewSet):
             sender_user = get_object_or_404(UserProfileModel, id=pk)
             pending_request = FriendRequest.objects.filter(receiver_user=current_user, sender_user=sender_user, status='pending').first()
             if pending_request:
-                pending_request.reject()
+                pending_request.delete()
                 return Response({"detail": "Request rejected"}, status=status.HTTP_202_ACCEPTED)
             return Response({"detail": "No pending requests found"}, status=status.HTTP_404_NOT_FOUND)
         except Http404:

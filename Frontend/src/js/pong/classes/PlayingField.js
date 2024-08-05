@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 import Wall from "./Wall.js";
-import { degreesToRads } from '../utils.js';
+import { degreesToRads, convertToRange } from '../utils.js';
 import { vertexShader } from '../shaders/vertexShader.js';
 import { fragmentShader } from '../shaders/fragmentShader.js';
 import { WIDTH, HEIGHT, randomX, randomY, randomMultiplier } from '../constants.js'; 
 
 class PlayingField {
-    constructor(scene) {
+    constructor(scene, gameId, player1Id, player2Id) {
         this.planeGeometry = new THREE.PlaneGeometry(WIDTH, HEIGHT);
         this.shaderMaterial = new THREE.ShaderMaterial({
             vertexShader: vertexShader,
@@ -16,11 +16,14 @@ class PlayingField {
             uniforms: {
                 iTime: { value: 0.0 },
                 iResolution: { value: new THREE.Vector2(WIDTH, HEIGHT) },
-                xRand: { value: randomX },
-                yRand: { value: randomY },
-                multiRand: { value: randomMultiplier }
+                xRand: { value: convertToRange(player1Id, 50, 690) },
+                yRand: { value: convertToRange(player2Id, 2124, 5291) },
+                multiRand: { value: convertToRange(gameId, 625, 90909) }
             }
         });
+        console.log('xRand:', this.shaderMaterial.uniforms.xRand.value);
+        console.log('yRand:', this.shaderMaterial.uniforms.yRand.value);
+        console.log('multiRand:', this.shaderMaterial.uniforms.multiRand.value);
         //this.planeMaterial = new THREE.MeshToonMaterial({ color: 0x606060 });
         this.planeMesh = new THREE.Mesh(this.planeGeometry, this.shaderMaterial);
         this.planeMesh.rotateX(degreesToRads(-90));

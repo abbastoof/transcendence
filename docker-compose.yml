@@ -7,13 +7,13 @@ networks:
 volumes:
   www_data:
     name: www_data
-  # database:
-  #   name: database
-  #   driver: local
-  #   driver_opts:
-  #     type: 'none'
-  #     device: '${PWD}/database_volume'
-  #     o: 'bind'
+  database:
+    name: database
+    driver: local
+    driver_opts:
+      type: 'none'
+      device: './database_volume'
+      o: 'bind'
 
 services:
   rabbitmq:
@@ -41,7 +41,7 @@ services:
     networks:
       - transcendence_network
     volumes:
-      - www_data:/www/avatars
+      - www_data:/app/www/avatars
       # - database:/var/lib/postgresql/
     depends_on:
       - rabbitmq
@@ -84,12 +84,11 @@ services:
     env_file:
       - .env
     ports:
-      - 8011:8010
+      - 8010:8010
     networks:
       - transcendence_network
     depends_on:
       - rabbitmq
-      - redis
       - postgresql
 
   postgresql:
@@ -128,9 +127,3 @@ services:
       - game-history
       - game-server
       - postgresql
-
-  redis:
-    image: redis
-    container_name: redis
-    networks:
-      - transcendence_network

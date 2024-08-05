@@ -1,5 +1,3 @@
-# Makefile for Docker Compose operations
-
 # Default target
 .PHONY: all
 all: up
@@ -38,9 +36,20 @@ pull:
 .PHONY: clean
 clean:
 	rm -rf /database_volume
-	docker system prune -f --all
+	docker system prune -f --all --volumes
 	docker volume prune -f
 	docker network prune -f
+	docker image prune -f
+	@if [ -n "$(shell docker ps -aq)" ]; then \
+		for container in $(shell docker ps -aq); do \
+			docker rm $$container; \
+		done \
+	fi
+	@if [ -n "$(shell docker volume ls -q)" ]; then \
+		for volume in $(shell docker volume ls -q); do \
+			docker volume rm $$volume; \
+		done \
+	fi
 
 # Display the status of all services
 .PHONY: status
@@ -54,6 +63,33 @@ info:
 .PHONY: bash
 bash:
 	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) /bin/bash
+
+%:
+	@:
+
+.PHONY: bvenv
+bvenv:
+	@if [ -z "$(filter-out $@,$(MAKECMDGOALS))" ]; then \
+		echo "Error: No container name provided."; \
+		exit 1; \
+	fi
+	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) bash -c '. venv/bin/activate && $$SHELL'
+
+.PHONY: bash
+bash:
+	@if [ -z "$(filter-out $@,$(MAKECMDGOALS))" ]; then \
+		echo "Error: No container name provided."; \
+		exit 1; \
+	fi
+	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) bash
+
+.PHONY: pytest-venv
+pytest-venv:
+	@if [ -z "$(filter-out $@,$(MAKECMDGOALS))" ]; then \
+		echo "Error: No container name provided."; \
+		exit 1; \
+	fi
+	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) bash -c '. venv/bin/activate && pytest -svv || echo "Pytest encountered an error"'
 
 %:
 	@:

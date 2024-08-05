@@ -1,12 +1,14 @@
-// Import our custom CSS
-import '../../scss/styles.scss';
-
-// Import all of Bootstrap's JS
 import * as bootstrap from 'bootstrap'
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the Bootstrap modal
-    var signUpModal = new bootstrap.Modal(document.getElementById('signUpModal'));
+    var signUpModalElement = document.getElementById('signUpModal');
+    if (!signUpModalElement) {
+        console.error('Sign Up modal element not found');
+        return;
+    }
+    var signUpModal = new bootstrap.Modal(signUpModalElement);
+        
     var modalTitle = document.getElementById('signUpLabel');
     var modalBody = document.querySelector('#signUpModal .modal-body');
 
@@ -42,19 +44,33 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify({ email, username, password }),
         })
         .then(response => {
-            if (!response.ok) {
-                throw new Error(response.statusText);
-            }
-            return response.json();
+            return response.json().then(data => {
+                if (!response.ok) {
+                    throw data;
+                }
+                return data;
+            });
         })
         .then(data => {
             console.log('Success:', data);
             signUpModal.hide();
-            this.reset();
+            document.getElementById('signUpForm').reset();
         })
         .catch(error => {
             console.error('Error:', error);
-            showErrorMessage('Sign up failed: ' + error.message);
+            if (error.error) {
+                if (error.error.username) {
+                    showErrorMessage('Sign up failed: ' + error.error.username.join(' '));
+                }
+                if (error.error.email) {
+                    showErrorMessage('Sign up failed: ' + error.error.email.join(' '));
+                }
+                if (error.error.password) {
+                    showErrorMessage('Sign up failed: ' + error.error.password.join(' '));
+                }
+            } else {
+                showErrorMessage('Sign up failed: Something went wrong');
+            }
             clearPasswordFields();
         });
     });
@@ -80,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (errorSpan && errorSpan.parentNode) {
                 errorSpan.parentNode.removeChild(errorSpan);
             }
-        }, 2500);
+        }, 3500);
     }
 
     // Function to clear password fields

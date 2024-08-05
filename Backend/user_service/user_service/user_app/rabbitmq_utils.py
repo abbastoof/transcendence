@@ -5,7 +5,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Singleton pattern for managing RabbitMQ connection
+
 class RabbitMQManager:
     _connection = None
 

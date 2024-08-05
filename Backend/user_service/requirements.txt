@@ -4,8 +4,8 @@ django
 django-cors-headers
 django-mysql
 djangorestframework
-djangorestframework-simplejwt
-djangorestframework-simplejwt[crypto]
+djangorestframework-simplejwt; python_version >= '3.6'
+djangorestframework-simplejwt[crypto]; python_version >= '3.6'
 exceptiongroup
 iniconfig
 packaging
@@ -16,13 +16,10 @@ pytest
 sqlparse
 tomli
 typing-extensions
-channels
 django-environ
 pytest
 pytest-django
 pytest-mock
 pillow
-twisted[http2,tls]
-uvicorn[standard]
-requests
-channels-auth-token-middlewares
+uvicorn
+daphne
