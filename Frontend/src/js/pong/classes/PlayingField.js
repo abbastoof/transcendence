@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import Wall from "./Wall.js";
 import { degreesToRads, convertToRange } from '../utils.js';
 import { vertexShader } from '../shaders/vertexShader.js';
-import { playingFieldShader } from '../shaders/playingFieldShader.js';
+import { playingFieldShader, toinenShaderi } from '../shaders/playingFieldShader.js';
 import { WIDTH, HEIGHT, randomX, randomY, randomMultiplier } from '../constants.js'; 
 
 class PlayingField {
@@ -18,7 +18,8 @@ class PlayingField {
                 iResolution: { value: new THREE.Vector2(WIDTH, HEIGHT) },
                 xRand: { value: convertToRange(player1Id, 50, 690) },
                 yRand: { value: convertToRange(player2Id, 2124, 5291) },
-                multiRand: { value: convertToRange(gameId, 625, 90909) }
+                multiRand: { value: convertToRange(gameId, 625, 90909) },
+                ballDx: { value: 0.0 },
             }
         });
         console.log('xRand:', this.shaderMaterial.uniforms.xRand.value);

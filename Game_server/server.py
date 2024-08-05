@@ -124,7 +124,7 @@ class PongGame:
             self.game_state.reset_ball()
             logging.info(f"Rally started, game ID: {self.game_state.game_id}, sids: {self.sids}")
             await self.send_game_state_to_client()
-            await asyncio.sleep(0.5) # Little break before start of the rally
+            await asyncio.sleep(1.0) # Little break before start of the rally
             self.game_state.paused = False
             while not self.game_state.paused:
                 await self.update_game_state()
@@ -166,17 +166,22 @@ class PongGame:
     async def send_game_state_to_client(self):
         game_state_data = {
             'type': 'send_game_state',
-            'game_id': self.game_state.game_id,
-            'ball': {
+            'gameId': self.game_state.game_id,
+            'ballPosition': {
                 'x': self.game_state.ball.x,
                 'y': self.game_state.ball.y,
                 'z': self.game_state.ball.z,
+                
             },
-            'player1_position': {
+            'ballDelta': {
+                'dx': self.game_state.ball.delta_x,
+                'dz': self.game_state.ball.delta_z,
+            },
+            'player1Pos': {
                 'x': self.game_state.player1.paddle.x,
                 'z': self.game_state.player1.paddle.z,
             },
-            'player2_position': {
+            'player2Pos': {
                 'x': self.game_state.player2.paddle.x,
                 'z': self.game_state.player2.paddle.z,
             },
@@ -214,7 +219,7 @@ class PongGame:
     # The ball position is updated for 40 frames
     # The updated game state is sent to the clients each frame
     async def post_rally_animation(self):
-        for _ in range(40):  # Adjust the range to control the duration of the animation
+        for _ in range(60):  # Adjust the range to control the duration of the animation
             self.game_state.ball.update_position()
             await self.send_game_state_to_client()
             await asyncio.sleep(0.016)  # Adjust this to control the speed of the animation
@@ -225,9 +230,9 @@ class PongGame:
     async def send_score(self):
         data = {
             'type': 'score',
-            'game_id': self.game_state.game_id,
-            'player1_score': self.game_state.player1.score,
-            'player2_score': self.game_state.player2.score,
+            'gameId': self.game_state.game_id,
+            'player1Score': self.game_state.player1.score,
+            'player2Score': self.game_state.player2.score,
         }
         for sid in self.sids:
             await sio.emit('score', data, room=sid)

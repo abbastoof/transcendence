@@ -8,6 +8,8 @@ class Ball {
         this.mesh = new THREE.Mesh(this.geometry, this.material);
         this.mesh.position.set(0, 0, 0);
         this.scene = scene// console.log(this.direction);
+        this.dx = 0;
+        this.dy = 0;
     }
     updatePosition(position) {
         this.mesh.position.set(position.x, this.mesh.position.y, position.z);

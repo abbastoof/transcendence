@@ -81,20 +81,26 @@ class GameSession {
     handleGameStateUpdate(data) {
         const translatedData = translateCoordinates(data);
         if (this.isRemote && (this.localPlayerId !== this.player1Id)) {
-            this.leftPaddle.updatePosition(translatedData.player2_position);
-            this.rightPaddle.updatePosition(translatedData.player1_position);
+            this.leftPaddle.updatePosition(translatedData.player2Pos);
+            this.rightPaddle.updatePosition(translatedData.player1Pos);
         }
         else {
-            this.leftPaddle.updatePosition(translatedData.player1_position);
-            this.rightPaddle.updatePosition(translatedData.player2_position);
+            this.leftPaddle.updatePosition(translatedData.player1Pos);
+            this.rightPaddle.updatePosition(translatedData.player2Pos);
         }
         this.ball.updatePosition(translatedData.ball);
+        if (data.ballDelta.dx > 0) {
+            this.playingField.shaderMaterial.uniforms.ballDx.value = 1.0;
+        }
+        else {
+            this.playingField.shaderMaterial.uniforms.ballDx.value = -1.0;
+        }
     }
 
     handleScoreUpdate(data) {
         console.log('Received score update:', data);
-        this.player1Score = data.player1_score;
-        this.player2Score = data.player2_score;
+        this.player1Score = data.player1Score;
+        this.player2Score = data.player2Score;
         this.scoreBoard.showGoalText();
         setTimeout(() => {
             this.scoreBoard.updateScores(this.player1Score, this.player2Score);
@@ -102,6 +108,7 @@ class GameSession {
     }
 
     handleGameOver(data) {
+        this.playingField.shaderMaterial.uniforms.ballDx.value = 0.0;
         this.leftPaddle.removeFromScene();
         this.rightPaddle.removeFromScene();
         changeCameraAngle();

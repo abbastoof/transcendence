@@ -12,22 +12,22 @@ export const initializeEventHandlers = (gameSession) => {
     });
 
     socket.on('send_game_state', (data) => {
-        if (data && data.game_id) {
-            if (data.game_id === gameSession.gameId) {
+        if (data && data.gameId) {
+            if (data.gameId === gameSession.gameId) {
                 gameSession.handleGameStateUpdate(data);
             } else {
-                console.log('Received game state for different game, was ' + data.game_id + ', expected ' + gameSession.gameId);
+                console.log('Received game state for different game, was ' + data.gameId + ', expected ' + gameSession.gameId);
             }
         } else {
             console.log('game_id is undefined or data is malformed:', data);
         }
 });
     socket.on('score', (data) => {
-        if (data && data.game_id) {
-            if (data.game_id === gameSession.gameId) {
+        if (data && data.gameId) {
+            if (data.gameId === gameSession.gameId) {
                 gameSession.handleScoreUpdate(data);
             } else {
-                console.log('Received score update for different game, was ' + data.game_id + ', expected ' + gameSession.gameId);
+                console.log('Received score update for different game, was ' + data.gameId + ', expected ' + gameSession.gameId);
             }
         } else {
             console.log('game_id is undefined or data is malformed:', data);
