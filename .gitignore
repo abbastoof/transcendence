@@ -108,6 +108,7 @@ a.out
 # Ignore Trunk specific files
 .trunk/
 
+# Ignore node_modules
 
 # Ignore __pycache__
 __pycache__/
@@ -116,3 +117,6 @@ __pycache__/
 # Ignore Pytest cache
 pytest_cache/
 .pytest_cache/
+node_modules/
+package-lock.json
+package.json

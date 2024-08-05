@@ -1,0 +1,4 @@
+python-socketio
+uvicorn
+eventlet
+pytest

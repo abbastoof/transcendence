@@ -1,0 +1,25 @@
+-i https://pypi.org/simple
+asgiref
+django
+django-cors-headers
+django-mysql
+djangorestframework
+djangorestframework-simplejwt; python_version >= '3.6'
+djangorestframework-simplejwt[crypto]; python_version >= '3.6'
+exceptiongroup
+iniconfig
+packaging
+pika
+pluggy
+psycopg2-binary
+pytest
+sqlparse
+tomli
+typing-extensions
+django-environ
+twisted[http2,tls]
+pytest
+pytest-django
+pytest-mock
+uvicorn
+daphne

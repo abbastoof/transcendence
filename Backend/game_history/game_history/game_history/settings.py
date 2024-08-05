@@ -37,7 +37,6 @@ ALLOWED_HOSTS = [
     '[::1]',
     'game-history',
     'game-history:8002',
-    'testserver',
 ]
 
 
@@ -116,10 +115,19 @@ ASGI_APPLICATION = 'game_history.asgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "postgres",
+        "NAME": "game_history",
+        "HOST": "postgresql",
         "USER": "root",
         "PASSWORD": "root",
         "PORT": "5432",
+        "ATOMIC_REQUESTS": True,
+        "TEST": {
+            "NAME": "test_game_history",
+            "USER": "root",
+            "PASSWORD": "root",
+            "PORT": "5432",
+            "ATOMIC_REQUESTS": True,
+        },
     }
 }
 
