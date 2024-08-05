@@ -6,26 +6,26 @@ import fontJson from 'three/examples/fonts/droid/droid_sans_regular.typeface.jso
 class ScoreBoard {
     constructor(scene) {
         this.scene = scene;
-        this.scores = null;
+        this.scoreMesh = null;
         this.font = new FontLoader().parse(fontJson);
     }
 
-    createText(text, size) {
+    createText(text, size, color = 0xFFFFFF) {
         const geometry = new TextGeometry(text, {
             font: this.font,
             size: size,
-            height: 1,
+            depth: 1,
             curveSegments: 12,
         });
-        const material = new THREE.MeshPhongMaterial({ color: 0xFFFFFF });
+        const material = new THREE.MeshPhongMaterial({ color: color });
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.set(0, 0, -400); // Adjust position as needed
+        mesh.position.set(-100, 90, -300); // Adjust position as needed
         return mesh;
     }
 
     createScoreBoard(text) {
-        this.scores = this.createText(text, 30);
-        this.scene.add(this.scores);
+        this.scoreMesh = this.createText(text, 30);
+        this.scene.add(this.scoreMesh);
     }
 
     updateScores(player1Score, player2Score) {
@@ -36,16 +36,17 @@ class ScoreBoard {
 
     showGoalText() {
         this.clearScores();
-        this.scores = this.createText('GOAL!!!', 50);
-        this.scene.add(this.scores);
+        console.log("nyt pitäs näyttää maaliteksti")
+        this.scoreMesh = this.createText('GOAL!!!', 50, 0xFFFF00);
+        this.scene.add(this.scoreMesh);
     }
 
     clearScores() {
-        if (this.scores) {
-            this.scene.remove(this.scores);
-            this.scores.geometry.dispose();
-            this.scores.material.dispose();
-            this.scores = null;
+        if (this.scoreMesh) {
+            this.scene.remove(this.scoreMesh);
+            this.scoreMesh.geometry.dispose();
+            this.scoreMesh.material.dispose();
+            this.scoreMesh = null;
         }
     }
 }

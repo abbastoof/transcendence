@@ -7,7 +7,7 @@ import Ball from './Ball.js';
 import PlayingField from './PlayingField.js';
 import ScoreBoard from './ScoreBoard.js';
 import { LEFT_PADDLE_START, RIGHT_PADDLE_START } from '../constants.js';
-import { changeCameraAngle } from '../pong.js';
+import { changeCameraAngle, endGame } from '../pong.js';
 
 class GameSession {
     constructor() {
@@ -95,7 +95,10 @@ class GameSession {
         console.log('Received score update:', data);
         this.player1Score = data.player1_score;
         this.player2Score = data.player2_score;
-        this.scoreBoard.updateScores(this.player1Score, this.player2Score);
+        this.scoreBoard.showGoalText();
+        setTimeout(() => {
+            this.scoreBoard.updateScores(this.player1Score, this.player2Score);
+        }, 2000);
     }
 
     handleGameOver(data) {
