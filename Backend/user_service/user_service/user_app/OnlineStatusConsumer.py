@@ -108,8 +108,7 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
         if pending:
             for task in pending:
                 task.cancel()
-            await self.handle_match_timeout(player1)
-            await self.handle_match_timeout(player2)
+            await self.send_timeout_notification(player1, player2)
             logger.info(f"Match response timed out for {player1.username} and {player2.username}")
 
     # Wait for players response
