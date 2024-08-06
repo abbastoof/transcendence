@@ -101,6 +101,9 @@ logger = logging.getLogger(__name__)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class OnlineStatusConsumer(AsyncWebsocketConsumer):
+    waiting_list = []
+    user_channels = {}
+    response_queues = {}
 
     async def connect(self):
         token = self.get_token_from_query_string()
