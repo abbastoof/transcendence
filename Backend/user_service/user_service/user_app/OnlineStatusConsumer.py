@@ -6,95 +6,6 @@ from channels.db import database_sync_to_async
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
-@method_decorator(csrf_exempt, name='dispatch')
-class PersonalChatConsumer(AsyncWebsocketConsumer):
-    async def connect(self):
-        my_id = self.scope['user'].id
-        other_user_id = self.scope['url_route']['kwargs']['id']
-        if int(my_id) > int(other_user_id):
-            self.room_name = f'{my_id}-{other_user_id}'
-        else:
-            self.room_name = f'{other_user_id}-{my_id}'
-
-        self.room_group_name = 'chat_%s' % self.room_name
-
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
-
-        await self.accept()
-
-    async def receive(self, text_data: str = "", bytes_data=None):
-        data = json.loads(text_data)
-        print(data)
-        message = data['message']
-        username = data['username']
-        receiver = data['receiver']
-
-        await self.save_message(username, self.room_group_name, message, receiver)
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'chat_message',
-                'message': message,
-                'username': username,
-            }
-        )
-
-    async def chat_message(self, event):
-        message = event['message']
-        username = event['username']
-
-        await self.send(text_data=json.dumps({
-            'message': message,
-            'username': username
-        }))
-
-    async def disconnect(self, code):
-        self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
-
-    @database_sync_to_async
-    def save_message(self, username, thread_name, message, receiver):
-        from .models import ChatModel, ChatNotification
-        from django.contrib.auth.models import User
-
-        chat_obj = ChatModel.objects.create(
-            sender=username, message=message, thread_name=thread_name)
-        other_user_id = self.scope['url_route']['kwargs']['id']
-        get_user = User.objects.get(id=other_user_id)
-        if receiver == get_user.username:
-            ChatNotification.objects.create(chat=chat_obj, user=get_user)
-
-@method_decorator(csrf_exempt, name='dispatch')
-class NotificationConsumer(AsyncWebsocketConsumer):
-    async def connect(self):
-        my_id = self.scope['user'].id
-        self.room_group_name = f'{my_id}'
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
-
-        await self.accept()
-
-    async def disconnect(self, code):
-        self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
-
-    async def send_notification(self, event):
-        data = json.loads(event.get('value'))
-        count = data['count']
-        print(count)
-        await self.send(text_data=json.dumps({
-            'count':count
-        }))
-
 import logging
 
 logger = logging.getLogger(__name__)
@@ -153,7 +64,7 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
                 player1 = self.waiting_list.pop(0)
                 player2 = self.waiting_list.pop(0)
                 await self.match_players(player1, player2)
-                threading.Thread(target=self.run_wait_for_responses_in_thread, args=(player1, player2)).start()
+                asyncio.create_task(self.wait_for_responses(player1, player2))
         else:
             pass
 
@@ -186,25 +97,25 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
             'player': player
         }))
 
-    def run_wait_for_responses_in_thread(self, player1, player2):
-        asyncio.run_coroutine_threadsafe(self.wait_for_responses(player1, player2), self.channel_layer.loop)
-
     async def wait_for_responses(self, player1, player2):
+        loop = asyncio.get_event_loop()
         tasks = [
-            self.await_response(player1),
-            self.await_response(player2)
+            loop.create_task(self.await_response(player1)),
+            loop.create_task(self.await_response(player2))
         ]
-        done, pending = await asyncio.wait(tasks, timeout=20)
+        done, pending = await asyncio.wait(tasks, timeout=5)
 
         if pending:
             for task in pending:
                 task.cancel()
             await self.handle_match_timeout(player1)
             await self.handle_match_timeout(player2)
+            logger.info(f"Match response timed out for {player1.username} and {player2.username}")
 
     # Wait for players response
     async def await_response(self, player):
         try:
+            self.response_queues[player.username] = asyncio.Queue()
             response = await self.response_queues[player.username].get()
             logger.info(f"Received response from {player.username}: {response}")
             # Handle response here
@@ -215,17 +126,18 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data: str = "", bytes_data=None):
         # print(f'Received message: {text_data}')
         try:
-            data = json.loads(text_data)
-            connection_type = data['type']
-            if connection_type in ['match_accepted', 'match_rejected']:
-                if self.scope['user'].username in self.response_queues:
-                    await self.response_queues[self.scope['user'].username].put(data)
-            if "username" in data:
-                username = data['username']
-                # print(f'Parsed data: {data}')
-                if connection_type == 'close':
-                    await self.close()
-                await self.change_online_status(username, connection_type)
+            if text_data:
+                data = json.loads(text_data)
+                connection_type = data['type']
+                if connection_type in ['match_accepted', 'match_rejected']:
+                    if self.scope['user'].username in self.response_queues:
+                        await self.response_queues[self.scope['user'].username].put(data)
+                if "username" in data:
+                    username = data['username']
+                    # print(f'Parsed data: {data}')
+                    if connection_type == 'close':
+                        await self.close()
+                    await self.change_online_status(username, connection_type)
 
         except json.JSONDecodeError as e:
             # print(f'JSON decode error: {e}')
@@ -276,9 +188,16 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
             'message': message,
         }))
     
-    async def handle_match_timeout(self, player):
+    async def send_timeout_notification(self, player1, player2):
         await self.channel_layer.send(
-            self.user_channels[player.username],
+            self.user_channels[player1.username],
+            {
+                'type': 'match_timeout',
+                'message': f'Match response timed out',
+            }
+        )
+        await self.channel_layer.send(
+            self.user_channels[player2.username],
             {
                 'type': 'match_timeout',
                 'message': f'Match response timed out',
