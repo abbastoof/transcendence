@@ -1,6 +1,7 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 import asyncio
+import threading
 from channels.db import database_sync_to_async
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -96,11 +97,11 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
 import logging
 
-logger = logging.info(__name__)
+logger = logging.getLogger(__name__)
+
 @method_decorator(csrf_exempt, name='dispatch')
 class OnlineStatusConsumer(AsyncWebsocketConsumer):
-    waiting_list = []
-    user_channels = {}
+
     async def connect(self):
         token = self.get_token_from_query_string()
         if token is None:
@@ -149,6 +150,7 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
                 player1 = self.waiting_list.pop(0)
                 player2 = self.waiting_list.pop(0)
                 await self.match_players(player1, player2)
+                threading.Thread(target=self.run_wait_for_responses_in_thread, args=(player1, player2)).start()
         else:
             pass
 
@@ -170,10 +172,6 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
                 'player': player1.username
             }
         )
-        await asyncio.gather(
-            self.await_response(player1),
-            self.await_response(player2)
-        )
 
     # Send match players notifications
     async def match_found(self, event):
@@ -185,34 +183,42 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
             'player': player
         }))
 
+    def run_wait_for_responses_in_thread(self, player1, player2):
+        asyncio.run_coroutine_threadsafe(self.wait_for_responses(player1, player2), self.channel_layer.loop)
+
+    async def wait_for_responses(self, player1, player2):
+        tasks = [
+            self.await_response(player1),
+            self.await_response(player2)
+        ]
+        done, pending = await asyncio.wait(tasks, timeout=20)
+
+        if pending:
+            for task in pending:
+                task.cancel()
+            await self.handle_match_timeout(player1)
+            await self.handle_match_timeout(player2)
+
     # Wait for players response
-    # async def await_response(self, player):
-    #     try:
-    #         response = await asyncio.wait_for(
-    #         self.channel_layer.receive(self.user_channels[player.username]),
-    #         timeout=10
-    #         )
-    #         logger("response = %s", response)
-    #         # data = json.loads(response['text'])
-    #         # if data.get('type') == 'match_accepted':
-    #         #     await self.handle_match_accepted(data)
-    #         # elif data.get('type') == 'match_rejected':
-    #         #     await self.handle_match_rejected(data)
-    #         # else:
-    #         #     #Handle unexpected response types
-    #         #     pass
-    #     except asyncio.TimeoutError:
-    #         # Handle timeout (no response received within the specified period)
-    #         await self.handle_match_timeout(player)
+    async def await_response(self, player):
+        try:
+            response = await self.response_queues[player.username].get()
+            logger.info(f"Received response from {player.username}: {response}")
+            # Handle response here
+        except asyncio.CancelledError:
+            logger.info(f"Cancelled waiting for {player.username}'s response")
 
     # Receive messages from the users connected to the Websocket
     async def receive(self, text_data: str = "", bytes_data=None):
         # print(f'Received message: {text_data}')
         try:
             data = json.loads(text_data)
+            connection_type = data['type']
+            if connection_type in ['match_accepted', 'match_rejected']:
+                if self.scope['user'].username in self.response_queues:
+                    await self.response_queues[self.scope['user'].username].put(data)
             if "username" in data:
                 username = data['username']
-                connection_type = data['type']
                 # print(f'Parsed data: {data}')
                 if connection_type == 'close':
                     await self.close()
