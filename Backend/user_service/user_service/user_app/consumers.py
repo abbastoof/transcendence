@@ -1,5 +1,6 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
+import asyncio
 from channels.db import database_sync_to_async
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -93,10 +94,13 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             'count':count
         }))
 
-user_channels = {}
+import logging
+
+logger = logging.info(__name__)
 @method_decorator(csrf_exempt, name='dispatch')
 class OnlineStatusConsumer(AsyncWebsocketConsumer):
     waiting_list = []
+    user_channels = {}
     async def connect(self):
         token = self.get_token_from_query_string()
         if token is None:
@@ -111,10 +115,11 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
         )
         await self.accept()
         await self.change_online_status(self.scope['user'], 'open')
-        user_channels[self.scope['user'].username] = self.channel_name
+        self.user_channels[self.scope['user'].username] = self.channel_name
         # print(f'Connected to WebSocket: {self.room_group_name}')
         await self.add_player_to_lobby(self.scope['user'])
 
+    # Extract token from Query string
     def get_token_from_query_string(self):
         query_string = self.scope['query_string'].decode()
         if '=' in query_string:
@@ -122,6 +127,7 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
             return params.get('token')
         return None
 
+    # Extract user from token
     @database_sync_to_async
     def get_user_from_token(self, token):
         from django.contrib.auth.models import AnonymousUser
@@ -135,6 +141,7 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
         except (UserProfileModel.DoesNotExist, TokenError, InvalidToken):
             return AnonymousUser()
 
+    # Add player to the lobby
     async def add_player_to_lobby(self, user):
         if user not in self.waiting_list:
             self.waiting_list.append(user)
@@ -145,9 +152,10 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
         else:
             pass
 
+    # Match two players
     async def match_players(self, player1, player2):
         await self.channel_layer.send(
-            user_channels[player1.username],
+            self.user_channels[player1.username],
             {
                 'type': 'match_found',
                 'message': f'Match found with {player2.username}',
@@ -155,15 +163,19 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
             }
         )
         await self.channel_layer.send(
-            user_channels[player2.username],
+            self.user_channels[player2.username],
             {
                 'type': 'match_found',
                 'message': f'Match found with {player1.username}',
                 'player': player1.username
             }
         )
-        pass
+        await asyncio.gather(
+            self.await_response(player1),
+            self.await_response(player2)
+        )
 
+    # Send match players notifications
     async def match_found(self, event):
         message = event['message']
         player = event['player']
@@ -173,16 +185,27 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
             'player': player
         }))
 
-    async def disconnect(self, code):
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
-        await self.change_online_status(self.scope['user'], 'close')
-        # print(f'Disconnected from WebSocket: {self.room_group_name} with code: {code}')
-        if self.scope['user'] in self.waiting_list:
-            self.waiting_list.remove(self.scope['user'])
+    # Wait for players response
+    # async def await_response(self, player):
+    #     try:
+    #         response = await asyncio.wait_for(
+    #         self.channel_layer.receive(self.user_channels[player.username]),
+    #         timeout=10
+    #         )
+    #         logger("response = %s", response)
+    #         # data = json.loads(response['text'])
+    #         # if data.get('type') == 'match_accepted':
+    #         #     await self.handle_match_accepted(data)
+    #         # elif data.get('type') == 'match_rejected':
+    #         #     await self.handle_match_rejected(data)
+    #         # else:
+    #         #     #Handle unexpected response types
+    #         #     pass
+    #     except asyncio.TimeoutError:
+    #         # Handle timeout (no response received within the specified period)
+    #         await self.handle_match_timeout(player)
 
+    # Receive messages from the users connected to the Websocket
     async def receive(self, text_data: str = "", bytes_data=None):
         # print(f'Received message: {text_data}')
         try:
@@ -195,17 +218,6 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
                     await self.close()
                 await self.change_online_status(username, connection_type)
 
-            if "player" in data:
-                player = data["player"]
-                connection_type = data['type']
-                if connection_type == "match_accepted":
-                    opponent = user_channels.get(player)
-                    if opponent:
-                        await player.send(text_data=json.dumps({
-                            'message': 'challenge accepted',
-                            'player': player
-                        }))
-
         except json.JSONDecodeError as e:
             # print(f'JSON decode error: {e}')
             await self.close(code=4001)
@@ -215,6 +227,60 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             # print(f'Error in receive: {e}')
             await self.close(code=1011)
+
+    # Handle match accepted from users    
+    async def handle_match_accepted(self, data):
+        data_type = data["type"]
+        player = self.scope["user"]
+        target = data["player"]
+        await self.channel_layer.send(
+            self.user_channels[target],
+            {
+                'type': 'match_accepted',
+                'message': f'{player.username} accepted the match',
+            }
+        )
+    
+    # match accepted function
+    async def match_accepted(self, event):
+        message = event['message']
+        await self.send(text_data=json.dumps({
+            'message': message,
+        }))
+
+    # Handle match rejected from users  
+    async def handle_match_rejected(self, data):
+        data_type = data["type"]
+        player = self.scope["user"]
+        target = data["player"]
+        await self.channel_layer.send(
+            self.user_channels[target],
+            {
+                'type': 'match_rejected',
+                'message': f'{player.username} rejected the match',
+            }
+        )
+
+    async def match_rejected(self, event):
+        message = event['message']
+        await self.send(text_data=json.dumps({
+            'message': message,
+        }))
+    
+    async def handle_match_timeout(self, player):
+        await self.channel_layer.send(
+            self.user_channels[player.username],
+            {
+                'type': 'match_timeout',
+                'message': f'Match response timed out',
+            }
+        )
+
+    async def match_timeout(self, event):
+        message = event['message']
+        await self.send(text_data=json.dumps({
+            'message': message,
+        }))
 
     async def send_onlineStatus(self, event):
         try:
@@ -254,3 +320,13 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
             print(f'User profile for {username} does not exist.')
         except Exception as e:
             print(f'Error changing status: {e}')
+
+    async def disconnect(self, code):
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+        await self.change_online_status(self.scope['user'], 'close')
+        # print(f'Disconnected from WebSocket: {self.room_group_name} with code: {code}')
+        if self.scope['user'] in self.waiting_list:
+            self.waiting_list.remove(self.scope['user'])

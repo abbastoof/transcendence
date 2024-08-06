@@ -7,13 +7,13 @@ networks:
 volumes:
   www_data:
     name: www_data
-  database:
-    name: database
-    driver: local
-    driver_opts:
-      type: 'none'
-      device: './database_volume'
-      o: 'bind'
+  # database:
+  #   name: database
+  #   driver: local
+  #   driver_opts:
+  #     type: 'none'
+  #     device: './database_volume'
+  #     o: 'bind'
 
 services:
   rabbitmq:
@@ -40,6 +40,8 @@ services:
       - .env
     networks:
       - transcendence_network
+    ports:
+      - 8001:8001
     volumes:
       - www_data:/app/www/avatars
       # - database:/var/lib/postgresql/
@@ -57,6 +59,8 @@ services:
       - .env
     networks:
       - transcendence_network
+    ports:
+      - 8000:8000
     depends_on:
       - rabbitmq
       - postgresql
@@ -75,21 +79,21 @@ services:
       - rabbitmq
       - postgresql
 
-  game-server:
-    container_name: game-server
-    image: game-server
-    build:
-      context: .
-      dockerfile: Game_server/Dockerfile
-    env_file:
-      - .env
-    ports:
-      - 8010:8010
-    networks:
-      - transcendence_network
-    depends_on:
-      - rabbitmq
-      - postgresql
+  # game-server:
+  #   container_name: game-server
+  #   image: game-server
+  #   build:
+  #     context: .
+  #     dockerfile: Game_server/Dockerfile
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - 8010:8010
+  #   networks:
+  #     - transcendence_network
+  #   depends_on:
+  #     - rabbitmq
+  #     - postgresql
 
   postgresql:
     container_name: postgresql
@@ -103,27 +107,27 @@ services:
       - transcendence_network
 
 
-  frontend:
-    container_name: frontend
-    image: frontend
-    build:
-      context: .
-      dockerfile: Frontend/Dockerfile
-      target: ${TARGET:-production}  # Build stage based on the TARGET environment variable
-    env_file:
-      - .env
-    ports:
-      - "3001:3000"  # Development port mapping for Vite
-      - "3000:443"   # Production port mapping for Nginx
-    volumes:
-      - ./Frontend/src:/app/src  # Mount the source code directory for live reloading in dev mode
-      - /app/node_modules  # Prevent overwriting node_modules
-      - www_data:/www/avatars
-    networks:
-      - transcendence_network
-    depends_on:
-      - user-service
-      - token-service
-      - game-history
-      - game-server
-      - postgresql
+  # frontend:
+  #   container_name: frontend
+  #   image: frontend
+  #   build:
+  #     context: .
+  #     dockerfile: Frontend/Dockerfile
+  #     target: ${TARGET:-production}  # Build stage based on the TARGET environment variable
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - "3001:3000"  # Development port mapping for Vite
+  #     - "3000:443"   # Production port mapping for Nginx
+  #   volumes:
+  #     - ./Frontend/src:/app/src  # Mount the source code directory for live reloading in dev mode
+  #     - /app/node_modules  # Prevent overwriting node_modules
+  #     - www_data:/www/avatars
+  #   networks:
+  #     - transcendence_network
+  #   depends_on:
+  #     - user-service
+  #     - token-service
+  #     - game-history
+  #     - game-server
+  #     - postgresql
