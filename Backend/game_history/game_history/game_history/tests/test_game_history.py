@@ -19,6 +19,7 @@ def test_create_game_history(api_client):
         'player2_username': 'player2',
         'player2_id': 2,
         'winner_id': 1,
+        'winner_name': 'player1',
         'start_time': '2024-07-03T12:00:00Z'
     }
     response = api_client.post(url, data, format='json') # send a POST request to the URL with the data as the request body
@@ -45,6 +46,7 @@ def test_list_game_histories(api_client):
     assert response.data[0]['player1_id'] == game1.player1_id
     assert response.data[0]['player2_id'] == game1.player2_id
     assert response.data[0]['winner_id'] == game1.winner_id
+    assert response.data[0]['winner_name'] == game1.winner_name
 
     start_time_response = datetime.fromisoformat(response.data[0]['start_time'].replace('Z', '+00:00'))
     start_time_expected = game1.start_time
@@ -53,6 +55,7 @@ def test_list_game_histories(api_client):
     assert response.data[1]['player1_id'] == game2.player1_id
     assert response.data[1]['player2_id'] == game2.player2_id
     assert response.data[1]['winner_id'] == game2.winner_id
+    assert response.data[1]['winner_name'] == game2.winner_name
 
     start_time_response = datetime.fromisoformat(response.data[1]['start_time'].replace('Z', '+00:00'))
     start_time_expected = game2.start_time
@@ -68,6 +71,7 @@ def test_retrieve_game_history(api_client):
     assert response.data['player1_id'] == game.player1_id
     assert response.data['player2_id'] == game.player2_id
     assert response.data['winner_id'] == game.winner_id
+    assert response.data['winner_name'] == game.winner_name
     assert response.data['start_time'] == game.start_time.isoformat().replace('+00:00', 'Z')
 
 @pytest.mark.django_db
@@ -81,6 +85,7 @@ def test_update_game_history(api_client):
         'player2_username': 'player2_updated',
         'player2_id': 2,
         'winner_id': 2,
+        'winner_name': 'player2',
         'start_time': game.start_time.isoformat().replace('+00:00', 'Z')
     }
     response = api_client.put(url, data, format='json')
@@ -106,6 +111,7 @@ def test_create_game_history_validation_error(api_client):
         'player1_id': 1,
         # 'player2_id' is missing
         'winner_id': 1,
+        'winner_name': 'player1',
         'start_time': '2024-07-03T12:00:00Z'
     }
     response = api_client.post(url, data, format='json')
@@ -122,6 +128,7 @@ def test_primary_key_increment(api_client):
         'player2_username': 'player2',
         'player2_id': 2,
         'winner_id': 1,
+        'winner_name': 'player1',
         'start_time': '2024-07-03T12:00:00Z',
         'end_time': '2024-07-03T12:30:00Z'
     }
