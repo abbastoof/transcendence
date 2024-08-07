@@ -14,7 +14,9 @@ def api_client():
 def test_create_game_history(api_client):
     url = reverse('game-history-list') # reverse() is used to generate the URL for the 'game-history-list' view
     data = {
+        'player1_username': 'player1',
         'player1_id': 1,
+        'player2_username': 'player2',
         'player2_id': 2,
         'winner_id': 1,
         'start_time': '2024-07-03T12:00:00Z'
@@ -23,7 +25,9 @@ def test_create_game_history(api_client):
     assert response.status_code == status.HTTP_201_CREATED
     assert GameHistory.objects.count() == 1 # Objects count should be 1 after creating a new GameHistory object in the database
     game_history = GameHistory.objects.first() # Get the first GameHistory object from the database (there should be only one) because we just created it
+    assert game_history.player1_username == 'player1'
     assert game_history.player1_id == 1 # The player1_id should be 1 because we set it to 1 in the data
+    assert game_history.player2_username == 'player2'
     assert game_history.player2_id == 2 # The player2_id should be 2 because we set it to 2 in the data
     assert game_history.winner_id == 1 # The winner_id should be 1 because we set it to 1 in the data
     assert game_history.start_time.isoformat() == '2024-07-03T12:00:00+00:00' # The start_time should be '2024-07-03T12:00:00+00:00' because we set it to that value in the data
@@ -68,11 +72,13 @@ def test_retrieve_game_history(api_client):
 
 @pytest.mark.django_db
 def test_update_game_history(api_client):
-    game = GameHistory.objects.create(player1_id=1, player2_id=2, winner_id=1, start_time=now())
+    game = GameHistory.objects.create(player1_username='player1', player1_id=1, player2_username='player2', player2_id=2, winner_id=1, start_time=now())
 
     url = reverse('game-history-detail', args=[game.pk])
     data = {
+        'player1_username': 'player1_updated',
         'player1_id': 1,
+        'player2_username': 'player2_updated',
         'player2_id': 2,
         'winner_id': 2,
         'start_time': game.start_time.isoformat().replace('+00:00', 'Z')
@@ -80,6 +86,8 @@ def test_update_game_history(api_client):
     response = api_client.put(url, data, format='json')
     assert response.status_code == status.HTTP_200_OK
     game.refresh_from_db()
+    assert game.player1_username == 'player1_updated'
+    assert game.player2_username == 'player2_updated'
     assert game.winner_id == 2
 
 @pytest.mark.django_db
@@ -108,9 +116,10 @@ def test_create_game_history_validation_error(api_client):
 def test_primary_key_increment(api_client):
     initial_count = GameHistory.objects.count()
 
-    # Create a new game history entry
     data = {
+        'player1_username': 'player1',
         'player1_id': 1,
+        'player2_username': 'player2',
         'player2_id': 2,
         'winner_id': 1,
         'start_time': '2024-07-03T12:00:00Z',
@@ -119,13 +128,11 @@ def test_primary_key_increment(api_client):
     response = api_client.post('/game-history/', data, format='json')
     assert response.status_code == 201
 
-    # Check the count after insertion
     new_count = GameHistory.objects.count()
     assert new_count == initial_count + 1
 
-    # Get the latest entry and check the primary key
     latest_entry = GameHistory.objects.latest('game_id')
-    print(latest_entry.game_id)  # This will print the latest primary key value
+    print(latest_entry.game_id)
 
 @pytest.mark.django_db
 def test_create_game_stat(api_client):

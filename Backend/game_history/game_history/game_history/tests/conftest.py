@@ -13,11 +13,11 @@ if not settings.configured:
         DATABASES={
             "default": {
                 "ENGINE": "django.db.backends.postgresql",
-                "NAME": "postgres",
+                "NAME": "game_history",
+                "HOST": "postgresql",
                 "USER": "root",
                 "PASSWORD": "root",
                 "PORT": "5432",
-                "HOST": "localhost",
                 "ATOMIC_REQUESTS": True,
             "TEST": {
                 "NAME": "mytestdatabase",
@@ -95,7 +95,7 @@ if not settings.configured:
 django.setup()
 
 @pytest.fixture(scope='session', autouse=True)
-def django_db_setup():
+def django_db_modify_db_settings():
     settings.DATABASES['default'] = settings.DATABASES['default']['TEST']
 
 @pytest.fixture(scope='session')
