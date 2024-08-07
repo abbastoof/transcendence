@@ -2,10 +2,16 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-
-from .models import UserProfileModel, FriendRequest
+from .models import UserProfileModel, FriendRequest, Lobby, Player
 from .validators import CustomPasswordValidator
 
+class LobbySerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = "__all__"
+
+class PlayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = "__all__"
 
 class FriendSerializer(serializers.ModelSerializer):
     sender_id = serializers.IntegerField(source="sender_user.id")

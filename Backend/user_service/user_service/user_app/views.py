@@ -251,6 +251,7 @@ class FriendsViewSet(viewsets.ViewSet):
         try:
             validate_token(request)
             current_user = get_object_or_404(UserProfileModel, id=user_pk)
+            current_user_friends = current_user.friends.all()
             friend_username = request.data.get("username")
             if not friend_username:
                 response_message = {"error": "Username is required"}
@@ -259,6 +260,9 @@ class FriendsViewSet(viewsets.ViewSet):
                 receiver = get_object_or_404(UserProfileModel, username=friend_username)
                 if (user_pk == receiver.id):
                     response_message = {"error":"You can't send a friend request to yourself"}
+                    status_code =status.HTTP_400_BAD_REQUEST
+                elif receiver in current_user_friends:
+                    response_message = {"error":"You're already friends"}
                     status_code =status.HTTP_400_BAD_REQUEST
                 else:
                     existing_request = FriendRequest.objects.filter(
