@@ -12,7 +12,7 @@ class GameHistory(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(null=True, blank=True)
     def __str__(self):
-        return f"Game {self.game_id}: {self.player1_username} vs {self.player2_username} - Winner: {self.winner_id}"
+        return f"Game {self.game_id}: {self.player1_username} vs {self.player2_username} - Winner: {self.winner_name}"
 
     REQUIRED_FIELDS = ['player1_id', 'player2_id']
 

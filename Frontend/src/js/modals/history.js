@@ -33,35 +33,11 @@ export function updateMatchHistory() {
                     htmlContent += `
                 <div class="game-record mb-3">
                     <h3>Game: ${game.game_id}</h3>
-                    <p>Date Played: ${new Date(game.start_time).toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
-                    <p>Outcome: ${game.player1_id} - ${game.player2_id}</p>
+                    <p>${new Date(game.start_time).toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                    <p>${game.player1_username} - ${game.player2_username}</p>
+                    <p>Winner: ${game.winner_name}</p>
+                </div>
                 `;
-                    // Get the game details
-                    fetch(`/game-history/${game.game_id}/`, {
-                        method: 'GET',
-                        headers: {
-                        }
-                    })
-                        .then(response => {
-                            if (!response.ok) {
-                                return response.json().then(error => {
-                                    throw new Error(error.detail || 'Network response was not ok');
-                                });
-                            }
-                            return response.json();
-                        })
-                        .then(stats => {
-                            htmlContent += `
-                    <p>${stats.player1_score} - ${stats.player2_score}</p>
-                    </div>
-                    `;
-                            gameHistoryContainer.innerHTML = htmlContent;
-                        })
-                        .catch(error => {
-                            console.error(`Error fetching game details for game ${game.game_id}:`, error.message);
-                            htmlContent += `<p>Error fetching game details: ${error.message}</p></div>`;
-                            gameHistoryContainer.innerHTML = htmlContent;
-                        });
                 }
             });
             htmlContent += '</div>';
