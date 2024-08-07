@@ -5,10 +5,8 @@ import { PADDLE_SPEED } from './constants.js';
 import { init } from './init.js';
 import { randFloat } from 'three/src/math/MathUtils.js';
 import { globalState } from './globalState.js';
-
-let gameSession = new GameSession();
 let gameStarted = false;
-let renderer, scene, camera, composer, animationId;
+let gameSession, renderer, scene, camera, composer, animationId;
 
 function callBackTestFunction(data) {
     console.log(data);
@@ -16,7 +14,7 @@ function callBackTestFunction(data) {
     endGame();
 }
 
-export function cleanUpGame() {
+export function cleanUpThreeJS() {
     if (typeof cancelAnimationFrame !== 'undefined') {
         cancelAnimationFrame(animationId);
     }
@@ -43,6 +41,14 @@ export function cleanUpGame() {
     if (gameContainer) {
         gameContainer.innerHTML = '';
     }
+    if (scene)
+        scene = null;
+    if (camera)
+        camera = null;
+    if (composer)
+        composer = null;
+    if (renderer)
+        renderer = null;
 }
 
 function cleanMaterial(material) {
@@ -65,7 +71,7 @@ function cleanMaterial(material) {
  */
 export function startGame(containerId, config = {}, onGameEnd = null) {
     console.log('Config object:', config);  // Debugging line
-    globalState.iTime = 10.0
+
     const {
         isRemote = false,
         playerIds = [],
@@ -164,6 +170,7 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
     scene = s;
     camera = c;
     composer = comp;
+    gameSession = new GameSession();
     gameSession.initialize(finalGameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene, onGameEnd);
     gameStarted = true;
 
@@ -269,11 +276,7 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
     animate();
 }
 
-function cleanUpThreeJS() {
-    if (animationId) cancelAnimationFrame(animationId);
-    if (renderer) renderer.dispose();
 
-}
 
 function updateITimes() {
     globalState.iTime += .01;
@@ -297,15 +300,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('pongModal').addEventListener('hidden.bs.modal', () => {
-        gameSession.disconnect();  // Handle socket disconnection
-        endGame();
+        if (gameStarted) {
+            endGame();
+        }
     });    
 });
 
+export function cleanUpGame() {
+    if (gameSession)
+    {
+        gameSession.disconnect();
+        gameSession = null;
+    }
+}
 export function endGame()
 {
+    cleanUpThreeJS();
     cleanUpGame();
     gameStarted = false;
+    localStorage.setItem('isGameOver', 'true');
+    console.log("at endgame: gameStarted:", gameStarted, "isGameOver:", localStorage.getItem('isGameOver'));
 }
 
 export function changeCameraAngle()

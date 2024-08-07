@@ -15,9 +15,10 @@ export const initializeEventHandlers = (gameSession) => {
         if (data && data.gameId) {
             if (data.gameId === gameSession.gameId) {
                 gameSession.handleGameStateUpdate(data);
-            } else {
-                console.log('Received game state for different game, was ' + data.gameId + ', expected ' + gameSession.gameId);
-            }
+            } 
+            // else {
+            //     console.log('Received game state for different game, was ' + data.game_id + ', expected ' + gameSession.gameId);
+            // }
         } else {
             console.log('game_id is undefined or data is malformed:', data);
         }
@@ -26,10 +27,12 @@ export const initializeEventHandlers = (gameSession) => {
         if (data && data.gameId) {
             if (data.gameId === gameSession.gameId) {
                 gameSession.handleScoreUpdate(data);
-            } else {
-                console.log('Received score update for different game, was ' + data.gameId + ', expected ' + gameSession.gameId);
-            }
-        } else {
+            } 
+            // else {
+            //     console.log('Received score update for different game, was ' + data.game_id + ', expected ' + gameSession.gameId);
+            // }
+        } 
+        else {
             console.log('game_id is undefined or data is malformed:', data);
         }
     });
@@ -38,7 +41,8 @@ export const initializeEventHandlers = (gameSession) => {
         if (data && data.game_id) {
             if (data.game_id === gameSession.gameId) {
                 gameSession.handleGameOver(data);
-            } else {
+            } 
+            else {
                 console.log('Received game over for different game, was ' + data.game_id + ', expected ' + gameSession.gameId);
             }
         }

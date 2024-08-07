@@ -27,6 +27,7 @@ class GameSession {
         this.player2Score = 0;
         this.onGameEndCallback = null;
         this.scoreBoard = null;
+        this.dataSent = false;
     }
 
     initialize(gameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene, onGameEnd) {
@@ -122,14 +123,21 @@ class GameSession {
         changeCameraAngle();
         this.disconnect();
         setTimeout(() => {
-            endGame();
-            if (typeof this.onGameEndCallback === 'function') {
+        if (typeof this.onGameEndCallback === 'function') {
+            if (this.dataSent === false) {
+                endGame();
                 this.onGameEndCallback(data);
-                console.log("Game end callback executed.");
-            } else {
-                console.log("No game end callback defined.");
+                console.log("Game end callback executed, forwarded data: ", data);
+                this.dataSent = true;
             }
-        }, 2000);
+            else {
+                console.log("Game end callback already executed.");
+            }
+        }
+        else {
+            console.log("No game end callback defined.");
+        }
+        }, 1000);
     }
     
     
