@@ -11,7 +11,6 @@ export function updateMatchHistory() {
     fetch(`/game-history/`, {
         method: 'GET',
         headers: {
-            'Authorization': `Bearer ${userData.token}`
         }
     })
     .then(response => {
