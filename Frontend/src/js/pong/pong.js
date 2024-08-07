@@ -65,7 +65,7 @@ function cleanMaterial(material) {
  */
 export function startGame(containerId, config = {}, onGameEnd = null) {
     console.log('Config object:', config);  // Debugging line
-
+    globalState.iTime = 10.0
     const {
         isRemote = false,
         playerIds = [],
@@ -276,7 +276,7 @@ function cleanUpThreeJS() {
 }
 
 function updateITimes() {
-    globalState.iTime = performance.now() / 1000;
+    globalState.iTime += .01;
     if (globalState.playingFieldMaterial)
         globalState.playingFieldMaterial.uniforms.iTime.value = globalState.iTime;
     if (globalState.scoreBoardMaterial)
