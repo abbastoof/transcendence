@@ -14,7 +14,7 @@ import './modals/tournament.js';
 insert('.headerContainer', 'headerSVG.html');
 //insertModal('.tournament', 'tournamentModal.html', 'tournament', 'Tournament');
 
-// // Assuming you have imported necessary modules and functions like startGame, cleanupGame
+// // Assuming you have imported gnecessary modules and functions like startGame, cleanupGame
 // document.addEventListener('DOMContentLoaded', function () {
 //     // Initialize the modal with options to prevent closing on backdrop click
 //     const pongModalElement = document.getElementById('pongModal');
@@ -38,38 +38,27 @@ insert('.headerContainer', 'headerSVG.html');
 
 
 createModal('tournament', 'Tournament', `
-    <form id="playerForm" class="form">
+    <form id="playerForm" class="form" novalidate>
         <p class="font">Select number of players:</p>
         <div class="row justify-content-center">
-                <div class="col-md-3">
-                        <div class="form-check">
-                                <input class="form-check-input" type="radio" name="playerCount" id="2vs2" value="2">
-                                <label class="form-check-label font" for="2vs2">2</label>
-                        </div>
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="playerCount" id="4vs4" value="4">
+                    <label class="form-check-label font" for="4vs4">4</label>
                 </div>
-                <div class="col-md-3">
-                        <div class="form-check">
-                                <input class="form-check-input" type="radio" name="playerCount" id="4vs4" value="4">
-                                <label class="form-check-label font" for="4vs4">4</label>
-                        </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="playerCount" id="8vs8" value="8">
+                    <label class="form-check-label font" for="8vs8">8</label>
                 </div>
-                <div class="col-md-3">
-                        <div class="form-check">
-                                <input class="form-check-input" type="radio" name="playerCount" id="6vs6" value="6">
-                                <label class="form-check-label font" for="6vs6">6</label>
-                        </div>
-                </div>
-                <div class="col-md-3">
-                        <div class="form-check">
-                                <input class="form-check-input" type="radio" name="playerCount" id="8vs8" value="8">
-                                <label class="form-check-label font" for="8vs8">8</label>
-                        </div>
-                </div>
+            </div>
         </div>
         <div id="playerAliasInputs" style="display: none;">
                 <!-- Player alias inputs will be dynamically added here -->
         </div>
-        <button type="submit" class="submit">Play</button>
+        <button type="submit" id="startTournament" class="submit">Play</button>
+        <button type="button" id="randomNamesButton" class="submit">Randomize Names</button>
     </form>`)
 
 createModal('signUp', 'Sign up', `
