@@ -6,8 +6,8 @@ import { updateUserProfile } from './profile.js';
         var logoutModal = new bootstrap.Modal(document.getElementById('logoutModal'));
         var authButton = document.getElementById('authButton');
 
-        // Check localStorage for login state and tokens
-        var isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        // Check sessionStorage for login state and tokens
+        var isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
 
         // Function to create and add the profile button
         function addProfileButton() {
@@ -59,8 +59,8 @@ import { updateUserProfile } from './profile.js';
                 .then(data => {
                     console.log('Success:', data);
                     // Store all tokens and user ID
-                    localStorage.setItem('userData', JSON.stringify({ id: data.id, token: data.access, refresh: data.refresh }));
-                    localStorage.setItem('isLoggedIn', 'true'); // Save login state to localStorage ! change this to variable in backend
+                    sessionStorage.setItem('userData', JSON.stringify({ id: data.id, token: data.access, refresh: data.refresh }));
+                    sessionStorage.setItem('isLoggedIn', 'true'); // Save login state to sessionStorage ! change this to variable in backend
 
                     loginModal.hide(); // Close the modal on success
                     document.getElementById('loginForm').reset(); // Reset form fields
@@ -133,9 +133,9 @@ import { updateUserProfile } from './profile.js';
 
         // Function to handle logout confirmation
     window.confirmLogout = function () {
-        var userData = JSON.parse(localStorage.getItem('userData'));
+        var userData = JSON.parse(sessionStorage.getItem('userData'));
         if (!userData) {
-            console.error('No user data found in localStorage.');
+            console.error('No user data found in sessionStorage.');
             return;
         }
 
@@ -152,10 +152,10 @@ import { updateUserProfile } from './profile.js';
                 }
                 console.log('Logout successful');
 
-                localStorage.clear(); // Clear all localStorage items
+                sessionStorage.clear(); // Clear all sessionStorage items
 
                 isLoggedIn = false; // Update login state
-                localStorage.setItem('isLoggedIn', 'false'); // Save login state to localStorage
+                sessionStorage.setItem('isLoggedIn', 'false'); // Save login state to sessionStorage
                 updateAuthButton();
                 logoutModal.hide();
             })

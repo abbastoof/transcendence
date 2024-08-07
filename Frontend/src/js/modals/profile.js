@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 export function updateUserProfile() {
     // Check if the user is logged in
-    const userData = JSON.parse(localStorage.getItem('userData'));
+    const userData = JSON.parse(sessionStorage.getItem('userData'));
     console.log('UserData:', userData); // Debugging line
     if (!userData || !userData.id || !userData.token) {
         console.error('UserData is missing or incomplete');
