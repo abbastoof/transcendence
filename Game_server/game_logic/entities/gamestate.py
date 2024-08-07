@@ -179,4 +179,4 @@ class GameState:
     # is_game_over method
     # returns True if the game is over, False otherwise
     def is_game_over(self) -> bool:
-        return self.time_remaining <= 0 or self.player1.score >= 10 or self.player2.score >= 10 
+        return self.time_remaining <= 0 or self.player1.score >= 1 or self.player2.score >= 1 

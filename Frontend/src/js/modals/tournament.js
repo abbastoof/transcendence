@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let isFinal = false;
     let isGoing = false;
     let currentGame = 0;
+    let totalGames = 0;
     let seed = Math.floor(Math.random() * 1000 + 1000);
 
 
@@ -127,6 +128,7 @@ document.addEventListener('DOMContentLoaded', function () {
             localStorage.setItem('totalRounds', totalRounds);
             round = 1;
             localStorage.setItem('actualRound', round);
+            totalGames = tournamentPlayers.length - 1;
             createGamePairs();
             startNextGame();
         } else {
@@ -184,13 +186,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     break;
                 }
             }
-        } else if(isFinal && winners.length === 2) {
+        } else if(isFinal) {
             const config = {
                 isRemote: false,
                 playerIds: winners,
                 gameId: seed + currentGame,
                 isLocalTournament: true
             };
+            currentGame++;
+            console.log("derp")
             pongModal.show();
             startGame('pongGameContainer', config, gameResultCallBack);
         }
@@ -212,10 +216,11 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log("Winners: ", winners);
         localStorage.setItem('winners', JSON.stringify(winners));
 
-        if (winners.length === tournamentPlayers.length / Math.pow(2, round)) {
+        if (currentGame === totalGames) {
             console.log("Turnaus päättynyt. Voittaja on: " + tournamentPlayers[data.winner - 1].name);
-        } else if (winners.length === 2) {
+        } else if (currentGame === totalGames - 1) {
             console.log("juuh")
+            isFinal = true;
             waitForGameOver(startNextGame); // Finaali
         } else {
             round++;
