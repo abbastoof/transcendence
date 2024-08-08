@@ -1,4 +1,5 @@
 import { updateFriendsList } from './friends.js';
+import { showMessage } from './messages.js';
 
 document.addEventListener('DOMContentLoaded', function () {
     updateUserProfile();
@@ -44,7 +45,7 @@ export function updateUserProfile() {
                 <form class="form" id="updateEmailForm" style="display:none;">
                     <div class="form-group">
                         <label class="labelFont" for="newEmail">New Email</label>
-                        <input type="email" id="newEmail" class="form-control" placeholder="Enter new email">
+                        <input type="email" id="newEmail" class="form-control" placeholder="Enter new email" required>
                     </div>
                     <button type="submit" class="submit">Update Email</button>
                 </form>
@@ -52,7 +53,7 @@ export function updateUserProfile() {
                 <form class="form" id="updatePasswordForm" style="display:none;">
                     <div class="form-group">
                         <label class="labelFont" for="newPassword">New Password</label>
-                        <input type="password" id="newPassword" class="form-control" placeholder="Enter new password">
+                        <input type="password" id="newPassword" class="form-control" placeholder="Enter new password" required>
                     </div>
                     <button type="submit" class="submit">Update Password</button>
                 </form>
@@ -109,12 +110,14 @@ export function updateUserProfile() {
             })
             .then(data => {
                 console.log('Email updated successfully:', data);
+                showMessage('Email updated successfully', '#ProfileModal', 'accept');
                 document.getElementById('emailText').innerText = data.email;
                 document.getElementById('newEmail').value = '';
                 document.getElementById('updateEmailForm').style.display = 'none';
             })
             .catch(error => {
                 console.error('Error updating email:', error);
+                showMessage('Error updating email', '#ProfileModal', 'error');
 
             });
         });
@@ -155,12 +158,14 @@ export function updateUserProfile() {
             })
             .then(data => {
                 console.log('Password updated successfully:', data);
-                alert('Password updated successfully');
+                showMessage('Password updated successfully', '#ProfileModal', 'accept');
                 document.getElementById('newPassword').value = '';
                 document.getElementById('updatePasswordForm').style.display = 'none';
             })
             .catch(error => {
                 console.error('Error updating password:', error);
+                showMessage('Error updating password', '#ProfileModal', 'error');
+                document.getElementById('newPassword').value = '';
             });
         });
 
@@ -192,6 +197,7 @@ export function updateUserProfile() {
             const file = imageInput.files[0];
             if (!file) {
                 console.error('No image selected');
+                showMessage('No image selected', '#ProfileModal', 'error');
                 return;
             }
             const formData = new FormData();
@@ -212,12 +218,14 @@ export function updateUserProfile() {
             })
             .then(data => {
                 console.log('Image uploaded successfully:', data);
+                showMessage('Profile picture updated successfully', '#ProfileModal', 'accept');
                 document.getElementById('avatar').src = `${data.avatar}?t=${new Date().getTime()}`;
                 document.getElementById('imageUploadForm').style.display = 'none';
                 document.getElementById('fileName').textContent = 'No file chosen';
             })
             .catch(error => {
                 console.error('Error uploading image:', error);
+                showMessage('Error uploading image', '#ProfileModal', 'error');
             });
         });
     })
