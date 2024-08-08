@@ -37,9 +37,9 @@ export const fragmentShader = `
 
     void mainImage(out vec4 fragColor, in vec2 fragCoord) {
         vec2 uv = fragCoord / iResolution.xy;
-        uv.y -= iTime * 0.01;
+        uv.y -= iTime * 0.04;
         float c = SmoothNoise2(uv);
-        vec3 col = vec3(c);//vec3(sin(c * iTime));// * .09, fract(c * iTime * .05), fract(c));
+        vec3 col = vec3(sin(c * iTime) * .1, fract(c) *.01, fract(c) * .01);
 
         fragColor = vec4(col, 1.0);
     }

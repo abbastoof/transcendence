@@ -69,6 +69,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         showMessage('Sign up failed: ' + errorMessage, '#signUpModal', 'error');
                     }
                 }
+                if (error.error.password) {
+                    showErrorMessage('Sign up failed: ' + error.error.password.join(' '));
+                }
             } else {
                 showMessage('Sign up failed: Something went wrong', '#signUpModal', 'error');
             }
