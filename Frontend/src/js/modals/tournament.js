@@ -1,10 +1,7 @@
-import * as bootstrap from 'bootstrap';
-
 document.addEventListener('DOMContentLoaded', function () {
     const playerForm = document.getElementById('playerForm');
     const playerAliasInputs = document.getElementById('playerAliasInputs');
     const modalElement = document.getElementById('tournamentModal');
-    const modal = new bootstrap.Modal(modalElement);
 
     playerForm.addEventListener('change', function (event) {
         const selectedPlayerCount = playerForm.querySelector('input[name="playerCount"]:checked');
@@ -102,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Reset the form and clear inputs
         playerForm.reset();
         playerAliasInputs.innerHTML = '';
-        modal.hide();
+        modalElement.hide();
     });
 
     // Event listener for when the modal is closed
