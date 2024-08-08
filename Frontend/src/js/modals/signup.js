@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             console.log('Success:', data);
-            document.getElementById('signupModal').querySelector('.close').click(); // Close the modal
+            history.back();
             document.getElementById('signUpForm').reset();
         })
         .catch(error => {
