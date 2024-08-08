@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
-import fontJson from 'three/examples/fonts/droid/droid_sans_regular.typeface.json'; // Adjust path if necessary
+//import fontJson from 'three/examples/fonts/droid/droid_sans_regular.typeface.json'; // Adjust path if necessary
+import fontJson from '/assets/fonts/teko_light_regular.json'; // Adjust path if necessary
 import { degreesToRads } from '../utils.js';
 import { vertexShader } from '../shaders/vertexShader.js';
-import { scoreBoardShader} from '../shaders/scoreBoardShader.js';
+import { scoreBoardShader } from '../shaders/scoreBoardShader.js';
 import { WIDTH, HEIGHT } from '../constants.js';
 import { convertToRange } from '../utils.js';
 import { globalState } from '../globalState.js';
@@ -12,18 +13,25 @@ import { globalState } from '../globalState.js';
 class ScoreBoard {
     constructor(scene) {
         this.scene = scene;
-        this.scoreMesh = null;
+        this.player1Mesh = null;
+        this.player2Mesh = null;
+        this.goalMesh = null;
         this.font = new FontLoader().parse(fontJson);
+
+        // Array to store material instances
+        this.materials = [];
     }
 
-    createText(text, size, color = 0xFFFFFF, base, speed) {
+    createText(text, size, color, base, speed) {
         const geometry = new TextGeometry(text, {
             font: this.font,
             size: size,
-            depth: 4,
+            depth: 3,
             curveSegments: 12,
         });
-        globalState.scoreBoardMaterial = new THREE.ShaderMaterial({ 
+
+        // Create a new material instance for each text mesh
+        const material = new THREE.ShaderMaterial({
             vertexShader: vertexShader,
             fragmentShader: scoreBoardShader,
             transparent: true,
@@ -32,12 +40,14 @@ class ScoreBoard {
                 color: { value: new THREE.Color(color) },
                 iTime: { value: globalState.iTime },
                 base: { value: base },
-                speed: { value: speed }
-                // iResolution: { value: new THREE.Vector2(WIDTH, HEIGHT) },
- 
-            }
+                speed: { value: speed },
+            },
         });
-        const mesh = new THREE.Mesh(geometry, globalState.scoreBoardMaterial);
+
+        // Store the material instance
+        this.materials.push(material);
+
+        const mesh = new THREE.Mesh(geometry, material);
 
         // Compute the bounding box of the geometry
         geometry.computeBoundingBox();
@@ -50,45 +60,71 @@ class ScoreBoard {
         // Reposition the geometry so that its center is at the origin
         geometry.translate(-center.x, -center.y, -center.z);
 
-        // Set the mesh position to the desired position
-        mesh.position.set(0, 90.0, 300.0);
-
-        // Rotate the mesh 180 degrees (PI radians) around the Y-axis if invertedView is true
-        if (globalState.invertedView === true) {
-            mesh.rotation.y = THREE.MathUtils.degToRad(180);
-        } else {
-            mesh.position.z = -300.0;
-        }
         return mesh;
     }
 
-    createScoreBoard(text) {
-        this.scoreMesh = this.createText(text, 50, 0xFF0000, 1.0, 2.);
-        this.scene.add(this.scoreMesh);
+    createScoreBoard(player1Text, player2Text) {
+        this.clearScores();
+        this.player1Mesh = this.createText(player1Text, 70, 0xFFFF00, 1.0, 2.0); // Green for Player 1
+        this.player2Mesh = this.createText(player2Text, 70, 0xFF0000, 1.0, 2.0); // Red for Player 2
+
+        // Set positions for player scores
+
+        this.player1Mesh.position.set(0, 140.0, 300.0);
+        this.player2Mesh.position.set(0, 60.0, 300.0);
+
+        if (globalState.invertedView === true) {
+            this.player1Mesh.rotation.y = THREE.MathUtils.degToRad(180);
+            this.player2Mesh.rotation.y = THREE.MathUtils.degToRad(180);
+        } else {
+            this.player1Mesh.position.z = -300.0;
+            this.player2Mesh.position.z = -300.0;
+        }
+        this.scene.add(this.topRowMesh);
+        this.scene.add(this.player1Mesh);
+        this.scene.add(this.player2Mesh);
     }
 
-    updateScores(player1Score, player2Score) {
-        this.clearScores();
-        const text = `Player 1: ${player1Score}\nPlayer 2: ${player2Score}`;
-        this.createScoreBoard(text);
+    updateScores(player1Alias, player1Score, player2Alias, player2Score) {
+        const player1Text = `${player1Alias} ${player1Score}`;
+        const player2Text = `${player2Alias} ${player2Score}`;
+        this.createScoreBoard(player1Text, player2Text);
     }
 
     showGoalText() {
         this.clearScores();
-        console.log("nyt pitäs näyttää maaliteksti")
-        this.scoreMesh = this.createText('GOAL', 50, 0xFFFF00, 0.3, 9.);
-        this.scene.add(this.scoreMesh);
+        this.goalMesh = this.createText('GOAL !!!', 100, 0x00FF00, 0.3, 15.0); // green for GOAL text
+        this.goalMesh.position.set(0, 90.0, 300.0);
+        if (globalState.invertedView === true) {
+            this.goalMesh.rotation.y = THREE.MathUtils.degToRad(180);
+        } else {
+            this.goalMesh.position.z = -300.0;
+        }
+        this.scene.add(this.goalMesh);
     }
 
     clearScores() {
-        if (this.scoreMesh) {
-            this.scene.remove(this.scoreMesh);
-            this.scoreMesh.geometry.dispose();
-            this.scoreMesh.material.dispose();
-            this.scoreMesh = null;
+        if (this.player1Mesh) {
+            this.scene.remove(this.player1Mesh);
+            this.player1Mesh.geometry.dispose();
+            this.player1Mesh.material.dispose();
+            this.player1Mesh = null;
         }
+        if (this.player2Mesh) {
+            this.scene.remove(this.player2Mesh);
+            this.player2Mesh.geometry.dispose();
+            this.player2Mesh.material.dispose();
+            this.player2Mesh = null;
+        }
+        if (this.goalMesh) {
+            this.scene.remove(this.goalMesh);
+            this.goalMesh.geometry.dispose();
+            this.goalMesh.material.dispose();
+            this.goalMesh = null;
+        }
+        // Clear the stored materials
+        this.materials = [];
     }
-
 }
 
 export default ScoreBoard;

@@ -282,8 +282,11 @@ function updateITimes() {
     globalState.iTime += .01;
     if (globalState.playingFieldMaterial)
         globalState.playingFieldMaterial.uniforms.iTime.value = globalState.iTime;
-    if (globalState.scoreBoardMaterial)
-        globalState.scoreBoardMaterial.uniforms.iTime.value = globalState.iTime;
+    if (gameSession.scoreBoard.materials) {
+        gameSession.scoreBoard.materials.forEach(material => {
+            material.uniforms.iTime.value = globalState.iTime;
+        });
+    }
 }
 document.addEventListener('DOMContentLoaded', () => {
     const pongModal = new bootstrap.Modal(document.getElementById('pongModal'));

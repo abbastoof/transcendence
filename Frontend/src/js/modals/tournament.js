@@ -218,6 +218,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (currentGame === totalGames) {
             console.log("Turnaus päättynyt. Voittaja on: " + tournamentPlayers[data.winner - 1].name);
+            return;
         } else if (currentGame === totalGames - 1) {
             console.log("juuh")
             isFinal = true;

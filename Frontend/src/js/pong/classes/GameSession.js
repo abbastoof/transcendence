@@ -28,6 +28,8 @@ class GameSession {
         this.onGameEndCallback = null;
         this.scoreBoard = null;
         this.dataSent = false;
+        this.player1Alias = "Player1"
+        this.player2Alias = "Player2"
     }
 
     initialize(gameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene, onGameEnd) {
@@ -36,13 +38,20 @@ class GameSession {
         this.player2Id = player2Id;
         this.isRemote = isRemote;
         this.isLocalTournament = isLocalTournament;
+        if (isLocalTournament === true) {
+            const tournamentPlayers = JSON.parse(localStorage.getItem('tournamentPlayers'));
+            this.player1Alias = tournamentPlayers[player1Id - 1].name 
+            this.player2Alias = tournamentPlayers[player2Id - 1].name
+        }
         this.onGameEndCallback = typeof onGameEnd === 'function' ? onGameEnd : null; // Ensure it's a function
         this.playingField = new PlayingField(scene, gameId, player1Id, player2Id);
-        this.leftPaddle = new Paddle(scene, LEFT_PADDLE_START, 0x00ff00);
+        this.leftPaddle = new Paddle(scene, LEFT_PADDLE_START, 0xffff00);
         this.rightPaddle = new Paddle(scene, RIGHT_PADDLE_START, 0xff0000);
         this.ball = new Ball(scene);
         this.scoreBoard = new ScoreBoard(scene);
-        this.scoreBoard.createScoreBoard("Player 1: 0\nPlayer 2: 0");
+        const player1Text = `${this.player1Alias} ${this.player1Score}`;
+        const player2Text = `${this.player2Alias} ${this.player2Score}`;
+        this.scoreBoard.createScoreBoard(player1Text, player2Text);
         console.log("Type of onGameEndCallback:", typeof this.onGameEndCallback);
 
         this.playingField.addToScene();
@@ -107,24 +116,24 @@ class GameSession {
     }
 
     handleScoreUpdate(data) {
-        console.log('Received score update:', data);
+        this.scoreBoard.showGoalText();
         this.player1Score = data.player1Score;
         this.player2Score = data.player2Score;
-        this.scoreBoard.showGoalText();
         setTimeout(() => {
-        this.scoreBoard.updateScores(this.player1Score, this.player2Score);
+            this.scoreBoard.updateScores(this.player1Alias, this.player1Score, this.player2Alias, this.player2Score);
         }, 2000);
     }
 
     handleGameOver(data) {
-        globalState.playingFieldMaterial.uniforms.ballDx.value = 0.0;
+        //globalState.playingFieldMaterial.uniforms.ballDx.value = 0.1;
         this.leftPaddle.removeFromScene();
         this.rightPaddle.removeFromScene();
-        changeCameraAngle();
+        //changeCameraAngle();
         this.disconnect();
         setTimeout(() => {
         if (typeof this.onGameEndCallback === 'function') {
             if (this.dataSent === false) {
+                
                 endGame();
                 this.onGameEndCallback(data);
                 console.log("Game end callback executed, forwarded data: ", data);
@@ -137,7 +146,7 @@ class GameSession {
         else {
             console.log("No game end callback defined.");
         }
-        }, 1000);
+        }, 3000);
     }
     
     
