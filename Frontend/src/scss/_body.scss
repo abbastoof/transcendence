@@ -12,7 +12,26 @@ body {
     display: flex;
     justify-content: center;
     font-family: "Teko", sans-serif;
-    font-size: 20px;
+    font-size: 25px;
+    align-items: center;
+}
+
+.user-font {
+    color: white;
+    display: flex;
+    justify-content: center;
+    font-family: "Teko", sans-serif;
+    font-size: 50px;
+    align-items: center;
+}
+
+.AcceptMessage {
+    font-size: 23px;
+    font-family: "Teko", sans-serif;
+    color: green;
+    margin-top: -10px; /* Space between title and error message */
+    margin-bottom: -10px; /* Space between error message and body */
+    text-align: center;
 }
 
 .ErrorMessage {
@@ -33,6 +52,10 @@ body {
     flex-direction: column;
 }
 
+.hidden {
+    display: none;
+}
+
 #imageInput {
     display: none;
 }
@@ -42,4 +65,28 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+}
+
+.online {
+    color: green;
+}
+  
+  .offline {
+    color: red;
+}
+
+#friendForm {
+    display: flex;
+    text-align: center;
+    justify-content: center;
+}
+
+.file-name {
+    white-space: nowrap; /* Prevents text from wrapping */
+    overflow: hidden; /* Hides overflow if necessary */
+    text-overflow: ellipsis; /* Adds ellipsis if the text overflows */
+    color: white;
+    display: inline-block; /* Makes sure the span is treated as a block for overflow */
+    max-width: 150px; /* Maximum width of the span */
+    margin-left: 8px; /* Space between the input and the span */
 }

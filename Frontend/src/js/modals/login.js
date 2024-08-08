@@ -1,6 +1,7 @@
 import * as bootstrap from 'bootstrap';
 import { updateUserProfile } from './profile.js';
 import { openWaitingLobby } from './playonline.js';
+import { showMessage } from './messages.js';
 
 document.addEventListener('DOMContentLoaded', function () {
     var loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
@@ -97,35 +98,10 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .catch(error => {
             console.error('Error:', error);
-            showErrorMessage('Log in failed: ' + error.message);
+            showMessage('Log in failed: ' + error.message, '#loginModal', 'error');
             clearPasswordField();
         });
     });
-
-    // Function to show error message
-    function showErrorMessage(message) {
-        // Remove any existing error message
-        const existingErrorMessage = document.querySelector('#loginModal .ErrorMessage');
-        if (existingErrorMessage) {
-            existingErrorMessage.remove();
-        }
-
-        // Create a span element for the error message
-        var errorSpan = document.createElement('span');
-        errorSpan.classList.add('ErrorMessage');
-        errorSpan.textContent = message;
-
-        // Insert the error message before the modal body
-        var modalBody = document.querySelector('#loginModal .modal-body');
-        modalBody.parentNode.insertBefore(errorSpan, modalBody);
-
-        // Hide the error message after 5 seconds
-        setTimeout(function () {
-            if (errorSpan && errorSpan.parentNode) {
-                errorSpan.parentNode.removeChild(errorSpan);
-            }
-        }, 2500);
-    }
 
     // Function to clear password field
     function clearPasswordField() {

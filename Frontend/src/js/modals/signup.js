@@ -1,4 +1,5 @@
 import * as bootstrap from 'bootstrap'
+import { showMessage } from './messages.js';
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the Bootstrap modal
@@ -30,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Check if passwords match
         if (password !== repeatPassword) {
-            showErrorMessage('Passwords do not match!');
+            showMessage('Passwords do not match!', '#signUpModal', 'error');
             clearPasswordFields();
             return;
         }
@@ -59,42 +60,21 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             console.error('Error:', error);
             if (error.error) {
-                if (error.error.username) {
-                    showErrorMessage('Sign up failed: ' + error.error.username.join(' '));
-                }
-                if (error.error.email) {
-                    showErrorMessage('Sign up failed: ' + error.error.email.join(' '));
+                for (let key in error.error) {
+                    if (error.error.hasOwnProperty(key)) {
+                        let errorMessage = error.error[key];
+                        if (Array.isArray(errorMessage)) {
+                            errorMessage = errorMessage.join(' ');
+                        }
+                        showMessage('Sign up failed: ' + errorMessage, '#signUpModal', 'error');
+                    }
                 }
             } else {
-                showErrorMessage('Sign up failed: Something went wrong');
+                showMessage('Sign up failed: Something went wrong', '#signUpModal', 'error');
             }
             clearPasswordFields();
         });
     });
-
-    // Function to show error message
-    function showErrorMessage(message) {
-        // Remove any existing error message
-        const existingErrorMessage = document.querySelector('#signUpModal .ErrorMessage');
-        if (existingErrorMessage) {
-            existingErrorMessage.remove();
-        }
-
-        // Create a span element for the error message
-        var errorSpan = document.createElement('span');
-        errorSpan.classList.add('ErrorMessage');
-        errorSpan.textContent = message;
-
-        // Insert the error message before the modal body
-        modalBody.parentNode.insertBefore(errorSpan, modalBody);
-
-        // Hide the error message after 5 seconds
-        setTimeout(function() {
-            if (errorSpan && errorSpan.parentNode) {
-                errorSpan.parentNode.removeChild(errorSpan);
-            }
-        }, 3500);
-    }
 
     // Function to clear password fields
     function clearPasswordFields() {

@@ -81,6 +81,12 @@
   width: 200px;
 }
 
+.form-group-image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 /* ABOUT */
 .aboutTitle {
   display: flex;
@@ -122,6 +128,11 @@
 }
 
 /* Profile */
+.profile-header {
+  display: flex;
+  align-items: flex-start;
+}
+
 .profileTitle {
   display: flex;
   justify-content: left;
@@ -150,4 +161,16 @@
   border-top: none;
   display: flex;
   justify-content: center;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.friend-record {
+  margin-top: -10px;
+  margin-bottom: -10px;
 }

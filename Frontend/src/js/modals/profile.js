@@ -34,33 +34,34 @@ export function updateUserProfile() {
             return;
         }
         const htmlContent = `
-            <div class="container mt-4">
-                <div class="profile-header d-flex align-items-center">
-                    <img id="avatar" src="${data.avatar || '/media/default.jpg'}" alt="User Profile Image" class="img-thumbnail mb-4 mr-3" width="80" height="80">
-                    <h1 id="username" class="display-4">${data.username}</h1>
+            <div class="container">
+                <div class="profile-header">
+                    <img id="avatar" src="${data.avatar || '/media/default.jpg'}" alt="User Profile Image" style="height: auto;" width="80" height="80">
+                    <h1 id="username" class="display-4 user-font">&nbsp;${data.username}</h1>
                 </div>
-                <p class="lead">Email: <span id="emailText">${data.email}</span></p>
+                <p class="lead font">Email:&nbsp;<span class="font" id="emailText">${data.email}</span></p>
                 <button id="changeEmailButton" class="submit">Change Email</button>
-                <form id="updateEmailForm" class="mt-3" style="display:none;">
+                <form class="form" id="updateEmailForm" style="display:none;">
                     <div class="form-group">
-                        <label for="newEmail">New Email</label>
+                        <label class="labelFont" for="newEmail">New Email</label>
                         <input type="email" id="newEmail" class="form-control" placeholder="Enter new email">
                     </div>
                     <button type="submit" class="submit">Update Email</button>
                 </form>
                 <button id="changePasswordButton" class="submit">Change Password</button>
-                <form id="updatePasswordForm" class="mt-3" style="display:none;">
+                <form class="form" id="updatePasswordForm" style="display:none;">
                     <div class="form-group">
-                        <label for="newPassword">New Password</label>
+                        <label class="labelFont" for="newPassword">New Password</label>
                         <input type="password" id="newPassword" class="form-control" placeholder="Enter new password">
                     </div>
                     <button type="submit" class="submit">Update Password</button>
                 </form>
                 <button id="changeProfilePictureButton" class="submit">Change Profile Picture</button>
-                <form id="imageUploadForm" class="mt-3" style="display:none;">
-                    <div class="form-group">
+                <form class="form" id="imageUploadForm" style="display:none;">
+                    <div class="form-group-image">
                         <label for="imageInput" class="submit">Choose file</label>
-                        <input type="file" id="imageInput" class="form-control-file" accept="image/*">
+                        <input type="file" id="imageInput">
+                        <span id="fileName" class="file-name">No file chosen</span>
                     </div>
                     <button type="submit" class="submit">Submit</button>
                 </form>
@@ -73,9 +74,15 @@ export function updateUserProfile() {
 
         // Toggle email update form visibility
         document.getElementById('changeEmailButton').addEventListener('click', () => {
-            document.getElementById('updateEmailForm').style.display = 
-                document.getElementById('updateEmailForm').style.display === 'none' ? 'block' : 'none';
+            const updateEmailForm = document.getElementById('updateEmailForm');
+            if (updateEmailForm.style.display === 'none' || updateEmailForm.style.display === '') {
+                updateEmailForm.style.display = 'flex';
+                updateEmailForm.style.flexDirection = 'column';
+            } else {
+                updateEmailForm.style.display = 'none';
+            }
         });
+
 
         // Handle email update
         document.getElementById('updateEmailForm').addEventListener('submit', (event) => {
@@ -103,17 +110,24 @@ export function updateUserProfile() {
             .then(data => {
                 console.log('Email updated successfully:', data);
                 document.getElementById('emailText').innerText = data.email;
+                document.getElementById('newEmail').value = '';
                 document.getElementById('updateEmailForm').style.display = 'none';
             })
             .catch(error => {
                 console.error('Error updating email:', error);
+
             });
         });
 
         // Toggle password update form visibility
         document.getElementById('changePasswordButton').addEventListener('click', () => {
-            document.getElementById('updatePasswordForm').style.display = 
-                document.getElementById('updatePasswordForm').style.display === 'none' ? 'block' : 'none';
+            const updatePasswordForm = document.getElementById('updatePasswordForm');
+            if (updatePasswordForm.style.display === 'none' || updatePasswordForm.style.display === '') {
+                updatePasswordForm.style.display = 'flex';
+                updatePasswordForm.style.flexDirection = 'column';
+            } else {
+                updatePasswordForm.style.display = 'none';
+            }
         });
 
         // Handle password update
@@ -142,6 +156,7 @@ export function updateUserProfile() {
             .then(data => {
                 console.log('Password updated successfully:', data);
                 alert('Password updated successfully');
+                document.getElementById('newPassword').value = '';
                 document.getElementById('updatePasswordForm').style.display = 'none';
             })
             .catch(error => {
@@ -151,8 +166,23 @@ export function updateUserProfile() {
 
         // Toggle profile picture update form visibility
         document.getElementById('changeProfilePictureButton').addEventListener('click', () => {
-            document.getElementById('imageUploadForm').style.display = 
-                document.getElementById('imageUploadForm').style.display === 'none' ? 'block' : 'none';
+            const imageUploadForm = document.getElementById('imageUploadForm');
+            if (imageUploadForm.style.display === 'none' || imageUploadForm.style.display === '') {
+                imageUploadForm.style.display = 'flex';
+                imageUploadForm.style.flexDirection = 'column';
+            } else {
+                imageUploadForm.style.display = 'none';
+            }
+        });
+
+        document.getElementById('imageInput').addEventListener('change', (event) => {
+            const fileInput = event.target;
+            const fileNameDisplay = document.getElementById('fileName');
+            if (fileInput.files.length > 0) {
+                fileNameDisplay.textContent = fileInput.files[0].name;
+            } else {
+                fileNameDisplay.textContent = 'No file chosen';
+            }
         });
 
         // Handle image upload
@@ -184,12 +214,12 @@ export function updateUserProfile() {
                 console.log('Image uploaded successfully:', data);
                 document.getElementById('avatar').src = `${data.avatar}?t=${new Date().getTime()}`;
                 document.getElementById('imageUploadForm').style.display = 'none';
+                document.getElementById('fileName').textContent = 'No file chosen';
             })
             .catch(error => {
                 console.error('Error uploading image:', error);
             });
         });
-
     })
     .catch(error => {
         console.error('Error fetching user data:', error);
