@@ -1,7 +1,9 @@
 import json
 import pika
 from django.conf import settings
+import logging
 
+logger = logging.getLogger(__name__)
 # Singleton pattern for managing RabbitMQ connection
 class RabbitMQManager:
     _connection = None
@@ -14,11 +16,15 @@ class RabbitMQManager:
 
     @classmethod
     def _create_connection(cls):
-        credentials = pika.PlainCredentials(settings.RABBITMQ_USER, settings.RABBITMQ_PASS)
-        parameters = pika.ConnectionParameters(
-            settings.RABBITMQ_HOST, settings.RABBITMQ_PORT, "/", credentials
-        )
-        return pika.BlockingConnection(parameters)
+        try:
+            credentials = pika.PlainCredentials(settings.RABBITMQ_USER, settings.RABBITMQ_PASS)
+            parameters = pika.ConnectionParameters(
+                settings.RABBITMQ_HOST, settings.RABBITMQ_PORT, "/", credentials
+            )
+            return pika.BlockingConnection(parameters)
+        except Exception as e:
+            logger.error(f"Error creating RabbitMQ connection: {e}")
+            raise
 
 
 def publish_message(queue_name, message):

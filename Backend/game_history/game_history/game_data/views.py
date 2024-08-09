@@ -68,10 +68,10 @@ class GameHistoryViewSet(viewsets.ModelViewSet):
     def handle_create_record_request(ch, method, properties, body):
         try:
             data = json.loads(body)
-            player1_id=data['player1_id']
-            player2_id=data['player2_id']
-            player1_username=data['player1_username']
-            player2_username=data['player2_username']
+            player1_id=data.get('player1_id')
+            player2_id=data.get('player2_id')
+            player1_username=data.get('player1_username')
+            player2_username=data.get('player2_username')
 
             obj = GameHistory.objects.create(
                 player1_id=player1_id,
@@ -81,10 +81,11 @@ class GameHistoryViewSet(viewsets.ModelViewSet):
                 start_time=now()
             )
             serializer = GameHistorySerializer(obj)
-            if serializer.is_valid():
-                publish_message("create_gamehistory_record_response", serializer.data)
-        except Exception:
-            publish_message("create_gamehistory_record_response", json.dumps({'error':serializer.errors}))
+            if serializer is not None:
+                publish_message("create_gamehistory_record_response", json.dumps(serializer.data))
+        except Exception as err:
+            error_message = {'error': str(err)}
+            publish_message("create_gamehistory_record_response", json.dumps(err))
 
     def start_consumer(self) -> None:
         consume_message("create_gamehistory_record_queue", self.handle_create_record_request)

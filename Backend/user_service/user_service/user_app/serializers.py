@@ -6,9 +6,19 @@ from .models import UserProfileModel, FriendRequest, GameRoom
 from .validators import CustomPasswordValidator
 
 class GameRoomSerializer(serializers.ModelSerializer):
+    player1_id = serializers.IntegerField(source="player1.id")
+    player2_id = serializers.IntegerField(source="player2.id")
+    player1_username = serializers.SerializerMethodField()
+    player2_username = serializers.SerializerMethodField()
     class Meta:
         model = GameRoom
         fields = "__all__"
+
+    def get_player1_username(self, obj):
+        return obj.player1.username
+
+    def get_player2_username(self, obj):
+        return obj.player2.username
 
 class FriendSerializer(serializers.ModelSerializer):
     sender_id = serializers.IntegerField(source="sender_user.id")

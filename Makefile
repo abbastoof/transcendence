@@ -110,6 +110,22 @@ dlog-err:
 	fi
 	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) bash -c 'cat /var/log/django_err.log'
 
+.PHONY: clog
+clog:
+	@if [ -z "$(filter-out $@,$(MAKECMDGOALS))" ]; then \
+		echo "Error: No container name provided."; \
+		exit 1; \
+	fi
+	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) bash -c 'cat /var/log/consumer.log'
+
+.PHONY: clog-err
+clog-err:
+	@if [ -z "$(filter-out $@,$(MAKECMDGOALS))" ]; then \
+		echo "Error: No container name provided."; \
+		exit 1; \
+	fi
+	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) bash -c 'cat /var/log/consumer_err.log'
+
 
 %:
 	@:

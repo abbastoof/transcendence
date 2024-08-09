@@ -18,15 +18,9 @@ class RabbitMQManager:
     @classmethod
     def _create_connection(cls):
         try:
-            credentials = pika.PlainCredentials(
-                settings.RABBITMQ_USER or 'guest',
-                settings.RABBITMQ_PASS or 'guest'
-            )
+            credentials = pika.PlainCredentials(settings.RABBITMQ_USER, settings.RABBITMQ_PASS)
             parameters = pika.ConnectionParameters(
-                host=settings.RABBITMQ_HOST or 'localhost',
-                port=int(settings.RABBITMQ_PORT or 5672),
-                virtual_host="/",
-                credentials=credentials
+                settings.RABBITMQ_HOST, settings.RABBITMQ_PORT, "/", credentials
             )
             return pika.BlockingConnection(parameters)
         except Exception as e:
