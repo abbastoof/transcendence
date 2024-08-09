@@ -71,13 +71,7 @@ class ChatNotification(models.Model):
     def __str__(self) -> str:
         return self.user.username
 
-
-class Player(models.Model):
-    username = models.CharField(max_length=50)
-    response = models.BooleanField(default=False)
-    room = models.ForeignKey('Lobby', on_delete=models.CASCADE)
-
-class Lobby(models.Model):
-    room = models.AutoField(models.IntegerField, unique=True)
-    player1 = models.ForeignKey('Player', on_delete=models.CASCADE, null=True, related_name='player1')
-    player2 = models.ForeignKey('Player', on_delete=models.CASCADE, null=True, related_name='player2')
+class GameRoom(models.Model):
+    room_name = models.CharField(max_length=50, unique=True)
+    player1 = models.ForeignKey(UserProfileModel, on_delete=models.CASCADE, null=True, related_name='player1')
+    player2 = models.ForeignKey(UserProfileModel, on_delete=models.CASCADE, null=True, related_name='player2')
