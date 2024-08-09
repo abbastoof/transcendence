@@ -29,6 +29,7 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
         await self.accept()
+        await self.send_notification(self.scope['user'].username, 'entered room')
 
     # Extract token from Query string
     def get_token_from_query_string(self):
@@ -59,7 +60,9 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         if create:
             game_obj.player1 = player
         else:
-            if player != game_obj.player1:
+            if game_obj.player1 is None:
+                game_obj.player1 = player
+            else:
                 game_obj.player2 = player
         game_obj.save()
         #TODO:remove it
@@ -101,6 +104,28 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
                 self.room_group_name,
                 self.channel_name
             )
+        await self.remove_from_room()
+        await self.send_notification(self.scope['user'].username, 'left room')
+
+    @database_sync_to_async
+    def remove_from_room(self):
+        from .serializers import GameRoomSerializer
+        from .models import GameRoom
+
+        room_obj = GameRoom.objects.get(room_name = self.room_name)
+        if room_obj is not None:
+            if room_obj.player1 == self.scope['user']:
+                room_obj.player1 = None
+            else:
+                room_obj.player2 = None
+            room_obj.save()
+            if room_obj.player1 is None and room_obj.player2 is None:
+                room_obj.delete()
+                logger.info('Room got deleted')
+                return
+            serializer = GameRoomSerializer(room_obj)
+            if serializer is not None:
+                logger.info('Room = %s', serializer.data)
 
     @database_sync_to_async
     def save_message(self, username, thread_name, message, receiver):
@@ -112,3 +137,21 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         get_user = UserProfileModel.objects.get(id=other_user_id)
         if receiver == get_user.username:
             ChatNotification.objects.create(chat=chat_obj, user=get_user)
+
+    async def send_notification(self, player, message):
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'broadcast_message',
+                'message': f'{player} {message}',
+                'player': player
+            }
+        )
+
+    async def broadcast_message(self, event):
+        message = event['message']
+        player = event['player']
+        await self.send(text_data=json.dumps({
+            'message': message,
+            'player': player
+        }))

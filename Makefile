@@ -93,6 +93,24 @@ pytest-venv:
 	fi
 	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) bash -c '. venv/bin/activate && pytest -svv || echo "Pytest encountered an error"'
 
+
+.PHONY: dlog
+dlog:
+	@if [ -z "$(filter-out $@,$(MAKECMDGOALS))" ]; then \
+		echo "Error: No container name provided."; \
+		exit 1; \
+	fi
+	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) bash -c 'cat /var/log/django.log'
+
+.PHONY: dlog-err
+dlog-err:
+	@if [ -z "$(filter-out $@,$(MAKECMDGOALS))" ]; then \
+		echo "Error: No container name provided."; \
+		exit 1; \
+	fi
+	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) bash -c 'cat /var/log/django_err.log'
+
+
 %:
 	@:
 
