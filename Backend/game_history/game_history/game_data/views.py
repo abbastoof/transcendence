@@ -8,6 +8,9 @@ from django.utils.decorators import method_decorator
 from .rabbitmq_utils import publish_message, consume_message
 from django.utils.timezone import now
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 class GameHistoryViewSet(viewsets.ModelViewSet):
     """
@@ -84,8 +87,9 @@ class GameHistoryViewSet(viewsets.ModelViewSet):
             if serializer is not None:
                 publish_message("create_gamehistory_record_response", json.dumps(serializer.data))
         except Exception as err:
-            error_message = {'error': str(err)}
-            publish_message("create_gamehistory_record_response", json.dumps(err))
+            logger.info('error = %s', err)
+            error_message = {"error": str(err)}
+            publish_message("create_gamehistory_record_response", json.dumps(error_message))
 
     def start_consumer(self) -> None:
         consume_message("create_gamehistory_record_queue", self.handle_create_record_request)
