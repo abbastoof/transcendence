@@ -3,6 +3,11 @@ from .models import GameHistory, GameStat
 from .serializers import GameHistorySerializer, GameStatSerializer
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from .rabbitmq_utils import publish_message, consume_message
+from django.utils.timezone import now
+import json
 
 class GameHistoryViewSet(viewsets.ModelViewSet):
     """
@@ -57,6 +62,32 @@ class GameHistoryViewSet(viewsets.ModelViewSet):
         instance = get_object_or_404(self.get_queryset(), pk=pk)
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    @staticmethod
+    @method_decorator(csrf_exempt)
+    def handle_create_record_request(ch, method, properties, body):
+        try:
+            data = json.loads(body)
+            player1_id=data['player1_id']
+            player2_id=data['player2_id']
+            player1_username=data['player1_username']
+            player2_username=data['player2_username']
+
+            obj = GameHistory.objects.create(
+                player1_id=player1_id,
+                player1_username=player1_username,
+                player2_id=player2_id,
+                player2_username=player2_username,
+                start_time=now()
+            )
+            serializer = GameHistorySerializer(obj)
+            if serializer.is_valid():
+                publish_message("create_gamehistory_record_response", serializer.data)
+        except Exception:
+            publish_message("create_gamehistory_record_response", json.dumps({'error':serializer.errors}))
+
+    def start_consumer(self) -> None:
+        consume_message("create_gamehistory_record_queue", self.handle_create_record_request)
 
 class GameStatViewSet(viewsets.ModelViewSet):
     """
