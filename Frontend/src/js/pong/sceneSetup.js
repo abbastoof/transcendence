@@ -39,12 +39,12 @@ export function initializeScene(renderer, scene, camera, composer) {
     scene.add(ambientLight);
 
     const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.7);
-    directionalLight1.position.set(50, 100, 50);
+    directionalLight1.position.set(100, 100, 100);
     directionalLight1.castShadow = true;
     scene.add(directionalLight1);
 
     const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
-    directionalLight2.position.set(-50, 100, -50);
+    directionalLight2.position.set(-100, 100, -100);
     scene.add(directionalLight2);
 
     const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
