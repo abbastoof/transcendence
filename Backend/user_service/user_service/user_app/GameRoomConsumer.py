@@ -69,7 +69,7 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         else:
             if gameroom_obj.player1 is None:
                 gameroom_obj.player1 = player
-            elif gameroom_obj.player1 is not None and gameroom_obj.player2 is None:
+            elif (gameroom_obj.player1 is not None and gameroom_obj.player1 != player) and gameroom_obj.player2 is None:
                 gameroom_obj.player2 = player
             else:
                 return None
@@ -139,11 +139,12 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         if gameroom_obj is not None and gameroom_obj.player1 is not None and gameroom_obj.player2 is not None:
             serializer = GameRoomSerializer(gameroom_obj).data
             if serializer["player1_id"] and serializer["player2_id"]:
+                logger.info('serilizer = %s', serializer)
                 request = {
                     "player1_id":serializer["player1_id"],
                     "player1_username":serializer["player1_username"],
-                    "player2_id":serializer["player2_id"],
-                    "player2_username":serializer["player2_username"],
+                    "player2_id": serializer["player2_id"],
+                    "player2_username": serializer["player2_username"],
                 }
                 publish_message('create_gamehistory_record_queue', json.dumps(request))
                 response = {}

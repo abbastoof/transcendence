@@ -8,6 +8,30 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import UserProfileModel as User
 from .rabbitmq_utils import consume_message, publish_message
 from .serializers import UserSerializer
+from asgiref.sync import async_to_sync
+from aio_pika.message import AbstractIncomingMessage
+import logging
+import asyncio
+
+logger = logging.getLogger(__name__)
+
+async def publish_consumer(data):
+    await publish_message("user_token_request_queue", json.dumps(data))
+
+    user_data = {}
+
+    async def handle_response(message):
+        nonlocal user_data
+        data = json.loads(message.body.decode())
+        user_data.update(data)
+        await message.ack()
+
+    await consume_message("user_token_response_queue", handle_response)
+
+    logger.info('\ndata = %s\n', user_data)
+    # Wait for user_data to be populated
+    logger.info(f"Final user_data: {user_data}")
+    return user_data
 
 class UserLoginView(viewsets.ViewSet):
     permission_classes = [AllowAny]
@@ -24,16 +48,8 @@ class UserLoginView(viewsets.ViewSet):
                     serializer.is_valid(raise_exception=True)
                     serializer.save()
                     data = {"id": serializer.data["id"], "username": serializer.data["username"]}
-                    publish_message("user_token_request_queue", json.dumps(data))
                     user_data = {}
-
-                    def handle_response(ch, method, properties, body):
-                        nonlocal user_data
-                        user_data.update(json.loads(body))
-                        ch.stop_consuming()
-
-                    consume_message("user_token_response_queue", handle_response)
-
+                    user_data = async_to_sync(publish_consumer)(data)
                     if "error" in user_data:
                         response_message = {"error": "Couldn't generate tokens", "status":status.HTTP_401_UNAUTHORIZED}
                     else:
