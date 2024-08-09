@@ -3,6 +3,7 @@ import logging
 from django.http import Http404
 from rest_framework import status
 from token_service import settings
+from aio_pika import IncomingMessage
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -13,6 +14,7 @@ from .rabbitmq_utils import consume_message, publish_message
 from .serializers import CustomTokenObtainPairSerializer
 from .models import UserTokens
 import jwt
+from channels.db import database_sync_to_async
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -29,8 +31,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     """
     serializer_class = CustomTokenObtainPairSerializer
     @staticmethod
-    @method_decorator(csrf_exempt)
-    def handle_token_request(ch, method, properties, body):
+    async def handle_token_request(message: IncomingMessage):
         """
             Method to handle the token request.
 
@@ -43,37 +44,14 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 properties: The properties object.
                 body: The body of the message.
         """
-        data = json.loads(body)
-        username = data.get("username")
-        id = data.get("id")
-        try:
-            user, create = UserTokens.objects.get_or_create(id=id, username=username)
-            if create:
-                refresh = RefreshToken.for_user(user)
-                access_token = str(refresh.access_token)
-                user.token_data = {
-                    "refresh": str(refresh),
-                    "access": access_token
-                }
-                user.save()
-                response_message = {
-                    "id": id,
-                    "refresh": str(refresh),
-                    "access": access_token
-                }
-            else:
-                token_data = user.token_data
-                try:
-                    refresh = RefreshToken(token_data["refresh"])
-                    token_data["access"] = str(refresh.access_token)
-                    user.token_data = token_data
-                    user.save()
-                    response_message = {
-                        "id": id,
-                        "refresh": str(refresh),
-                        "access": token_data["access"]
-                    }
-                except jwt.ExpiredSignatureError:
+        @database_sync_to_async
+        def create_token_for_user(username, id):
+            response_message = {}
+            try:
+                user, create = UserTokens.objects.get_or_create(id=id, username=username)
+                logger.info('user= %s', user.username)
+                logger.info('create= %s', create)
+                if create:
                     refresh = RefreshToken.for_user(user)
                     access_token = str(refresh.access_token)
                     user.token_data = {
@@ -86,15 +64,48 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                         "refresh": str(refresh),
                         "access": access_token
                     }
-                except Exception as err:
-                    response_message = {"error": str(err)}
-        except Exception as err:
-            response_message = {"error": str(err)}
-        publish_message("user_token_response_queue", json.dumps(response_message))
+                else:
+                    token_data = user.token_data
+                    try:
+                        refresh = RefreshToken(token_data["refresh"])
+                        token_data["access"] = str(refresh.access_token)
+                        user.token_data = token_data
+                        user.save()
+                        response_message = {
+                            "id": id,
+                            "refresh": str(refresh),
+                            "access": token_data["access"]
+                        }
+                    except jwt.ExpiredSignatureError:
+                        refresh = RefreshToken.for_user(user)
+                        access_token = str(refresh.access_token)
+                        user.token_data = {
+                            "refresh": str(refresh),
+                            "access": access_token
+                        }
+                        user.save()
+                        response_message = {
+                            "id": id,
+                            "refresh": str(refresh),
+                            "access": access_token
+                        }
+                    except Exception as err:
+                        response_message = {"error": str(err)}
+            except Exception as err:
+                response_message = {"error": str(err)}
+            return response_message
 
+        async with message.process():
+            data = json.loads(message.body.decode())
 
-    def start_consumer(self) -> None:
-        consume_message("user_token_request_queue", self.handle_token_request)
+            username = data.get("username")
+            id = data.get("id")
+            response_message = await create_token_for_user(username, id)
+            logger.info('response_message= %s', response_message)
+            await publish_message("user_token_response_queue", json.dumps(response_message))
+
+    async def start_consumer(self) -> None:
+        await consume_message("user_token_request_queue", self.handle_token_request)
 
 
 class CustomTokenRefreshView(TokenRefreshView):
@@ -148,7 +159,7 @@ class ValidateToken():
         except jwt.InvalidTokenError:
             return False
 
-    def validate_token_request_queue(self, ch, method, properties, body):
+    async def validate_token_request_queue(self, ch, method, properties, body):
         """
             Method to handle the token validation request.
 
@@ -186,15 +197,15 @@ class ValidateToken():
         except Exception as err:
             response = {"error": str(err)}
         logger.info("response = %s", response)
-        publish_message("validate_token_response_queue", json.dumps(response))
+        await publish_message("validate_token_response_queue", json.dumps(response))
 
-    def start_consumer(self) -> None:
-        consume_message("validate_token_request_queue", self.validate_token_request_queue)
+    async def start_consumer(self) -> None:
+        await consume_message("validate_token_request_queue", self.validate_token_request_queue)
 
 class InvalidateToken():
     @staticmethod
     @method_decorator(csrf_exempt)
-    def handle_logout_request_queue(ch, method, properties, body):
+    async def handle_logout_request_queue(ch, method, properties, body):
         data = json.loads(body)
         access = data.get("access")
         id = data.get("id")
@@ -213,7 +224,7 @@ class InvalidateToken():
             response_message = {"error": "User has not logged in yet"}
         except Exception as err:
             response_message = {"error": str(err)}
-        publish_message("logout_response_queue", json.dumps(response_message))
+        await publish_message("logout_response_queue", json.dumps(response_message))
 
-    def start_consumer(self):
-        consume_message("logout_request_queue", self.handle_logout_request_queue)
+    async def start_consumer(self):
+        await consume_message("logout_request_queue", self.handle_logout_request_queue)

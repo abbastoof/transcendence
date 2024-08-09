@@ -23,3 +23,6 @@ pytest-django
 pytest-mock
 uvicorn
 daphne
+aio-pika
+channels
+requests
