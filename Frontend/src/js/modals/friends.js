@@ -1,7 +1,8 @@
 import {showMessage} from './messages.js';
 
 document.addEventListener('DOMContentLoaded', function () {
-	updateFriendsList();
+    const friendsModal = document.getElementById('FriendsModal');
+    friendsModal.addEventListener('show.bs.modal', updateFriendsList);
 });
 
 export function updateFriendsList() {

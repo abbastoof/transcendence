@@ -1,14 +1,18 @@
 import { updateFriendsList } from './friends.js';
 import { showMessage } from './messages.js';
+import { updateMatchHistory } from './history.js';
 
 document.addEventListener('DOMContentLoaded', function () {
-    updateUserProfile();
+    const userProfileModal = document.getElementById('ProfileModal');
+    userProfileModal.addEventListener('show.bs.modal', updateUserProfile);
 });
+
 
 export function updateUserProfile() {
     // Check if the user is logged in
     const userData = JSON.parse(localStorage.getItem('userData'));
     console.log('UserData:', userData); // Debugging line
+    console.log('UserData token:', userData.token); // Debugging line
     if (!userData || !userData.id || !userData.token) {
         console.error('UserData is missing or incomplete');
         return;
@@ -67,11 +71,13 @@ export function updateUserProfile() {
                     <button type="submit" class="submit">Submit</button>
                 </form>
                 <button type="button" class="submit" data-bs-toggle="modal" data-bs-target="#FriendsModal">Friends</button>
+                <button type="button" class="submit" data-bs-toggle="modal" data-bs-target="#HistoryModal">Match history</button>
             </div>
         `;
         userProfileContainer.innerHTML = htmlContent;
 
         updateFriendsList(); // Ensure this function is not modifying the HTML in unexpected ways
+        updateMatchHistory();
 
         // Toggle email update form visibility
         document.getElementById('changeEmailButton').addEventListener('click', () => {
@@ -83,7 +89,6 @@ export function updateUserProfile() {
                 updateEmailForm.style.display = 'none';
             }
         });
-
 
         // Handle email update
         document.getElementById('updateEmailForm').addEventListener('submit', (event) => {
