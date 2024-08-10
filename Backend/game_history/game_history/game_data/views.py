@@ -9,8 +9,41 @@ from .rabbitmq_utils import publish_message, consume_message
 from django.utils.timezone import now
 import json
 import logging
+from channels.db import database_sync_to_async
+from aio_pika.message import IncomingMessage
 
 logger = logging.getLogger(__name__)
+
+    
+@database_sync_to_async
+def create_game_history_record(data):
+    player1_id=data.get('player1_id')
+    player2_id=data.get('player2_id')
+    player1_username=data.get('player1_username')
+    player2_username=data.get('player2_username')
+    obj = GameHistory.objects.create(
+        player1_id=player1_id,
+        player1_username=player1_username,
+        player2_id=player2_id,
+        player2_username=player2_username,
+        start_time=now()
+    )
+    serializer = GameHistorySerializer(obj)
+    return serializer
+
+async def handle_create_record_request(message: IncomingMessage):
+    try:
+        data = json.loads(message)
+        serializer = await create_game_history_record(data)
+        if serializer is not None:
+            await publish_message("create_gamehistory_record_response", json.dumps(serializer.data))
+    except Exception as err:
+        logger.info('error = %s', err)
+        error_message = {"error": str(err)}
+        await publish_message("create_gamehistory_record_response", json.dumps(error_message))
+
+async def start_consumer() -> None:
+    await consume_message("create_gamehistory_record_queue", handle_create_record_request)
 
 class GameHistoryViewSet(viewsets.ModelViewSet):
     """
@@ -65,34 +98,6 @@ class GameHistoryViewSet(viewsets.ModelViewSet):
         instance = get_object_or_404(self.get_queryset(), pk=pk)
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
-    @staticmethod
-    @method_decorator(csrf_exempt)
-    def handle_create_record_request(ch, method, properties, body):
-        try:
-            data = json.loads(body)
-            player1_id=data.get('player1_id')
-            player2_id=data.get('player2_id')
-            player1_username=data.get('player1_username')
-            player2_username=data.get('player2_username')
-
-            obj = GameHistory.objects.create(
-                player1_id=player1_id,
-                player1_username=player1_username,
-                player2_id=player2_id,
-                player2_username=player2_username,
-                start_time=now()
-            )
-            serializer = GameHistorySerializer(obj)
-            if serializer is not None:
-                publish_message("create_gamehistory_record_response", json.dumps(serializer.data))
-        except Exception as err:
-            logger.info('error = %s', err)
-            error_message = {"error": str(err)}
-            publish_message("create_gamehistory_record_response", json.dumps(error_message))
-
-    def start_consumer(self) -> None:
-        consume_message("create_gamehistory_record_queue", self.handle_create_record_request)
 
 class GameStatViewSet(viewsets.ModelViewSet):
     """

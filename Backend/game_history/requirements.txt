@@ -21,3 +21,6 @@ pytest-django>=4.4.0
 django-environ
 uvicorn
 daphne
+aio-pika
+channels
+requests
