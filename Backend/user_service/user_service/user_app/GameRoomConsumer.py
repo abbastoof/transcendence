@@ -34,9 +34,16 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
             await self.close(4001)
             return
         await self.send_notification(self.scope['user'].username, 'entered room')
-        response = await self.create_game_history_record()
-        if response is not None:
-            logger.info('Response = %s',response)
+        asyncio.sleep(1)
+        res = await self.check_room_players()
+        logger.info('res = %s', res)
+        if res:
+            asyncio.sleep(1)
+            request = await self.create_game_history_record()
+            logger.info('Request = %s',request)
+            response = await self.publish_and_consume(request)
+            logger.info('Response = %s', response)
+
 
     # Extract token from Query string
     def get_token_from_query_string(self):
@@ -133,8 +140,8 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
     def create_game_history_record(self):
         from .models import GameRoom
         from .serializers import GameRoomSerializer
-        from .rabbitmq_utils import publish_message, consume_message
     
+        request = {}
         gameroom_obj = GameRoom.objects.get(room_name=self.room_name)
         if gameroom_obj is not None and gameroom_obj.player1 is not None and gameroom_obj.player2 is not None:
             serializer = GameRoomSerializer(gameroom_obj).data
@@ -146,18 +153,32 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
                     "player2_id": serializer["player2_id"],
                     "player2_username": serializer["player2_username"],
                 }
-                publish_message('create_gamehistory_record_queue', json.dumps(request))
-                response = {}
+        return request
+    
+    async def publish_and_consume(self, request):
+        from .rabbitmq_utils import consume_message, publish_message
+        await publish_message('create_gamehistory_record_queue', json.dumps(request))
+        response = {}
 
-                def handle_response(ch, method, properties, body):
-                    nonlocal response
-                    response.update(json.loads(body))
-                    ch.stop_consuming()
+        async def handle_response(message):
+            nonlocal response
+            data = json.loads(message.body.decode())
+            response.update(data)
+            await message.ack()
 
-                consume_message('create_gamehistory_record_response', handle_response)
+        await consume_message('create_gamehistory_record_response', handle_response)
 
-                if 'error' in response:
-                    return f'Could not create game_history record: {response}'
-            
-            return response
-        return None
+        logger.info('Response = %s', response)
+        if 'error' in response:
+            return f'Could not create game_history record: {response}'
+        return response
+    
+    @database_sync_to_async
+    def check_room_players(self):
+        from .models import GameRoom
+
+        obj = GameRoom.objects.get(room_name = self.room_name)
+        if obj is not None:
+            if obj.player1 is not None and obj.player2 is not None:
+                return True
+        return False

@@ -27,8 +27,6 @@ async def publish_consumer(data):
         await message.ack()
 
     await consume_message("user_token_response_queue", handle_response)
-
-    logger.info('\ndata = %s\n', user_data)
     # Wait for user_data to be populated
     logger.info(f"Final user_data: {user_data}")
     return user_data
