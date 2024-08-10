@@ -25,11 +25,23 @@ document.addEventListener('DOMContentLoaded', function () {
     // Show the modal and start the game when it's opened
     pongModalElement.addEventListener('shown.bs.modal', function () {
         startGame('pongGameContainer');
+        window.location.hash = 'pong';
     });
 
     // Clean up game resources when the modal is closed
     pongModalElement.addEventListener('hidden.bs.modal', function () {
         cleanUpGame();
+        if (window.location.hash === '#pong') {
+            history.back();
+        }
+    });
+    //listen for hashchange events to handle back/forward navigation
+    window.addEventListener('hashchange', function () {
+        if (window.location.hash === '#pong') {
+            pongModal.show();
+        } else {
+            pongModal.hide();
+        }
     });
 
     // Optionally, add event listeners for other modals if needed

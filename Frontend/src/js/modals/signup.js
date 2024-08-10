@@ -1,4 +1,3 @@
-import * as bootstrap from 'bootstrap'
 import { showMessage } from './messages.js';
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -8,8 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Sign Up modal element not found');
         return;
     }
-    var signUpModal = new bootstrap.Modal(signUpModalElement);
-        
+    
     var modalTitle = document.getElementById('signUpLabel');
     var modalBody = document.querySelector('#signUpModal .modal-body');
 
@@ -54,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             console.log('Success:', data);
-            signUpModal.hide();
+            history.back();
             document.getElementById('signUpForm').reset();
         })
         .catch(error => {
@@ -84,14 +82,4 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('signUpPassword').value = '';
         document.getElementById('signUpRePassword').value = '';
     }
-
-    // Reset form fields and hide error message when modal is hidden (on modal close)
-    signUpModal._element.addEventListener('hidden.bs.modal', function () {
-        document.getElementById('signUpForm').reset();
-        // Remove any error messages
-        const errorSpans = document.querySelectorAll('#signUpModal .ErrorMessage');
-        errorSpans.forEach(function(errorSpan) {
-            errorSpan.remove();
-        });
-    });
 });

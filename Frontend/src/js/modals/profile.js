@@ -3,14 +3,13 @@ import { showMessage } from './messages.js';
 import { updateMatchHistory } from './history.js';
 
 document.addEventListener('DOMContentLoaded', function () {
-    const userProfileModal = document.getElementById('ProfileModal');
-    userProfileModal.addEventListener('show.bs.modal', updateUserProfile);
+    updateUserProfile();
 });
 
 
 export function updateUserProfile() {
     // Check if the user is logged in
-    const userData = JSON.parse(localStorage.getItem('userData'));
+    const userData = JSON.parse(sessionStorage.getItem('userData'));
     console.log('UserData:', userData); // Debugging line
     console.log('UserData token:', userData.token); // Debugging line
     if (!userData || !userData.id || !userData.token) {

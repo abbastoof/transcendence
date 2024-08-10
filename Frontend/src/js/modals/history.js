@@ -1,10 +1,9 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const matchHistoryModal = document.getElementById('HistoryModal');
-    matchHistoryModal.addEventListener('show.bs.modal', updateMatchHistory);
+    updateMatchHistory();
 });
 
 export function updateMatchHistory() {
-    const userData = JSON.parse(localStorage.getItem('userData'));
+    const userData = JSON.parse(sessionStorage.getItem('userData'));
     if (!userData || !userData.id || !userData.token) {
         console.error('UserData is missing or incomplete');
         return;

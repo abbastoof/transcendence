@@ -1,12 +1,11 @@
 import {showMessage} from './messages.js';
 
 document.addEventListener('DOMContentLoaded', function () {
-    const friendsModal = document.getElementById('FriendsModal');
-    friendsModal.addEventListener('show.bs.modal', updateFriendsList);
+	updateFriendsList();
 });
 
 export function updateFriendsList() {
-	const userData = JSON.parse(localStorage.getItem('userData'));
+	const userData = JSON.parse(sessionStorage.getItem('userData'));
 	if (!userData || !userData.id || !userData.token) {
 		console.error('UserData is missing or incomplete');
 		return;
