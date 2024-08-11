@@ -11,6 +11,11 @@ export const initializeEventHandlers = (gameSession) => {
         console.log('Disconnected from server');
     });
 
+    socket.on('game_start', (data) => {
+        console.log('game start message received: ' + data);
+        gameSession.handleGameStart();
+    }
+    )
     socket.on('send_game_state', (data) => {
         if (data && data.gameId) {
             if (data.gameId === gameSession.gameId) {

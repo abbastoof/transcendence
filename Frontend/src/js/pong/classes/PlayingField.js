@@ -20,7 +20,7 @@ class PlayingField {
                 xRand: { value: convertToRange(player1Id, 50, 690) },
                 yRand: { value: convertToRange(player2Id, 2124, 5291) },
                 multiRand: { value: convertToRange(gameId, 625, 90909) },
-                ballDx: { value: 0.0 },
+                ballDx: { value: 0.5 },
             }
         });
          //this.planeMaterial = new THREE.MeshToonMaterial({ color: 0x606060 });

@@ -5,4 +5,5 @@ export const globalState = {
     invertedView: null,
     iTime: 0.0,
     glitchPass: null,
+    view2D: false,
 }

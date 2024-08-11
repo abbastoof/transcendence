@@ -30,10 +30,12 @@ class GameSession {
         this.dataSent = false;
         this.player1Alias = "Player1"
         this.player2Alias = "Player2"
+        this.paused = true;
     }
 
     initialize(gameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene, onGameEnd) {
         this.gameId = gameId;
+        this.localPlayerId = localPlayerId
         this.player1Id = player1Id;
         this.player2Id = player2Id;
         this.isRemote = isRemote;
@@ -49,15 +51,16 @@ class GameSession {
         this.rightPaddle = new Paddle(scene, RIGHT_PADDLE_START, 0xff0000);
         this.ball = new Ball(scene);
         this.scoreBoard = new ScoreBoard(scene);
-        const player1Text = `${this.player1Alias} ${this.player1Score}`;
-        const player2Text = `${this.player2Alias} ${this.player2Score}`;
-        this.scoreBoard.createScoreBoard(player1Text, player2Text);
+        if (isRemote === true)
+            this.scoreBoard.showWaitText();
+        // const player1Text = `${this.player1Alias} ${this.player1Score}`;
+        // const player2Text = `${this.player2Alias} ${this.player2Score}`;
+        // this.scoreBoard.createScoreBoard(player1Text, player2Text);
         console.log("Type of onGameEndCallback:", typeof this.onGameEndCallback);
-
         this.playingField.addToScene();
-        this.leftPaddle.addToScene();
-        this.rightPaddle.addToScene();
         this.ball.addToScene();
+
+
 
         // Always connect to the server
         if (!this.socket.connected) {
@@ -91,16 +94,30 @@ class GameSession {
         this.socket.emit('move_paddle', data);
     }
 
+    handleGameStart() {
+        this.scoreBoard.showGameStartText()
+
+        this.leftPaddle.addToScene();
+        this.rightPaddle.addToScene();
+        setTimeout(() => {
+            this.paused = false
+            const player1Text = `${this.player1Alias} ${this.player1Score}`;
+            const player2Text = `${this.player2Alias} ${this.player2Score}`;
+            this.scoreBoard.createScoreBoard(player1Text, player2Text);
+        }, 2000);
+    }
+
     handleGameStateUpdate(data) {
         const translatedData = translateCoordinates(data);
-        if (this.isRemote && (this.localPlayerId !== this.player1Id)) {
-            this.leftPaddle.updatePosition(translatedData.player2Pos);
-            this.rightPaddle.updatePosition(translatedData.player1Pos);
-        }
-        else {
+        // if (this.isRemote && (this.localPlayerId !== this.player1Id)) {
+        //     console.log(translatedData.player1_position, translatedData.player2_position);
+        //     // this.leftPaddle.updatePosition(translatedData.player2_position);
+            // this.rightPaddle.updatePosition(translatedData.player1_position);
+        // }
+        // else {
             this.leftPaddle.updatePosition(translatedData.player1Pos);
             this.rightPaddle.updatePosition(translatedData.player2Pos);
-        }
+        
         this.ball.updatePosition(translatedData.ball);
         if (data.ballDelta.dx > 0  && globalState.playingFieldMaterial !==  null) {
             globalState.playingFieldMaterial.uniforms.ballDx.value = 1.0;
@@ -109,11 +126,14 @@ class GameSession {
             globalState.playingFieldMaterial.uniforms.ballDx.value = -1.0;
         }
         if (data.bounce === true) {
-            console.log('Bounce detected');
+            console.log('Bounce detected, hitpos: ' + data.hitpos);
             globalState.rgbShift.enabled = true;
-            globalState.rgbShift.uniforms.amount.value = 0.015;
-            if (Math.random() < 0.5) {
+            if (data.hitpos < 0.1) {
+                globalState.rgbShift.uniforms.amount.value = 0.2
                 globalState.glitchPass.enabled = true;
+            }
+            else {
+                globalState.rgbShift.uniforms.amount.value = 0.1 * data.hitpos
             }
         }
         else {

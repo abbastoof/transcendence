@@ -37,27 +37,27 @@ insert('.headerContainer', 'headerSVG.html');
 //     // Optionally, add event listeners for other modals if needed
 // });
 
-document.addEventListener('DOMContentLoaded', function () {
-    // Initialize the modal with options to prevent closing on backdrop click
-    const pongModalElement = document.getElementById('pongModal');
-    const pongModal = new bootstrap.Modal(pongModalElement, {
-        backdrop: 'static',
-        keyboard: true // Optional: prevents closing with ESC key
-    });
+// document.addEventListener('DOMContentLoaded', function () {
+//     // Initialize the modal with options to prevent closing on backdrop click
+//     const pongModalElement = document.getElementById('pongModal');
+//     const pongModal = new bootstrap.Modal(pongModalElement, {
+//         backdrop: 'static',
+//         keyboard: true // Optional: prevents closing with ESC key
+//     });
 
-    // Show the modal and start the game when it's opened
-    pongModalElement.addEventListener('shown.bs.modal', function () {
-        startGame('pongGameContainer');
-    });
+//     // Show the modal and start the game when it's opened
+//     pongModalElement.addEventListener('shown.bs.modal', function () {
+//         startGame('pongGameContainer');
+//     });
 
-    // Clean up game resources when the modal is closed
-    pongModalElement.addEventListener('hidden.bs.modal', function () {
-        cleanUpGame();
-    });
-    // Make modal available globally if needed
-    window.pongModal = pongModal;
-    // Optionally, add event listeners for other modals if needed
-});
+//     // Clean up game resources when the modal is closed
+//     pongModalElement.addEventListener('hidden.bs.modal', function () {
+//         cleanUpGame();
+//     });
+//     // Make modal available globally if needed
+//     window.pongModal = pongModal;
+//     // Optionally, add event listeners for other modals if needed
+// });
 
 document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('startGameButton').addEventListener('click', function () {

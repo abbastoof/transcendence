@@ -1,5 +1,6 @@
 // pong.js
 import * as bootstrap from 'bootstrap';
+import * as THREE from 'three'
 import GameSession from './classes/GameSession.js';
 import { PADDLE_SPEED } from './constants.js';
 import { init } from './init.js';
@@ -188,18 +189,34 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
         keys[event.key] = false;
     });
 
-    function flip() {
-        if (keys['f'] || keys['F']) {
-            globalState.invertedView = true;
-            camera.position.set(400, 400, -400);
-            gameSession.scoreBoard.clearScores();
-            gameSession.scoreBoard.createScoreBoard("Player 1: 0\nPlayer 2: 0");
-        }
-        if (keys['r'] || keys['R']) {
-            globalState.invertedView = false;
-            camera.position.set(-400, 400, 400);
-            gameSession.scoreBoard.clearScores();
-            gameSession.scoreBoard.createScoreBoard("Player 1: 0\nPlayer 2: 0");
+    let keyPressed = false; // Flag to track if the key is currently pressed
+
+    function changeView() {
+        if (keys['c'] || keys['C']) {
+            if (!keyPressed) { // Check if the key was not already pressed
+                keyPressed = true; // Set the flag to indicate the key is now pressed
+    
+                if (globalState.view2D === false) {
+                    globalState.view2D = true;
+                    if (globalState.invertedView === true) {
+                        camera.position.set(0, 400, -400);
+                    } else {
+                        camera.position.set(0, 400, 400);
+                    }
+                } else {
+                    if (globalState.invertedView === true) {
+                        camera.position.set(400, 400, -400); // Adjust these values for your desired isometric angle
+                    } else {
+                        camera.position.set(-400, 400, 400); // Adjust these values for your desired isometric angle
+                    }
+                    globalState.view2D = false;
+                }
+    
+                gameSession.scoreBoard.clearScores();
+                gameSession.scoreBoard.updateScores(gameSession.player1Alias, gameSession.player1Score, gameSession.player2Alias, gameSession.player2Score);
+            }
+        } else {
+            keyPressed = false; // Reset the flag when the key is released
         }
     }
 
@@ -224,43 +241,49 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
         gameSession.rightPaddle.mesh.position.z += rightDeltaZ;
 
         if (leftDeltaZ !== 0 || rightDeltaZ !== 0) {
-            let emitData = JSON.stringify({
+            let emitData = {
                 'type': 'move_paddle',
                 'game_id': gameSession.gameId,
                 'player1_id': gameSession.player1Id, 
                 'p1_delta_z': leftDeltaZ,
                 'player2_id': gameSession.player2Id,
                 'p2_delta_z': rightDeltaZ
-            });
+            };
         gameSession.sendMovement(emitData);
         }
     }
     function remoteGameControls() {
         let deltaZ = 0;
-    
+        
+        if (gameSession.paused === true) {
+            return;
+        }
+
+        let playerPaddle;
+        if (globalState.invertedView)
+            playerPaddle = gameSession.rightPaddle;
+        else
+            playerPaddle = gameSession.leftPaddle;
         // Capture input for the local player’s paddle
-        if (keys['w'] || keys['W']) {
+        if ((keys['w'] || keys['W']) && !playerPaddle.intersectsWall(gameSession.playingField.upperWall.boundingBox)) {
             deltaZ -= PADDLE_SPEED;
         }
-        if (keys['s'] || keys['S']) {
+        else if ((keys['s'] || keys['S']) && !playerPaddle.intersectsWall(gameSession.playingField.lowerWall.boundingBox)){
             deltaZ += PADDLE_SPEED;
         }
-    
-        // Update the local player's paddle
-        if (localPlayerId === gameSession.player1Id) {
-            gameSession.leftPaddle.mesh.position.z += deltaZ;
-        } else {
-            gameSession.rightPaddle.mesh.position.z -= deltaZ;
-        }
+        if (globalState.invertedView)
+            deltaZ *= -1
+        
+        playerPaddle.position.z += deltaZ
     
         // Send movement data to the server for the local player’s paddle
         if (deltaZ !== 0) {
-            let emitData = JSON.stringify({
+            let emitData = {
                 'type': 'move_paddle',
                 'game_id': gameSession.gameId,
-                'player_id': localPlayerId,
+                'player_id': gameSession.localPlayerId,
                 'delta_z': deltaZ
-            });
+            };
             gameSession.sendMovement(emitData);
         }
     }
@@ -272,8 +295,9 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
         controlFunction = localGameControls;
     function animate() {
         controlFunction();
-        flip();
+        changeView();
         updateITimes();
+
         camera.lookAt(0, 0, 0);
         composer.render();
         animationId = requestAnimationFrame(animate);

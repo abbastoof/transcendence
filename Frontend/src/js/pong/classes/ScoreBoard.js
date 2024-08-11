@@ -16,6 +16,7 @@ class ScoreBoard {
         this.player1Mesh = null;
         this.player2Mesh = null;
         this.goalMesh = null;
+        this.gameStartMesh = null;
         this.font = new FontLoader().parse(fontJson);
 
         // Array to store material instances
@@ -102,6 +103,33 @@ class ScoreBoard {
         this.scene.add(this.goalMesh);
     }
 
+    showGameStartText() {
+        this.clearScores();
+        this.gameStartMesh = this.createText('GAME START', 80, 0x00FF00, 0.3, 15.0)
+        this.gameStartMesh.position.set(0, 90.0, 300.0);
+        if (globalState.invertedView === true) {
+            this.gameStartMesh.rotation.y = THREE.MathUtils.degToRad(180);
+        }
+        else {
+            this.gameStartMesh.position.z = -300.0
+        }
+        this.scene.add(this.gameStartMesh);
+    }
+
+    showWaitText() {
+        this.clearScores();
+        this.gameStartMesh = this.createText('Waiting for your opponent..', 50, 0x4455FF, 1.4, 4.0);
+        this.gameStartMesh.position.set(0, 90.0, 300.0);
+        if (globalState.invertedView === true) {
+            this.gameStartMesh.rotation.y = THREE.MathUtils.degToRad(180);
+        }
+        else {
+            this.gameStartMesh.position.z = -300.0
+        }
+        this.scene.add(this.gameStartMesh);
+    }
+
+    
     clearScores() {
         if (this.player1Mesh) {
             this.scene.remove(this.player1Mesh);
@@ -120,6 +148,12 @@ class ScoreBoard {
             this.goalMesh.geometry.dispose();
             this.goalMesh.material.dispose();
             this.goalMesh = null;
+        }
+        if (this.gameStartMesh) {
+            this.scene.remove(this.gameStartMesh);
+            this.gameStartMesh.geometry.dispose();
+            this.gameStartMesh.material.dispose();
+            this.gameStartMesh = null;
         }
         // Clear the stored materials
         this.materials = [];

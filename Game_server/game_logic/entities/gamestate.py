@@ -29,6 +29,7 @@ class GameState:
         self._paused: bool = True
         self._in_progress: bool = True
         self._bounce: bool = False
+        self._hitpos: float = 0.0
     
     # getter for game_id
     @property
@@ -83,6 +84,14 @@ class GameState:
     def bounce(self, new_value):
         self._bounce = new_value
 
+    @property
+    def hitpos(self):
+        return self._hitpos
+
+    @hitpos.setter
+    def hitpos(self, new_value):
+        self._hitpos = new_value
+        
     # get_player_score method
     # returns the score of the player with the given id
     # raises a ValueError if the player id is invalid
@@ -154,11 +163,11 @@ class GameState:
         elif self.ball.check_collision(self.player1.paddle):
             self.player1.add_hit()
             self.bounce = True
-            self.ball.bounce_from_paddle(self.player1.paddle)
+            self.hitpos = self.ball.bounce_from_paddle(self.player1.paddle)
         elif self.ball.check_collision(self.player2.paddle):
             self.player2.add_hit()
             self.bounce = True
-            self.ball.bounce_from_paddle(self.player2.paddle)
+            self.hitpos = self.ball.bounce_from_paddle(self.player2.paddle)
             
     # check_goal method
     # checks if the ball has scored a goal
@@ -186,9 +195,10 @@ class GameState:
                 self.ball.direction = random.randrange(-12, 12)
             else:
                 self.ball.direction = random.randrange(168, 192)
+        self.ball.speed = BALL_SPEED
         self.ball.position = BALL_DEFAULT_X, 0, BALL_DEFAULT_Z
 
     # is_game_over method
     # returns True if the game is over, False otherwise
     def is_game_over(self) -> bool:
-        return self.time_remaining <= 0 or self.player1.score >= 3 or self.player2.score >= 3 
+        return self.time_remaining <= 0 or self.player1.score >= 10 or self.player2.score >= 10 
