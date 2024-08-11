@@ -2,11 +2,12 @@ import '../scss/styles.scss'
 import * as bootstrap from 'bootstrap'
 import { createModal } from './createModal.js'
 import { insert, insertModal } from './insert.js'
-import { startGame, cleanUpGame } from './pong/pong.js'
+import './pong/pong.js'
 import './modals/signup.js';
 import './modals/profile.js';
 import './modals/login.js';
 import './modals/tournament.js';
+import './modals/friends.js';
 
 
 
@@ -14,7 +15,28 @@ import './modals/tournament.js';
 insert('.headerContainer', 'headerSVG.html');
 //insertModal('.tournament', 'tournamentModal.html', 'tournament', 'Tournament');
 
-// Assuming you have imported necessary modules and functions like startGame, cleanupGame
+// // Assuming you have imported gnecessary modules and functions like startGame, cleanupGame
+// document.addEventListener('DOMContentLoaded', function () {
+//     // Initialize the modal with options to prevent closing on backdrop click
+//     const pongModalElement = document.getElementById('pongModal');
+//     const pongModal = new bootstrap.Modal(pongModalElement, {
+//         backdrop: 'static',
+//         keyboard: true // Optional: prevents closing with ESC key
+//     });
+
+//     // Show the modal and start the game when it's opened
+//     pongModalElement.addEventListener('shown.bs.modal', function () {
+//         startGame('pongGameContainer');
+//     });
+
+//     // Clean up game resources when the modal is closed
+//     pongModalElement.addEventListener('hidden.bs.modal', function () {
+//         cleanUpGame();
+//     });
+
+//     // Optionally, add event listeners for other modals if needed
+// });
+
 document.addEventListener('DOMContentLoaded', function () {
     // Initialize the modal with options to prevent closing on backdrop click
     const pongModalElement = document.getElementById('pongModal');
@@ -56,38 +78,27 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 createModal('tournament', 'Tournament', `
-    <form id="playerForm" class="form">
+    <form id="playerForm" class="form" novalidate>
         <p class="font">Select number of players:</p>
         <div class="row justify-content-center">
-                <div class="col-md-3">
-                        <div class="form-check">
-                                <input class="form-check-input" type="radio" name="playerCount" id="2vs2" value="2">
-                                <label class="form-check-label font" for="2vs2">2</label>
-                        </div>
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="playerCount" id="4vs4" value="4">
+                    <label class="form-check-label font" for="4vs4">4</label>
                 </div>
-                <div class="col-md-3">
-                        <div class="form-check">
-                                <input class="form-check-input" type="radio" name="playerCount" id="4vs4" value="4">
-                                <label class="form-check-label font" for="4vs4">4</label>
-                        </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="playerCount" id="8vs8" value="8">
+                    <label class="form-check-label font" for="8vs8">8</label>
                 </div>
-                <div class="col-md-3">
-                        <div class="form-check">
-                                <input class="form-check-input" type="radio" name="playerCount" id="6vs6" value="6">
-                                <label class="form-check-label font" for="6vs6">6</label>
-                        </div>
-                </div>
-                <div class="col-md-3">
-                        <div class="form-check">
-                                <input class="form-check-input" type="radio" name="playerCount" id="8vs8" value="8">
-                                <label class="form-check-label font" for="8vs8">8</label>
-                        </div>
-                </div>
+            </div>
         </div>
         <div id="playerAliasInputs" style="display: none;">
                 <!-- Player alias inputs will be dynamically added here -->
         </div>
-        <button type="submit" class="submit">Play</button>
+        <button type="submit" id="startTournament" class="submit">Play</button>
+        <button type="button" id="randomNamesButton" class="submit">Randomize Names</button>
     </form>`)
 
 createModal('signUp', 'Sign up', `
@@ -145,7 +156,6 @@ createModal('logout', 'Log out', `
 insertModal('.about', 'aboutModal.html', 'about', 'About');
 
 createModal('Friends', 'Friends', '<div id="Friends"> <h2 id="friendsList">Friend List</h2> <h2 id="pendingList"> Pending requests </h2> </div>');
-import './modals/friends.js';
 
 createModal('Profile', 'Profile', '<div id="userProfile"></div>');
 

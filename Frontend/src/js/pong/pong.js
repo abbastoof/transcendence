@@ -4,12 +4,17 @@ import GameSession from './classes/GameSession.js';
 import { PADDLE_SPEED } from './constants.js';
 import { init } from './init.js';
 import { randFloat } from 'three/src/math/MathUtils.js';
-
-let gameSession = new GameSession();
+import { globalState } from './globalState.js';
 let gameStarted = false;
-let renderer, scene, camera, composer, animationId;
+let gameSession, renderer, scene, camera, composer, animationId;
 
-export function cleanUpGame() {
+function callBackTestFunction(data) {
+    console.log(data);
+    console.log("callback called back");
+    endGame();
+}
+
+export function cleanUpThreeJS() {
     if (typeof cancelAnimationFrame !== 'undefined') {
         cancelAnimationFrame(animationId);
     }
@@ -36,6 +41,14 @@ export function cleanUpGame() {
     if (gameContainer) {
         gameContainer.innerHTML = '';
     }
+    if (scene)
+        scene = null;
+    if (camera)
+        camera = null;
+    if (composer)
+        composer = null;
+    if (renderer)
+        renderer = null;
 }
 
 function cleanMaterial(material) {
@@ -53,9 +66,10 @@ function cleanMaterial(material) {
  * Function called to start the game
  * @param {*} containerId container for running the game
  * @param {*} config game properties (id, players, online, tournament)
+ * @param {*} onGameEnd callback function that will be called in the end of game
  * @returns if config is invalid, otherwise runs the game
  */
-export function startGame(containerId, config = {}) {
+export function startGame(containerId, config = {}, onGameEnd = null) {
     console.log('Config object:', config);  // Debugging line
 
     const {
@@ -113,18 +127,18 @@ export function startGame(containerId, config = {}) {
             console.error('Player IDs are missing or incomplete! Cannot start remote game!');
             return;
         }
-        if (isTest == false) {
-            const userData = JSON.parse(localStorage.getItem('userData'));
-            console.log('UserData:', userData); // Debugging line
-            if (!userData || !userData.id || !userData.token) {
-                console.error('UserData is missing or incomplete! Cannot start remote game!');
-                endGame();
-                return;
-            }
-            else {
-                localPlayerId = userData.id;
-            }
-        }
+        // if (isTest == false) {
+        //     const userData = JSON.parse(localStorage.getItem('userData'));
+        //     console.log('UserData:', userData); // Debugging line
+        //     if (!userData || !userData.id || !userData.token) {
+        //         console.error('UserData is missing or incomplete! Cannot start remote game!');
+        //         endGame();
+        //         return;
+        //     }
+        //     else {
+        //         localPlayerId = userData.id;
+        //     }
+        // }
         if (localPlayerId === playerIds[0] || localPlayerId === playerIds[1]) {
         player1Id = playerIds[0];
         player2Id = playerIds[1];
@@ -135,19 +149,19 @@ export function startGame(containerId, config = {}) {
         }
     }
     else {
-        const userData = JSON.parse(localStorage.getItem('userData'));
-        console.log('UserData:', userData); // Debugging line
-        if (!userData || !userData.id || !userData.token) {
-            console.error('UserData is missing or incomplete!');
-        }
-        else {
-            localPlayerId = userData.id;
-        }
+        // const userData = JSON.parse(localStorage.getItem('userData'));
+        // console.log('UserData:', userData); // Debugging line
+        // if (!userData || !userData.id || !userData.token) {
+        //     console.error('UserData is missing or incomplete!');
+        // }
+        // else {
+        //     localPlayerId = userData.id;
+        // }
         player1Id = Math.round(randFloat(1000, 1999));
         player2Id = Math.round(randFloat(2000, 2999));
         finalGameId = Math.round(randFloat(5000, 9999));
     }
-    
+    globalState.invertedView = player2Id === localPlayerId
     const container = document.getElementById(containerId);
     const canvas = document.createElement('canvas');
     canvas.width = 800;
@@ -156,12 +170,13 @@ export function startGame(containerId, config = {}) {
 
     // Initialize game session
 
-    const { renderer: r, scene: s, camera: c, composer: comp } = init(canvas, player2Id === localPlayerId);
+    const { renderer: r, scene: s, camera: c, composer: comp } = init(canvas);
     renderer = r;
     scene = s;
     camera = c;
     composer = comp;
-    gameSession.initialize(finalGameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene);
+    gameSession = new GameSession();
+    gameSession.initialize(finalGameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene, onGameEnd);
     gameStarted = true;
 
     // Keyboard controls
@@ -172,6 +187,21 @@ export function startGame(containerId, config = {}) {
     document.addEventListener('keyup', (event) => {
         keys[event.key] = false;
     });
+
+    function flip() {
+        if (keys['f'] || keys['F']) {
+            globalState.invertedView = true;
+            camera.position.set(400, 400, -400);
+            gameSession.scoreBoard.clearScores();
+            gameSession.scoreBoard.createScoreBoard("Player 1: 0\nPlayer 2: 0");
+        }
+        if (keys['r'] || keys['R']) {
+            globalState.invertedView = false;
+            camera.position.set(-400, 400, 400);
+            gameSession.scoreBoard.clearScores();
+            gameSession.scoreBoard.createScoreBoard("Player 1: 0\nPlayer 2: 0");
+        }
+    }
 
     // Update function
     function localGameControls() {
@@ -236,13 +266,14 @@ export function startGame(containerId, config = {}) {
     }
             // Add remote game controls here
     let controlFunction;
-    if (isRemote)
+    if (isRemote === true)
         controlFunction = remoteGameControls;
     else
         controlFunction = localGameControls;
     function animate() {
         controlFunction();
-        gameSession.playingField.shaderMaterial.uniforms.iTime.value = performance.now() / 1000;
+        flip();
+        updateITimes();
         camera.lookAt(0, 0, 0);
         composer.render();
         animationId = requestAnimationFrame(animate);
@@ -250,12 +281,18 @@ export function startGame(containerId, config = {}) {
     animate();
 }
 
-function cleanUpThreeJS() {
-    if (animationId) cancelAnimationFrame(animationId);
-    if (renderer) renderer.dispose();
 
+
+function updateITimes() {
+    globalState.iTime += .01;
+    if (globalState.playingFieldMaterial)
+        globalState.playingFieldMaterial.uniforms.iTime.value = globalState.iTime;
+    if (gameSession.scoreBoard.materials) {
+        gameSession.scoreBoard.materials.forEach(material => {
+            material.uniforms.iTime.value = globalState.iTime;
+        });
+    }
 }
-
 document.addEventListener('DOMContentLoaded', () => {
     const pongModal = new bootstrap.Modal(document.getElementById('pongModal'));
 
@@ -266,20 +303,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 playerIds: [],    // Specify player IDs if needed
                 gameId: null,     // Specify game ID if needed
                 isLocalTournament: false,  // Set to true for local tournaments
-            });
+            }, callBackTestFunction);
         }, 500); // Ensure the modal is fully visible
     });
 
     document.getElementById('pongModal').addEventListener('hidden.bs.modal', () => {
-        gameSession.disconnect();  // Handle socket disconnection
-        endGame();
+        if (gameStarted) {
+            endGame();
+        }
     });    
 });
 
+export function cleanUpGame() {
+    if (gameSession)
+    {
+        gameSession.disconnect();
+        gameSession = null;
+    }
+}
 export function endGame()
 {
+    cleanUpThreeJS();
     cleanUpGame();
     gameStarted = false;
+    localStorage.setItem('isGameOver', 'true');
+    console.log("at endgame: gameStarted:", gameStarted, "isGameOver:", localStorage.getItem('isGameOver'));
 }
 
 export function changeCameraAngle()
@@ -287,3 +335,4 @@ export function changeCameraAngle()
     camera.position.set(0, 400, 400);
     camera.lookAt(0, 0, 0)
 }
+

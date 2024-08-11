@@ -4,25 +4,38 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
+import { globalState } from './globalState.js';
 
-export function initializeScene(renderer, scene, camera, composer, flipView) {
+const glitchPass = new GlitchPass();
+globalState.glitchPass = glitchPass;
+const rgbShift = new ShaderPass( RGBShiftShader );
+globalState.rgbShift = rgbShift;
+export function initializeScene(renderer, scene, camera, composer) {
     // Post-processing effects
     const renderPass = new RenderPass( scene, camera );
     composer.addPass( renderPass );
-    // const glitchPass = new GlitchPass();
-    // composer.addPass( glitchPass );
+    
+    glitchPass.enabled = false;
+    glitchPass.goWild = true;
+    composer.addPass( glitchPass );
 
-    const effect2 = new ShaderPass( RGBShiftShader );
-    effect2.uniforms[ 'amount' ].value = 0.0015;
-    composer.addPass( effect2 );
+
+
+    rgbShift.uniforms[ 'amount' ].value = 0.0015;
+    rgbShift.enabled = false;
+    composer.addPass( rgbShift );
+
+    const filmPass = new FilmPass( 0.9, .2, 900, false );
+    composer.addPass( filmPass );
 
     const outputPass = new OutputPass();
     composer.addPass( outputPass );
 
     // Camera setup
-    if (flipView) {
+   if (globalState.invertedView === true) {
         camera.position.set(400, 400, -400); // Adjust these values for your desired isometric angle
-    }
+   }
     else {
         camera.position.set(-400, 400, 400); // Adjust these values for your desired isometric angle
     }
@@ -35,12 +48,12 @@ export function initializeScene(renderer, scene, camera, composer, flipView) {
     scene.add(ambientLight);
 
     const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.7);
-    directionalLight1.position.set(50, 100, 50);
+    directionalLight1.position.set(100, 100, 100);
     directionalLight1.castShadow = true;
     scene.add(directionalLight1);
 
     const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
-    directionalLight2.position.set(-50, 100, -50);
+    directionalLight2.position.set(-100, 100, -100);
     scene.add(directionalLight2);
 
     const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);

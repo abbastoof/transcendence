@@ -1,9 +1,10 @@
-export const fragmentShader = `
+export const playingFieldShader = `
     uniform float iTime;
     uniform vec2 iResolution;
     uniform float xRand;
     uniform float yRand;
     uniform float multiRand;
+    uniform float ballDx;
     varying vec2 vUv;
 
     float noise21(vec2 p){
@@ -37,9 +38,10 @@ export const fragmentShader = `
 
     void mainImage(out vec4 fragColor, in vec2 fragCoord) {
         vec2 uv = fragCoord / iResolution.xy;
-        uv.y -= iTime * 0.04;
+        //uv.y -= iTime * 0.09;
+        uv.x -= iTime * 0.1 * ballDx;
         float c = SmoothNoise2(uv);
-        vec3 col = vec3(sin(c * iTime) * .1, fract(c) *.01, fract(c) * .01);
+        vec3 col = vec3(cos(c * iTime)* .01, cos(c * iTime)*.05, sin(c * iTime) * .8);
 
         fragColor = vec4(col, 1.0);
     }
@@ -48,3 +50,6 @@ export const fragmentShader = `
         mainImage(gl_FragColor, vUv * iResolution.xy);
     }
 `;
+
+
+

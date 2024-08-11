@@ -1,11 +1,12 @@
 ### `startGame` Function Overview (Frontend/src/js/pong/pong.js)
 
 #### Purpose:
-Initializes and starts a game session in a specified HTML container.
+Initializes and starts a game session in a specified HTML container. Optionally, you can provide a callback function that will be executed after the game ends and the screen has been cleaned up.
 
 #### Parameters:
 - `containerId` (string): ID of the HTML element to host the game.
 - `config` (object, optional): Configuration settings for the game.
+- `onGameEnd` (function, optional): Callback function that is invoked when the game ends and the screen has been cleaned up. This function receives game result data as its parameter.
 
 #### Config Options:
 - `isRemote` (boolean): Indicates if the game is remote (default: `false`).
@@ -13,69 +14,71 @@ Initializes and starts a game session in a specified HTML container.
 - `gameId` (number): ID of the game (default: `null`).
 - `isLocalTournament` (boolean): Indicates if the game is a local tournament (default: `false`).
 
-### Valid Configurations
+### Example of Use
 
 #### 1. Local Tournament:
 - **Description**: Starts a local tournament game with predefined player IDs and game ID.
-- **Config**:
+  
   ```javascript
-  {
-    isLocalTournament: true,
+  const config = {
+    isRemote: false,
     playerIds: [123, 456],
     gameId: 789,
-    isRemote: false
-  }
-  ```
-  ```javascript
-  startGame('gameContainer', {
     isLocalTournament: true,
-    playerIds: [123, 456],
-    gameId: 789,
-    isRemote: false
-  });
+  };
+  
+  startGame('gameContainer', config, onTournamentGameEnd);
   ```
 
 #### 2. Remote Game:
-- **Description**: Starts a remote game using player IDs and gameID's provided by the backend matchmaking. 
-- **Note**: The logged-in user must be one of the players. Otherwise the game will not start. Logged in user's id is fetched from `localStorage`
-- **Note**: Instead of sending "startgame" message to server like in local games, the client sends a "join game" message to server. Game session can start when both players have joined.
-- **Config**:
+- **Description**: Starts a remote game using player IDs and game ID provided by the backend matchmaking.
+- **Note**: The logged-in user must be one of the players. Otherwise, the game will not start. Logged-in user’s ID is fetched from `localStorage`.
+- **Note**: Instead of sending a "start_game" message to the server like in local games, the client sends a "join_game" message. The game session starts when both players have joined.
+  
   ```javascript
-  {
+  const config = {
     isRemote: true,
     playerIds: [123, 456],
-    gameId: 12345,  // Must be a valid number
+    gameId: 12345,
     isLocalTournament: false
-  }
-  ```
-  ```javascript
-  startGame('gameContainer', {
-    isRemote: true,
-    playerIds: [123, 456],
-    gameId: 12345,  // Must be a valid number
-    isLocalTournament: false
-  });
+  };
+  
+  startGame('gameContainer', config, onRemoteGameEnd);
   ```
 
 #### 3. Standard Local Game:
 - **Description**: Starts a local game with random player IDs and game ID.
-- **Config**:
+  
   ```javascript
-  {
+  const config = {
     isRemote: false,
     playerIds: [],
     gameId: null,
     isLocalTournament: false
-  }
+  };
+  
+  startGame('gameContainer', config, onLocalGameEnd);
   ```
-  ```javascript
-  startGame('gameContainer', {
-    isRemote: false,
-    playerIds: [],
-    gameId: null,
-    isLocalTournament: false
-  });
-  ```
+
+### Example of a Callback Function
+
+The callback function is invoked at the end of the game with `this.onGameEndCallback(data)`, where `data` is a JSON object containing end results and game stats sent by the game server. 
+
+Example JSON data:
+```json
+{
+    "type": "game_over",
+    "game_id": 1234,
+    "player1_id": 42,
+    "player2_id": 808,
+    "winner": 42,
+    "player1_score": 10,
+    "player2_score": 1,
+    "total_hits": 999,
+    "longest_rally": 15,
+    "game_duration": 300
+}
+```
 
 ### Key Points:
 1. **Validation**: Ensures valid player IDs, game ID, and boolean values.
@@ -84,6 +87,4 @@ Initializes and starts a game session in a specified HTML container.
 4. **HTML Setup**: Creates and appends a canvas to the specified container.
 5. **Controls**: Sets up keyboard controls for paddle movement.
 6. **Animation**: Starts the game animation loop.
-
-*Remember*:
-When you start a game with startGame(), remember to end it with endGame()
+7. **Optional Callback**: The `onGameEnd` callback is called after the game ends and the screen has been cleaned up.
