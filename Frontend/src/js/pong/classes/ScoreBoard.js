@@ -80,7 +80,6 @@ class ScoreBoard {
             this.player1Mesh.position.z = -300.0;
             this.player2Mesh.position.z = -300.0;
         }
-        this.scene.add(this.topRowMesh);
         this.scene.add(this.player1Mesh);
         this.scene.add(this.player2Mesh);
     }

@@ -4,4 +4,5 @@ export const globalState = {
     playingFieldMaterial: null,
     invertedView: null,
     iTime: 0.0,
+    glitchPass: null,
 }

@@ -4,21 +4,30 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
 import { globalState } from './globalState.js';
 
+const glitchPass = new GlitchPass();
+globalState.glitchPass = glitchPass;
 const rgbShift = new ShaderPass( RGBShiftShader );
 globalState.rgbShift = rgbShift;
-
 export function initializeScene(renderer, scene, camera, composer) {
     // Post-processing effects
     const renderPass = new RenderPass( scene, camera );
     composer.addPass( renderPass );
-    // const glitchPass = new GlitchPass();
-    // composer.addPass( glitchPass );
+    
+    glitchPass.enabled = false;
+    glitchPass.goWild = true;
+    composer.addPass( glitchPass );
+
 
 
     rgbShift.uniforms[ 'amount' ].value = 0.0015;
+    rgbShift.enabled = false;
     composer.addPass( rgbShift );
+
+    const filmPass = new FilmPass( 0.9, .2, 900, false );
+    composer.addPass( filmPass );
 
     const outputPass = new OutputPass();
     composer.addPass( outputPass );

@@ -108,9 +108,15 @@ class GameSession {
         }
         if (data.bounce === true) {
             console.log('Bounce detected');
+            globalState.rgbShift.enabled = true;
             globalState.rgbShift.uniforms.amount.value = 0.015;
+            if (Math.random() < 0.5) {
+                globalState.glitchPass.enabled = true;
+            }
         }
         else {
+            globalState.rgbShift.enabled = false;
+            globalState.glitchPass.enabled = false;
             globalState.rgbShift.uniforms.amount.value = 0.0;
         }
     }
