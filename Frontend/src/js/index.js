@@ -7,9 +7,8 @@ import './modals/signup.js';
 import './modals/profile.js';
 import './modals/login.js';
 import './modals/tournament.js';
-
-
-
+import './modals/history.js';
+import './modals/friends.js';
 
 insert('.headerContainer', 'headerSVG.html');
 //insertModal('.tournament', 'tournamentModal.html', 'tournament', 'Tournament');
@@ -23,16 +22,36 @@ document.addEventListener('DOMContentLoaded', function () {
         keyboard: true // Optional: prevents closing with ESC key
     });
 
+    function handleHashChange() {
+        if (window.location.hash === '#pong') {
+            pongModal.show();
+        } else {
+            pongModal.hide();
+        }
+    }
+
     // Show the modal and start the game when it's opened
     pongModalElement.addEventListener('shown.bs.modal', function () {
         startGame('pongGameContainer');
+        window.location.hash = 'pong';
     });
 
     // Clean up game resources when the modal is closed
     pongModalElement.addEventListener('hidden.bs.modal', function () {
         cleanUpGame();
+        if (window.location.hash === '#pong') {
+            history.back();
+        }
     });
-
+    //listen for hashchange events to handle back/forward navigation
+    window.addEventListener('hashchange', function () {
+        if (window.location.hash === '#pong') {
+            pongModal.show();
+        } else {
+            pongModal.hide();
+        }
+    });
+    handleHashChange(); // Handle initial load if the URL contains the modal hash
     // Optionally, add event listeners for other modals if needed
 });
 
@@ -124,10 +143,10 @@ createModal('logout', 'Log out', `
             <button type="button" class="submit" onclick="confirmLogout()">Yes, Log out</button>
         </div>`);
 
-insertModal('.about', 'aboutModal.html', 'about', 'About');
-
-createModal('Friends', 'Friends', '<div id="Friends"> <h2 id="friendsList">Friend List</h2> <h2 id="pendingList"> Pending requests </h2> </div>');
-import './modals/friends.js';
-
 createModal('Profile', 'Profile', '<div id="userProfile"></div>');
 
+createModal('Friends', 'Friends', '<div id="Friends"> <h2 id="friendsList">Friend List</h2> <h2 id="pendingList"> Pending requests </h2> </div>');
+
+createModal('History', 'History', '<div id="History"></div>');
+
+insertModal('.about', 'aboutModal.html', 'about', 'About');
