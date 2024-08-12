@@ -61,8 +61,9 @@ async def consume_message(queue_name, callback):
             queue = await channel.declare_queue(queue_name, durable=True)
             async for message in queue:
                 async with message.process():
-                    await callback(message.body.decode())
+                    await callback(message)
                     logger.info(f"Message consumed from queue {queue_name}: {message.body.decode()}")
+                    break
     except aio_pika.exceptions.AMQPConnectionError as e:
         logger.error(f"RabbitMQ connection error: {e}")
         # Attempt to reconnect and restart consuming

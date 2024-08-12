@@ -33,14 +33,17 @@ def create_game_history_record(data):
 
 async def handle_create_record_request(message: IncomingMessage):
     try:
-        data = json.loads(message)
+        logger.info('message = %s', message.body.decode())
+        data = json.loads(message.body.decode())
         serializer = await create_game_history_record(data)
         if serializer is not None:
             await publish_message("create_gamehistory_record_response", json.dumps(serializer.data))
+            logger.info('Game history record created successfully, serializer = %s', serializer.data)
     except Exception as err:
         logger.info('error = %s', err)
         error_message = {"error": str(err)}
         await publish_message("create_gamehistory_record_response", json.dumps(error_message))
+        logger.info('Error creating game history record: %s', err)
 
 async def start_consumer() -> None:
     await consume_message("create_gamehistory_record_queue", handle_create_record_request)
