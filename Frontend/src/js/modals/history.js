@@ -1,11 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const checkUserData = setInterval(() => {
-        const userData = sessionStorage.getItem('userData');
-        if (userData) {
-            clearInterval(checkUserData);
-            updateMatchHistory();
-        }
-    }, 200); // Check every 200ms
+    updateMatchHistory();
 });
 
 export function updateMatchHistory() {
@@ -21,7 +15,6 @@ export function updateMatchHistory() {
     })
         .then(response => {
             if (!response.ok) {
-                console.log("history.js: response not ok");
                 return response.json().then(error => {
                     throw new Error(error.detail || 'Network response was not ok');
                 });

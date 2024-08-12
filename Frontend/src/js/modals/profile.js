@@ -3,21 +3,12 @@ import { showMessage } from './messages.js';
 import { updateMatchHistory } from './history.js';
 
 document.addEventListener('DOMContentLoaded', function () {
-    const checkUserData = setInterval(() => {
-        const userData = sessionStorage.getItem('userData');
-        if (userData) {
-            clearInterval(checkUserData);
-            updateUserProfile();
-        }
-    }, 200); // Check every 200ms
+    updateUserProfile();
 });
-
 
 export function updateUserProfile() {
     // Check if the user is logged in
     const userData = JSON.parse(sessionStorage.getItem('userData'));
-    console.log('UserData:', userData); // Debugging line
-    console.log('UserData token:', userData.token); // Debugging line
     if (!userData || !userData.id || !userData.token) {
         console.error('UserData is missing or incomplete');
         return;
@@ -37,7 +28,6 @@ export function updateUserProfile() {
         return response.json();
     })
     .then(data => {
-        console.log('Fetched Data:', data); // Debugging line
         const userProfileContainer = document.getElementById('userProfile');
         if (!userProfileContainer) {
             console.error('UserProfile container not found');
