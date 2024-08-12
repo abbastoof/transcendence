@@ -20,8 +20,17 @@ document.addEventListener('DOMContentLoaded', function () {
     const pongModalElement = document.getElementById('pongModal');
     const pongModal = new bootstrap.Modal(pongModalElement, {
         backdrop: 'static',
-        keyboard: true // Optional: prevents closing with ESC key
+        keyboard: true // Enable closing the modal with ESC
     });
+
+    // Initialize leaving game custom confirmation modal
+    const confirmationModalElement = document.getElementById('confirmationModal');
+    const confirmationModal = new bootstrap.Modal(confirmationModalElement, {
+        backdrop: 'static',
+        keyboard: false // Disable closing the confirmation modal with ESC
+    });
+
+    let isConfirmed = false;
 
     // Show the modal and start the game when it's opened
     pongModalElement.addEventListener('shown.bs.modal', function () {
@@ -35,10 +44,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Prevent the modal from closing without confirmation
     pongModalElement.addEventListener('hide.bs.modal', function (event){
-        const confirmation = confirm('Are you sure you want to leave the game?');
-        if (!confirmation){
+        if (!isConfirmed) {
             event.preventDefault();
+            confirmationModal.show();
         }
+    });
+
+    // Handle confirmation modal buttons
+    document.getElementById('cancelClose').addEventListener('click', function () {
+        confirmationModal.hide();
+    });
+
+    document.getElementById('confirmClose').addEventListener('click', function () {
+        isConfirmed = true;
+        confirmationModal.hide();
+        pongModal.hide();
+        isConfirmed = false; // Reset the flag for future use
     });
 
     // Optionally, add event listeners for other modals if needed
