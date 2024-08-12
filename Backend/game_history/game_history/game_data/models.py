@@ -7,7 +7,7 @@ class GameHistory(models.Model):
     player1_id = models.IntegerField()
     player2_username = models.CharField(max_length=50)
     player2_id = models.IntegerField()
-    winner_id = models.IntegerField()
+    winner_id = models.IntegerField(null=True, blank=True)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(null=True, blank=True)
     def __str__(self):

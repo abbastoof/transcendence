@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "token_app",
     "corsheaders",
+    "channels",
 ]
 
 SIMPLE_JWT = {

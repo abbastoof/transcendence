@@ -2,8 +2,8 @@
 
 # trunk-ignore(shellcheck/SC1091)
 source venv/bin/activate
-pip install --no-cache-dir -r /app/requirements.txt
-pip install tzdata
+pip install --upgrade pip
+pip install --no-cache-dir -r requirements.txt
 
 # Wait for PostgreSQL to be available
 while ! psql -h postgresql -U "${DB_USER}" -d "user_service" -c '\q'; do
