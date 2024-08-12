@@ -55,10 +55,20 @@ async def publish_message(queue_name, message):
         logger.error(f"Error publishing message: {e}")
 
 async def consume_message(queue_name, callback):
-    connection = await RabbitMQManager.get_connection()
-    async with connection.channel() as channel:
-        queue = await channel.declare_queue(queue_name, durable=True)
-        
-        async with queue.iterator() as queue_iter:
-            async for message in queue_iter:
-                await callback(message)
+    try:
+        connection = await RabbitMQManager.get_connection()
+        async with connection.channel() as channel:
+            queue = await channel.declare_queue(queue_name, durable=True)
+            async for message in queue:
+                async with message.process():
+                    await callback(message)
+                    logger.info(f"Message consumed from queue {queue_name}: {message.body.decode()}")
+                    # break
+    except aio_pika.exceptions.AMQPConnectionError as e:
+        logger.error(f"RabbitMQ connection error: {e}")
+        # Attempt to reconnect and restart consuming
+        RabbitMQManager._connection = None
+        await consume_message(queue_name, callback)
+    except Exception as e:
+        logger.error(f"Error consuming message: {e}")
+
