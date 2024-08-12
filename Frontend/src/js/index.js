@@ -33,6 +33,14 @@ document.addEventListener('DOMContentLoaded', function () {
         cleanUpGame();
     });
 
+    // Prevent the modal from closing without confirmation
+    pongModalElement.addEventListener('hide.bs.modal', function (event){
+        const confirmation = confirm('Are you sure you want to leave the game?');
+        if (!confirmation){
+            event.preventDefault();
+        }
+    });
+
     // Optionally, add event listeners for other modals if needed
 });
 
