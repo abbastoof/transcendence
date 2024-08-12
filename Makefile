@@ -44,19 +44,25 @@ pull:
 # Remove stopped containers and unused images, networks, and volumes
 .PHONY: clean
 clean:
-	rm -rf /database_volume
-	docker system prune -f --all --volumes
-	docker volume prune -f
-	docker network prune -f
-	docker image prune -f
-	@if [ -n "$(shell docker ps -aq)" ]; then \
-		for container in $(shell docker ps -aq); do \
-			docker rm $$container; \
-		done \
+	@if [ -d "/database_volume" ]; then \
+		rm -rf /database_volume; \
 	fi
+
+	docker system prune -f --all --volumes
+
 	@if [ -n "$(shell docker volume ls -q)" ]; then \
 		for volume in $(shell docker volume ls -q); do \
-			docker volume rm $$volume; \
+			docker volume rm $$volume 2>/dev/null || true; \
+		done \
+	fi
+
+	docker network prune -f
+
+	docker image prune -f
+
+	@if [ -n "$(shell docker ps -aq)" ]; then \
+		for container in $(shell docker ps -aq); do \
+			docker rm $$container 2>/dev/null || true; \
 		done \
 	fi
 
