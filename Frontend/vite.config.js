@@ -21,6 +21,11 @@ export default defineConfig(({ mode }) => ({
         target: 'http://game-history:8002',  // Proxy to game history service
         changeOrigin: true,
       },
+      '/ws': {
+        target: 'http://user-service:8001',
+        changeOrigin: true,
+        ws: true,
+      },
       '/game-server/socket.io': {
         target: 'http://game-server:8010/socket.io',  // Proxy to game server
         changeOrigin: true,

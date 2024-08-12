@@ -176,6 +176,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         isRemote: false,
                         playerIds: [gamePairs[i][0].id, gamePairs[i][1].id],
                         gameId: seed + currentGame,
+                        player1Alias: gamePairs[i][0].name,
+                        player2Alias: gamePairs[i][1].name,
                         isLocalTournament: true
                     };
                     currentGame++;
@@ -251,4 +253,3 @@ document.addEventListener('DOMContentLoaded', function () {
         playerAliasInputs.innerHTML = '';
     });
 });
-

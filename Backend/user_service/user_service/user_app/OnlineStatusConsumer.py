@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class OnlineStatusConsumer(AsyncWebsocketConsumer):
+    user_channels = {}
 
     async def connect(self):
         token = self.get_token_from_query_string()
@@ -27,6 +28,7 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
         )
         await self.accept()
         await self.change_online_status(self.scope['user'], 'open')
+        self.user_channels[self.scope['user'].username] = self.channel_name
         # print(f'Connected to WebSocket: {self.room_group_name}')
         await self.add_player_to_lobby(self.scope['user'])
 
@@ -57,10 +59,11 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
         room = await self.get_an_empty_room(user)
         if room:
             room_obj = await self.serialize_room(room)
-            if room_obj['player1_id']:
-                await self.send_notification(room_obj['player1_username'], 'Found a match for you, You will match with')
+            logging.debug(room_obj)
+            if room_obj['player1']:
+                await self.send_notification('match_found', room_obj['room_name'] ,'Found a match for you', user.username)
             else:
-                await self.send_notification(None, 'Please wait for an opponent')
+                await self.send_notification('wait_for_opponent', room_obj['room_name'], 'Please wait for an opponent', user.username)
 
     @database_sync_to_async
     def serialize_room(self, room):
@@ -71,49 +74,53 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_an_empty_room(self, user):
         from .models import GameRoom
-        check_objects = GameRoom.objects.all()
-        if check_objects is None:
-            room = GameRoom.objects.create(room_name=f'room_1')
-        else:
-            room = GameRoom.objects.filter(player2=None).first()
-            new_id = 1
-            if room is not None:
-                new_id = GameRoom.objects.latest('id').id + 1
-            room = GameRoom.objects.create(room_name=f'room_{new_id}')
-        return room
+
+        # Check if there's an existing room with player2 as None
+        existing_room = GameRoom.objects.filter(player2=None).first()
+
+        if existing_room:
+            # An empty room was found
+            return existing_room
+        
+        # No empty rooms found, create a new room
+        # Find the highest existing room id and increment it by 1
+        latest_room = GameRoom.objects.order_by('-id').first()
+        new_id = latest_room.id + 1 if latest_room else 1
+        new_room_name = f'room_{new_id}'
+        
+        # Create and return the new room
+        new_room = GameRoom.objects.create(room_name=new_room_name)
+        return new_room
     
-    async def send_notification(self, player, message):
-        if player is None:
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'broadcast_message',
-                    'message': f'{message}',
-                }
-            )
-        else:
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'broadcast_message',
-                    'message': f'{message} {player}',
-                    'player': player
-                }
-            )
-
-    async def broadcast_message(self, event):
-        message = event['message']
-        if 'player' in event:
-            player = event['player']
-            await self.send(text_data=json.dumps({
-                'message': message.split,
-                'player': player
-            }))
-        else:
-            await self.send(text_data=json.dumps({
+    async def send_notification(self, type, room_name, message, user):
+        await self.channel_layer.send(
+            self.user_channels[user],
+            {
+                'type': type,
                 'message': message,
-            }))
+                'room_name': room_name
+            }
+        )
+    
+    async def match_found(self, event):
+        message = event['message']
+        room_name = event['room_name']
+        # Handle the match found event here
+        await self.send(text_data=json.dumps({
+            'type': event['type'],
+            'message': message,
+            'room_name': room_name
+        }))
 
+    async def wait_for_opponent(self, event):
+        message = event['message']
+        room_name = event['room_name']
+        # Handle the match found event here
+        await self.send(text_data=json.dumps({
+            'type': event['type'],
+            'message': message,
+            'room_name': room_name
+        }))
 
     # Receive messages from the users connected to the Websocket
     async def receive(self, text_data: str = "", bytes_data=None):
@@ -184,9 +191,9 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
         await self.change_online_status(self.scope['user'], 'close')
-        # print(f'Disconnected from WebSocket: {self.room_group_name} with code: {code}')
-        if self.scope['user'] in self.waiting_list:
-            self.waiting_list.remove(self.scope['user'])
+        print(f'Disconnected from WebSocket: {self.room_group_name} with code: {code}')
+        # if self.scope['user'] in self.waiting_list:
+        #     self.waiting_list.remove(self.scope['user'])
 
 
     # # Match two players

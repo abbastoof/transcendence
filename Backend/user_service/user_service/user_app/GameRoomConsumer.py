@@ -33,7 +33,7 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
             logger.info('Room obj is None')
             await self.close(4001)
             return
-        await self.send_notification(self.scope['user'].username, 'entered room')
+        await self.send_notification("broadcast_message", 'entered room', self.scope['user'].username)
         asyncio.sleep(1)
         res = await self.check_room_players()
         logger.info('res = %s', res)
@@ -43,6 +43,7 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
             logger.info('Request = %s',request)
             response = await self.publish_and_consume(request)
             logger.info('Response = %s', response)
+            await self.send_notification('starting_game', response, self.scope['user'].username)
 
 
     # Extract token from Query string
@@ -94,7 +95,7 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
                 self.channel_name
             )
             await self.remove_from_room()
-            await self.send_notification(self.scope['user'].username, 'left room')
+            await self.send_notification("broadcast_message", 'left room', self.scope['user'].username)
 
     @database_sync_to_async
     def remove_from_room(self):
@@ -118,13 +119,13 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
             if serializer is not None:
                 logger.info('Room = %s', serializer.data)
 
-    async def send_notification(self, player, message):
+    async def send_notification(self, type, message, user):
         await self.channel_layer.group_send(
             self.room_group_name,
             {
-                'type': 'broadcast_message',
-                'message': f'{player} {message}',
-                'player': player
+                'type': type,
+                'message': message,
+                'player': user
             }
         )
 
@@ -132,10 +133,19 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         message = event['message']
         player = event['player']
         await self.send(text_data=json.dumps({
+            'type': event['type'],
             'message': message,
             'player': player
         }))
 
+    async def starting_game(self, event):
+        message = event['message']
+        player = event['player']
+        await self.send(text_data=json.dumps({
+            'type': event['type'],
+            'message': message,
+            'player': player
+        }))
     @database_sync_to_async
     def create_game_history_record(self):
         from .models import GameRoom

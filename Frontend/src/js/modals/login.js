@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', function () {
             authButton.setAttribute('data-bs-toggle', 'modal');
             authButton.setAttribute('data-bs-target', '#logoutModal');
             addProfileButton(); // Ensure profile button is added
-            addPlayOnlineButton(); // Ensure play online button is added
+            addPlayOnlineButton(); // Ensur e play online button is added
         } else {
             authButton.textContent = 'Log in';
             authButton.setAttribute('data-bs-toggle', 'modal');

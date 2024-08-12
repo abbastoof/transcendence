@@ -75,9 +75,11 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
 
     const {
         isRemote = false,
-        playerIds = [],
         gameId = null,
-        localPlayerId = null,
+        playerIds = [],
+        player1Alias = "Player1",
+        player2Alias = "Player2",
+    //  localPlayerId = null,
         isLocalTournament = false,
         isTest = false,
     } = config;
@@ -96,7 +98,7 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
         return;
     }
     if (gameStarted) return;
-    let player1Id, player2Id, finalGameId;//localPlayerId, ;
+    let player1Id, player2Id, finalGameId, localPlayerId;
     // if (player1_id === player2_id) {
     //     player2_id++;
     // }
@@ -128,18 +130,16 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
             console.error('Player IDs are missing or incomplete! Cannot start remote game!');
             return;
         }
-        // if (isTest == false) {
-        //     const userData = JSON.parse(localStorage.getItem('userData'));
-        //     console.log('UserData:', userData); // Debugging line
-        //     if (!userData || !userData.id || !userData.token) {
-        //         console.error('UserData is missing or incomplete! Cannot start remote game!');
-        //         endGame();
-        //         return;
-        //     }
-        //     else {
-        //         localPlayerId = userData.id;
-        //     }
-        // }
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        console.log('UserData:', userData); // Debugging line
+        if (!userData || !userData.id || !userData.token) {
+            console.error('UserData is missing or incomplete! Cannot start remote game!');
+            endGame();
+            return;
+        }
+        else {
+            localPlayerId = userData.id;
+        }
         if (localPlayerId === playerIds[0] || localPlayerId === playerIds[1]) {
         player1Id = playerIds[0];
         player2Id = playerIds[1];
@@ -177,7 +177,7 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
     camera = c;
     composer = comp;
     gameSession = new GameSession();
-    gameSession.initialize(finalGameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene, onGameEnd);
+    gameSession.initialize(finalGameId, localPlayerId, player1Id, player2Id, player1Alias, player2Alias, isRemote, isLocalTournament, scene, onGameEnd);
     gameStarted = true;
 
     // Keyboard controls
@@ -203,20 +203,22 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
                     } else {
                         camera.position.set(0, 400, 400);
                     }
-                } else {
+                } 
+                else {
                     if (globalState.invertedView === true) {
                         camera.position.set(400, 400, -400); // Adjust these values for your desired isometric angle
-                    } else {
-                        camera.position.set(-400, 400, 400); // Adjust these values for your desired isometric angle
                     }
-                    globalState.view2D = false;
+                    else {
+                        camera.position.set(-400, 400, 400);
+                        globalState.view2D = false;
+                    }
+                    gameSession.scoreBoard.clearScores();
+                    gameSession.scoreBoard.updateScores(gameSession.player1Alias, gameSession.player1Score, gameSession.player2Alias, gameSession.player2Score);
                 }
-    
-                gameSession.scoreBoard.clearScores();
-                gameSession.scoreBoard.updateScores(gameSession.player1Alias, gameSession.player1Score, gameSession.player2Alias, gameSession.player2Score);
             }
-        } else {
+            else {
             keyPressed = false; // Reset the flag when the key is released
+            }
         }
     }
 
@@ -224,7 +226,9 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
     function localGameControls() {
         let leftDeltaZ = 0;
         let rightDeltaZ = 0;
-
+        if (gameSession.paused === true) {
+            return;
+        }
         if ((keys['w'] || keys['W']) && !gameSession.leftPaddle.intersectsWall(gameSession.playingField.upperWall.boundingBox)) {
             leftDeltaZ -= PADDLE_SPEED;
         }
@@ -237,8 +241,8 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
         if ((keys['ArrowDown']) && !gameSession.rightPaddle.intersectsWall(gameSession.playingField.lowerWall.boundingBox)) {
             rightDeltaZ += PADDLE_SPEED;
         }
-        gameSession.leftPaddle.mesh.position.z += leftDeltaZ;
-        gameSession.rightPaddle.mesh.position.z += rightDeltaZ;
+        gameSession.leftPaddle.move(leftDeltaZ)
+        gameSession.rightPaddle.move(rightDeltaZ);
 
         if (leftDeltaZ !== 0 || rightDeltaZ !== 0) {
             let emitData = {
@@ -265,16 +269,25 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
         else
             playerPaddle = gameSession.leftPaddle;
         // Capture input for the local player’s paddle
-        if ((keys['w'] || keys['W']) && !playerPaddle.intersectsWall(gameSession.playingField.upperWall.boundingBox)) {
-            deltaZ -= PADDLE_SPEED;
+    
+        if (globalState.invertedView) {
+            if ((keys['s'] || keys['S']) && !playerPaddle.intersectsWall(gameSession.playingField.upperWall.boundingBox)) {
+                deltaZ -= PADDLE_SPEED;
+            }
+            else if ((keys['w'] || keys['W']) && !playerPaddle.intersectsWall(gameSession.playingField.lowerWall.boundingBox)){
+                deltaZ += PADDLE_SPEED;
+            }
+            //deltaZ *= -1
         }
-        else if ((keys['s'] || keys['S']) && !playerPaddle.intersectsWall(gameSession.playingField.lowerWall.boundingBox)){
-            deltaZ += PADDLE_SPEED;
+        else {
+            if ((keys['w'] || keys['W']) && !playerPaddle.intersectsWall(gameSession.playingField.upperWall.boundingBox)) {
+                deltaZ -= PADDLE_SPEED;
+            }
+            else if ((keys['s'] || keys['S']) && !playerPaddle.intersectsWall(gameSession.playingField.lowerWall.boundingBox)){
+                deltaZ += PADDLE_SPEED;
+            }
         }
-        if (globalState.invertedView)
-            deltaZ *= -1
-        
-        playerPaddle.position.z += deltaZ
+        playerPaddle.move(deltaZ)
     
         // Send movement data to the server for the local player’s paddle
         if (deltaZ !== 0) {

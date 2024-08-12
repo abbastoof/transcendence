@@ -33,18 +33,20 @@ class GameSession {
         this.paused = true;
     }
 
-    initialize(gameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene, onGameEnd) {
+    initialize(gameId, localPlayerId, player1Id, player2Id, player1Alias, player2Alias, isRemote, isLocalTournament, scene, onGameEnd) {
         this.gameId = gameId;
         this.localPlayerId = localPlayerId
         this.player1Id = player1Id;
         this.player2Id = player2Id;
+        this.player1Alias = player1Alias
+        this.player2Alias = player2Alias
         this.isRemote = isRemote;
         this.isLocalTournament = isLocalTournament;
-        if (isLocalTournament === true) {
-            const tournamentPlayers = JSON.parse(localStorage.getItem('tournamentPlayers'));
-            this.player1Alias = tournamentPlayers[player1Id - 1].name 
-            this.player2Alias = tournamentPlayers[player2Id - 1].name
-        }
+        // if (isLocalTournament === true) {
+        //     const tournamentPlayers = JSON.parse(localStorage.getItem('tournamentPlayers'));
+        //     this.player1Alias = tournamentPlayers[player1Id - 1].name 
+        //     this.player2Alias = tournamentPlayers[player2Id - 1].name
+        // }
         this.onGameEndCallback = typeof onGameEnd === 'function' ? onGameEnd : null; // Ensure it's a function
         this.playingField = new PlayingField(scene, gameId, player1Id, player2Id);
         this.leftPaddle = new Paddle(scene, LEFT_PADDLE_START, 0xffff00);

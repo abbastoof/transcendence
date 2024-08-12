@@ -46,7 +46,12 @@ class Paddle {
 
         console.log(`Paddle removed and resources disposed of`);
     }
-
+        
+    move(deltaZ){
+        this.mesh.position.z += deltaZ;
+        this.boundingBox.setFromObject(this.mesh);
+    }
+    
     updatePosition(position) {
         this.mesh.position.set(position.x, this.mesh.position.y, position.z);
         this.boundingBox.setFromObject(this.mesh);
