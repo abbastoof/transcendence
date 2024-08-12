@@ -4,6 +4,11 @@ import { updateMatchHistory } from './history.js';
 
 document.addEventListener('DOMContentLoaded', function () {
     updateUserProfile();
+
+    const profileModal = document.getElementById('ProfileModal');
+    if (profileModal) {
+        profileModal.addEventListener('hide.bs.modal', resetProfileForms);
+    }
 });
 
 export function updateUserProfile() {
@@ -118,6 +123,7 @@ export function updateUserProfile() {
             .catch(error => {
                 console.error('Error updating email:', error);
                 showMessage('Error updating email', '#ProfileModal', 'error');
+                document.getElementById('newEmail').value = '';
 
             });
         });
@@ -221,15 +227,31 @@ export function updateUserProfile() {
                 showMessage('Profile picture updated successfully', '#ProfileModal', 'accept');
                 document.getElementById('avatar').src = `${data.avatar}?t=${new Date().getTime()}`;
                 document.getElementById('imageUploadForm').style.display = 'none';
+                document.getElementById('imageInput').value = '';
                 document.getElementById('fileName').textContent = 'No file chosen';
             })
             .catch(error => {
                 console.error('Error uploading image:', error);
                 showMessage('Error uploading image', '#ProfileModal', 'error');
+                document.getElementById('imageInput').value = '';
+                document.getElementById('fileName').textContent = 'No file chosen';
             });
         });
     })
     .catch(error => {
         console.error('Error fetching user data:', error);
     });
+}
+// Function to reset all forms when the modal is closed
+function resetProfileForms() {
+    // Hide all forms
+    document.getElementById('updateEmailForm').style.display = 'none';
+    document.getElementById('updatePasswordForm').style.display = 'none';
+    document.getElementById('imageUploadForm').style.display = 'none';
+
+    // Clear all input fields
+    document.getElementById('newEmail').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('imageInput').value = '';
+    document.getElementById('fileName').textContent = 'No file chosen';
 }

@@ -63,6 +63,11 @@ export function createModal(modalId, modalTitle, content) {
         }
     });
 
+    document.addEventListener('keydown', function (event) {
+        if (event.key === "Escape" || event.keyCode === 27) {
+            modalElement.hide();
+        }
+    });
     // Optionally, handle the initial load if the URL contains the modal hash
     if (window.location.hash === `#${modalId}`) {
         modalElement.show();
