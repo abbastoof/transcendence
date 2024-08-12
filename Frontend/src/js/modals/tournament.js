@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalElement = document.getElementById('tournamentModal');
     const modal = new bootstrap.Modal(modalElement, {
         backdrop: 'static', // prevent closing on backdrop click
-        keyboard: true, // allow closing with ESC currently only works after selecing a player count or pressing tab once
+        keyboard: false, // disable closing the modal with ESC to prevent accidental closing
     });
     const playerForm = document.getElementById('playerForm');
     const playerAliasInputs = document.getElementById('playerAliasInputs');
