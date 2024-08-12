@@ -7,6 +7,7 @@ import './modals/signup.js';
 import './modals/profile.js';
 import './modals/login.js';
 import './modals/tournament.js';
+//import './modals/tournament_testi.js';
 
 
 
@@ -36,6 +37,11 @@ insert('.headerContainer', 'headerSVG.html');
 //     // Optionally, add event listeners for other modals if needed
 // });
 
+createModal('gameInfo', 'Game info', `
+    <div class="d-flex flex-column">
+        <div class="mb-4 aboutText" style="font-size: 30px" id="winner"></div>
+        <button type="button" id="gameInfoButton" class="submit">OK</button>
+    </div>`);
 
 createModal('tournament', 'Tournament', `
     <form id="playerForm" class="form" novalidate>
@@ -43,14 +49,14 @@ createModal('tournament', 'Tournament', `
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="playerCount" id="4vs4" value="4">
-                    <label class="form-check-label font" for="4vs4">4</label>
+                    <input class="form-check-input" type="radio" name="playerCount" id="4 players" value="4">
+                    <label class="form-check-label font" for="4 players">4</label>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="playerCount" id="8vs8" value="8">
-                    <label class="form-check-label font" for="8vs8">8</label>
+                    <input class="form-check-input" type="radio" name="playerCount" id="8 players" value="8">
+                    <label class="form-check-label font" for="8 players">8</label>
                 </div>
             </div>
         </div>
