@@ -1,10 +1,13 @@
 import * as bootstrap from 'bootstrap';
 
 document.addEventListener('DOMContentLoaded', function () {
+    const modalElement = document.getElementById('tournamentModal');
+    const modal = new bootstrap.Modal(modalElement, {
+        backdrop: 'static', // prevent closing on backdrop click
+        keyboard: true, // allow closing with ESC currently only works after selecing a player count or pressing tab once
+    });
     const playerForm = document.getElementById('playerForm');
     const playerAliasInputs = document.getElementById('playerAliasInputs');
-    const modalElement = document.getElementById('tournamentModal');
-    const modal = new bootstrap.Modal(modalElement);
 
     playerForm.addEventListener('change', function (event) {
         const selectedPlayerCount = playerForm.querySelector('input[name="playerCount"]:checked');
