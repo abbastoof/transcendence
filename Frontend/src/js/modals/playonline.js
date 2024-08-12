@@ -1,5 +1,7 @@
 import * as bootstrap from 'bootstrap';
-
+document.addEventListener('DOMContentLoaded', function () {
+    
+});
 // Function to open the waiting lobby
 export function openWaitingLobby() {
     var waitingLobbyModal = new bootstrap.Modal(document.getElementById('waitingLobbyModal'));

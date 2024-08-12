@@ -10,6 +10,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     var modalTitle = document.getElementById('signUpLabel');
     var modalBody = document.querySelector('#signUpModal .modal-body');
+    var signUpForm = document.getElementById('signUpForm');
+    
+    signUpModalElement.addEventListener('hidden.bs.modal', function () {
+        signUpForm.reset(); // Reset all form fields
+    });
 
     // Check if modalTitle and modalBody elements exist
     if (!modalTitle || !modalBody) {

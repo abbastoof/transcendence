@@ -3,7 +3,13 @@ import { showMessage } from './messages.js';
 import { updateMatchHistory } from './history.js';
 
 document.addEventListener('DOMContentLoaded', function () {
-    updateUserProfile();
+    const checkUserData = setInterval(() => {
+        const userData = sessionStorage.getItem('userData');
+        if (userData) {
+            clearInterval(checkUserData);
+            updateUserProfile();
+        }
+    }, 200); // Check every 200ms
 });
 
 

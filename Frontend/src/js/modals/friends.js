@@ -1,7 +1,13 @@
 import {showMessage} from './messages.js';
 
 document.addEventListener('DOMContentLoaded', function () {
-	updateFriendsList();
+	const checkUserData = setInterval(() => {
+        const userData = sessionStorage.getItem('userData');
+        if (userData) {
+            clearInterval(checkUserData);
+            updateFriendsList();
+        }
+    }, 200); // Check every 200ms
 });
 
 export function updateFriendsList() {
@@ -18,6 +24,7 @@ export function updateFriendsList() {
 	})
 		.then(response => {
 			if (!response.ok) {
+				console.log("friends.js: response not ok");
 				throw new Error('Network response was not ok');
 			}
 			return response.json();

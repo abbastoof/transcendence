@@ -8,6 +8,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // Check sessionStorage for login state and tokens
     var isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
 
+    // Reset form fields and hide error message when modal is hidden
+    loginModal.addEventListener('hidden.bs.modal', function () {
+        loginForm.reset(); // Reset all form fields
+    });
+
     // Function to create and add the profile button
     function addProfileButton() {
         var buttonContainer = document.querySelector('.buttonContainer');
@@ -152,6 +157,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             isLoggedIn = false; // Update login state
             sessionStorage.setItem('isLoggedIn', 'false'); // Save login state to sessionStorage
+            history.replaceState(null, null, window.location.pathname);
             document.getElementById('logoutModal').querySelector('.close').click(); // Close the modal on success
             updateAuthButton();
         })

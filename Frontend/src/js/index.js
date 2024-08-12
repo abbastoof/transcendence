@@ -22,6 +22,14 @@ document.addEventListener('DOMContentLoaded', function () {
         keyboard: true // Optional: prevents closing with ESC key
     });
 
+    function handleHashChange() {
+        if (window.location.hash === '#pong') {
+            pongModal.show();
+        } else {
+            pongModal.hide();
+        }
+    }
+
     // Show the modal and start the game when it's opened
     pongModalElement.addEventListener('shown.bs.modal', function () {
         startGame('pongGameContainer');
@@ -43,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
             pongModal.hide();
         }
     });
-
+    handleHashChange(); // Handle initial load if the URL contains the modal hash
     // Optionally, add event listeners for other modals if needed
 });
 
