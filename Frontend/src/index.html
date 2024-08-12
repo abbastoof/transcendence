@@ -59,12 +59,14 @@
                 <h5 class="modal-title" id="confirmationModalLabel">Confirm Action</h5>
                 <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body"> <!-- can the body be modified based on the game type? -->
-                Are you sure you want to leave the game?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-btn-secondary" id="cancelClose">Cancel</button>
-                <button type="button" class="btn btn-primary" id="confirmClose">Yes, leave</button>
+            <div class="modal-body" style="display: flex; flex-direction: column; align-items: center; justify-content: center;"> <!-- can the body be modified based on the game type? -->
+                <div class="confirm-text" style="margin-bottom: 1rem;">
+                    Are you sure you want to leave the game?
+                </div>
+                <div class="confirm-buttons" style="display: flex; gap: 1rem;">
+                    <button type="button" class="btn btn-secondary" id="cancelClose">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmClose">Yes, leave</button>
+                </div>
             </div>
         </div>
     </div>
