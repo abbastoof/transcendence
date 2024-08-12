@@ -164,7 +164,6 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
             nonlocal response
             data = json.loads(message.body.decode())
             response.update(data)
-            await message.ack()
 
         await consume_message('create_gamehistory_record_response', handle_response)
 

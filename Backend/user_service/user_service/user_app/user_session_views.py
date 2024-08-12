@@ -15,8 +15,8 @@ import asyncio
 
 logger = logging.getLogger(__name__)
 
-async def publish_consumer(data):
-    await publish_message("user_token_request_queue", json.dumps(data))
+async def publish_consumer(publish_queue, consume_queue, data):
+    await publish_message(publish_queue, json.dumps(data))
 
     user_data = {}
 
@@ -24,10 +24,8 @@ async def publish_consumer(data):
         nonlocal user_data
         data = json.loads(message.body.decode())
         user_data.update(data)
-        await message.ack()
 
-    await consume_message("user_token_response_queue", handle_response)
-    # Wait for user_data to be populated
+    await consume_message(consume_queue, handle_response)
     logger.info(f"Final user_data: {user_data}")
     return user_data
 
@@ -42,12 +40,14 @@ class UserLoginView(viewsets.ViewSet):
             user = authenticate(username=username, password=password)
             if user is not None:
                 if user.is_active:
-                    serializer = UserSerializer(user, data={"online_status": True}, partial=True)
-                    serializer.is_valid(raise_exception=True)
-                    serializer.save()
+                    serializer = UserSerializer(user)
+                    # serializer.is_valid(raise_exception=True)
+                    # serializer.save()
                     data = {"id": serializer.data["id"], "username": serializer.data["username"]}
                     user_data = {}
-                    user_data = async_to_sync(publish_consumer)(data)
+                    publish_queue = "user_token_request_queue"
+                    consume_queue = "user_token_response_queue"
+                    user_data = async_to_sync(publish_consumer)(publish_queue, consume_queue, data)
                     if "error" in user_data:
                         response_message = {"error": "Couldn't generate tokens", "status":status.HTTP_401_UNAUTHORIZED}
                     else:
@@ -79,22 +79,17 @@ class UserLogoutView(viewsets.ViewSet):
             if not bearer or not bearer.startswith('Bearer '):
                 return Response({"detail": "Access token is required"}, code=status.HTTP_400_BAD_REQUEST)
             access_token = bearer.split(' ')[1]
-            print("access=",access_token)
-            publish_message("logout_request_queue", json.dumps({"id":pk, "access": access_token}))
-            response_data = {}
-            def handle_response(ch, method, properties, body):
-                nonlocal response_data
-                response_data.update(json.loads(body))
-                ch.stop_consuming()
-            consume_message("logout_response_queue", handle_response)
-            print("response data = ", response_data)
+            data = {"id":pk, "access": access_token}
+            publish_queue = "logout_request_queue"
+            consume_queue = "logout_response_queue"
+            response_data = async_to_sync(publish_consumer)(publish_queue, consume_queue, data)
             if "error" in response_data:
                 response_message = {"error": response_data}
                 status_code = status.HTTP_401_UNAUTHORIZED
             else:
-                serializer = UserSerializer(instance=user, data={'online_status':False}, partial=True)
-                serializer.is_valid()
-                serializer.save()
+                # serializer = UserSerializer(instance=user, data={'online_status':False}, partial=True)
+                # serializer.is_valid()
+                # serializer.save()
                 response_message = {"detail": "User logged out successfully"}
                 status_code = status.HTTP_200_OK
         return Response(response_message, status=status_code)

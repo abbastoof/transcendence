@@ -13,24 +13,26 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.decorators import parser_classes
 from .rabbitmq_utils import publish_message, consume_message
 from .serializers import UserSerializer, FriendSerializer
+from aio_pika.message import IncomingMessage
+from asgiref.sync import async_to_sync
 
-def validate_token(request) -> None:
+async def validate_token(request) -> None:
     bearer = request.headers.get("Authorization")
     if not bearer or not bearer.startswith('Bearer '):
         raise ValidationError(
             detail={"error": "Access token is required"},
             code=status.HTTP_400_BAD_REQUEST)
     access_token = bearer.split(' ')[1]
-    publish_message("validate_token_request_queue", json.dumps({"id": request.user.id, "access": access_token}))
+    data = {"id": request.user.id, "access": access_token}
+    await publish_message("validate_token_request_queue", json.dumps(data))
 
     response_data = {}
 
-    def handle_response(ch, method, properties, body):
+    async def handle_response(message: IncomingMessage):
         nonlocal response_data
-        response_data.update(json.loads(body))
-        ch.stop_consuming()
+        response_data.update(json.loads(message.body.decode()))
 
-    consume_message("validate_token_response_queue", handle_response)
+    await consume_message("validate_token_response_queue", handle_response)
 
     if "error" in response_data:
         raise ValidationError(detail={"error": "Invalid access token"},
@@ -84,7 +86,7 @@ class UserViewSet(viewsets.ViewSet):
                 Response: The response object containing the list of users.
         """
         try:
-            validate_token(request)
+            async_to_sync(validate_token)(request)
             users = UserProfileModel.objects.all()
             serializer = UserSerializer(users, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -106,7 +108,7 @@ class UserViewSet(viewsets.ViewSet):
                 Response: The response object containing the user data.
         """
         try:
-            validate_token(request)
+            async_to_sync(validate_token)(request)
             data = get_object_or_404(UserProfileModel, id=pk)
             if request.user != data:
                 return Response({"detail": "You're not authorized"}, status=status.HTTP)
@@ -130,7 +132,7 @@ class UserViewSet(viewsets.ViewSet):
                 Response: The response object containing the updated user data.
         """
         try:
-            validate_token(request)
+            async_to_sync(validate_token)(request)
             data = get_object_or_404(UserProfileModel, id=pk)
             if data != request.user and not request.user.is_superuser:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -160,7 +162,7 @@ class UserViewSet(viewsets.ViewSet):
                 Response: The response object containing the status of the deletion.
         """
         try:
-            validate_token(request)
+            async_to_sync(validate_token)(request)
             data = get_object_or_404(UserProfileModel, id=pk)
             if data != request.user and not request.user.is_superuser:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -218,7 +220,7 @@ class FriendsViewSet(viewsets.ViewSet):
     def friends_list(self, request, user_pk=None):
         try:
 
-            validate_token(request)
+            async_to_sync(validate_token)(request)
             user = get_object_or_404(UserProfileModel, id=user_pk)
             serializer = UserSerializer(user.friends.all(), many=True)
             data = [{"id": item["id"], "username": item["username"], "status": item["status"]} for item in serializer.data]
@@ -231,7 +233,7 @@ class FriendsViewSet(viewsets.ViewSet):
 
     def remove_friend(self, request, user_pk=None, pk=None):
         try:
-            validate_token(request)
+            async_to_sync(validate_token)(request)
             user = get_object_or_404(UserProfileModel, id=user_pk)
             friend = get_object_or_404(UserProfileModel, id=pk)
             if friend in user.friends.all():
@@ -249,7 +251,7 @@ class FriendsViewSet(viewsets.ViewSet):
         response_message = {}
         status_code = 0
         try:
-            validate_token(request)
+            async_to_sync(validate_token)(request)
             current_user = get_object_or_404(UserProfileModel, id=user_pk)
             current_user_friends = current_user.friends.all()
             friend_username = request.data.get("username")
@@ -290,7 +292,7 @@ class FriendsViewSet(viewsets.ViewSet):
 
     def accept_friend_request(self, request, user_pk=None, pk=None):
         try:
-            validate_token(request)
+            async_to_sync(validate_token)(request)
             current_user = get_object_or_404(UserProfileModel, id=user_pk)
             sender_user = get_object_or_404(UserProfileModel, id=pk)
             pending_requests = FriendRequest.objects.filter(receiver_user=current_user, sender_user=sender_user, status='pending')
@@ -307,7 +309,7 @@ class FriendsViewSet(viewsets.ViewSet):
 
     def reject_friend_request(self, request, user_pk=None, pk=None):
         try:
-            validate_token(request)
+            async_to_sync(validate_token)(request)
             current_user = get_object_or_404(UserProfileModel, id=user_pk)
             sender_user = get_object_or_404(UserProfileModel, id=pk)
             pending_request = FriendRequest.objects.filter(receiver_user=current_user, sender_user=sender_user, status='pending').first()
@@ -323,7 +325,7 @@ class FriendsViewSet(viewsets.ViewSet):
 
     def friend_requests(self, request, user_pk=None): # get user pending list
         try:
-            validate_token(request)
+            async_to_sync(validate_token)(request)
             user = get_object_or_404(UserProfileModel, id = user_pk)
             pending_requests = FriendRequest.objects.filter(receiver_user=user, status='pending') # filter returns a list
             data = FriendSerializer(pending_requests, many=True)

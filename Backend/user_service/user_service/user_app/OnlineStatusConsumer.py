@@ -12,9 +12,6 @@ logger = logging.getLogger(__name__)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class OnlineStatusConsumer(AsyncWebsocketConsumer):
-    waiting_list = []
-    user_channels = {}
-    response_queues = {}
 
     async def connect(self):
         token = self.get_token_from_query_string()
@@ -30,7 +27,6 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
         )
         await self.accept()
         await self.change_online_status(self.scope['user'], 'open')
-        self.user_channels[self.scope['user'].username] = self.channel_name
         # print(f'Connected to WebSocket: {self.room_group_name}')
         await self.add_player_to_lobby(self.scope['user'])
 
@@ -58,68 +54,66 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
 
     # Add player to the lobby
     async def add_player_to_lobby(self, user):
-        if user not in self.waiting_list:
-            self.waiting_list.append(user)
-            if len(self.waiting_list) > 1:
-                player1 = self.waiting_list.pop(0)
-                player2 = self.waiting_list.pop(0)
-                await self.match_players(player1, player2)
-                asyncio.create_task(self.wait_for_responses(player1, player2))
+        room = await self.get_an_empty_room(user)
+        if room:
+            room_obj = await self.serialize_room(room)
+            if room_obj['player1_id']:
+                await self.send_notification(room_obj['player1_username'], 'Found a match for you, You will match with')
+            else:
+                await self.send_notification(None, 'Please wait for an opponent')
+
+    @database_sync_to_async
+    def serialize_room(self, room):
+        from .serializers import GameRoomSerializer
+        return GameRoomSerializer(room).data
+
+    # Get an empty room
+    @database_sync_to_async
+    def get_an_empty_room(self, user):
+        from .models import GameRoom
+        check_objects = GameRoom.objects.all()
+        if check_objects is None:
+            room = GameRoom.objects.create(room_name=f'room_1')
         else:
-            pass
+            room = GameRoom.objects.filter(player2=None).first()
+            new_id = 1
+            if room is not None:
+                new_id = GameRoom.objects.latest('id').id + 1
+            room = GameRoom.objects.create(room_name=f'room_{new_id}')
+        return room
+    
+    async def send_notification(self, player, message):
+        if player is None:
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'broadcast_message',
+                    'message': f'{message}',
+                }
+            )
+        else:
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'broadcast_message',
+                    'message': f'{message} {player}',
+                    'player': player
+                }
+            )
 
-    # Match two players
-    async def match_players(self, player1, player2):
-        await self.channel_layer.send(
-            self.user_channels[player1.username],
-            {
-                'type': 'match_found',
-                'message': f'Match found with {player2.username}',
-                'player': player2.username
-            }
-        )
-        await self.channel_layer.send(
-            self.user_channels[player2.username],
-            {
-                'type': 'match_found',
-                'message': f'Match found with {player1.username}',
-                'player': player1.username
-            }
-        )
-
-    # Send match players notifications
-    async def match_found(self, event):
+    async def broadcast_message(self, event):
         message = event['message']
-        player = event['player']
-        # Handle the match found event here
-        await self.send(text_data=json.dumps({
-            'message': message,
-            'player': player
-        }))
+        if 'player' in event:
+            player = event['player']
+            await self.send(text_data=json.dumps({
+                'message': message.split,
+                'player': player
+            }))
+        else:
+            await self.send(text_data=json.dumps({
+                'message': message,
+            }))
 
-    async def wait_for_responses(self, player1, player2):
-        loop = asyncio.get_event_loop()
-        tasks = [
-            loop.create_task(self.await_response(player1)),
-            loop.create_task(self.await_response(player2))
-        ]
-        done, pending = await asyncio.wait(tasks, timeout=5)
-
-        if pending:
-            for task in pending:
-                task.cancel()
-            await self.send_timeout_notification(player1, player2)
-            logger.info(f"Match response timed out for {player1.username} and {player2.username}")
-
-    # Wait for players response
-    async def await_response(self, player):
-        try:
-            self.response_queues[player.username] = asyncio.Queue()
-            response = await self.response_queues[player.username].get()
-            logger.info(f"Received response from {player.username}: {response}")
-            # Handle response here
-        except asyncio.CancelledError:
-            logger.info(f"Cancelled waiting for {player.username}'s response")
 
     # Receive messages from the users connected to the Websocket
     async def receive(self, text_data: str = "", bytes_data=None):
@@ -128,9 +122,6 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
             if text_data:
                 data = json.loads(text_data)
                 connection_type = data['type']
-                if connection_type in ['match_accepted', 'match_rejected']:
-                    if self.scope['user'].username in self.response_queues:
-                        await self.response_queues[self.scope['user'].username].put(data)
                 if "username" in data:
                     username = data['username']
                     # print(f'Parsed data: {data}')
@@ -147,67 +138,6 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             # print(f'Error in receive: {e}')
             await self.close(code=1011)
-
-    # Handle match accepted from users    
-    async def handle_match_accepted(self, data):
-        data_type = data["type"]
-        player = self.scope["user"]
-        target = data["player"]
-        await self.channel_layer.send(
-            self.user_channels[target],
-            {
-                'type': 'match_accepted',
-                'message': f'{player.username} accepted the match',
-            }
-        )
-    
-    # match accepted function
-    async def match_accepted(self, event):
-        message = event['message']
-        await self.send(text_data=json.dumps({
-            'message': message,
-        }))
-
-    # Handle match rejected from users  
-    async def handle_match_rejected(self, data):
-        data_type = data["type"]
-        player = self.scope["user"]
-        target = data["player"]
-        await self.channel_layer.send(
-            self.user_channels[target],
-            {
-                'type': 'match_rejected',
-                'message': f'{player.username} rejected the match',
-            }
-        )
-
-    async def match_rejected(self, event):
-        message = event['message']
-        await self.send(text_data=json.dumps({
-            'message': message,
-        }))
-    
-    async def send_timeout_notification(self, player1, player2):
-        await self.channel_layer.send(
-            self.user_channels[player1.username],
-            {
-                'type': 'match_timeout',
-                'message': f'Match response timed out',
-            }
-        )
-        await self.channel_layer.send(
-            self.user_channels[player2.username],
-            {
-                'type': 'match_timeout',
-                'message': f'Match response timed out',
-            }
-        )
-
-    async def match_timeout(self, event):
-        message = event['message']
-        await self.send(text_data=json.dumps({
-            'message': message,
-        }))
 
     async def send_onlineStatus(self, event):
         try:
@@ -257,3 +187,118 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
         # print(f'Disconnected from WebSocket: {self.room_group_name} with code: {code}')
         if self.scope['user'] in self.waiting_list:
             self.waiting_list.remove(self.scope['user'])
+
+
+    # # Match two players
+    # async def match_players(self, player1, player2):
+    #     await self.channel_layer.send(
+    #         self.user_channels[player1.username],
+    #         {
+    #             'type': 'match_found',
+    #             'message': f'Match found with {player2.username}',
+    #             'player': player2.username
+    #         }
+    #     )
+    #     await self.channel_layer.send(
+    #         self.user_channels[player2.username],
+    #         {
+    #             'type': 'match_found',
+    #             'message': f'Match found with {player1.username}',
+    #             'player': player1.username
+    #         }
+    #     )
+
+    # # Send match players notifications
+    # async def match_found(self, event):
+    #     message = event['message']
+    #     player = event['player']
+    #     # Handle the match found event here
+    #     await self.send(text_data=json.dumps({
+    #         'message': message,
+    #         'player': player
+    #     }))
+
+    # async def wait_for_responses(self, player1, player2):
+    #     loop = asyncio.get_event_loop()
+    #     tasks = [
+    #         loop.create_task(self.await_response(player1)),
+    #         loop.create_task(self.await_response(player2))
+    #     ]
+    #     done, pending = await asyncio.wait(tasks, timeout=5)
+
+    #     if pending:
+    #         for task in pending:
+    #             task.cancel()
+    #         await self.send_timeout_notification(player1, player2)
+    #         logger.info(f"Match response timed out for {player1.username} and {player2.username}")
+
+    # # Wait for players response
+    # async def await_response(self, player):
+    #     try:
+    #         self.response_queues[player.username] = asyncio.Queue()
+    #         response = await self.response_queues[player.username].get()
+    #         logger.info(f"Received response from {player.username}: {response}")
+    #         # Handle response here
+    #     except asyncio.CancelledError:
+    #         logger.info(f"Cancelled waiting for {player.username}'s response")
+
+    # Handle match accepted from users    
+    # async def handle_match_accepted(self, data):
+    #     data_type = data["type"]
+    #     player = self.scope["user"]
+    #     target = data["player"]
+    #     await self.channel_layer.send(
+    #         self.user_channels[target],
+    #         {
+    #             'type': 'match_accepted',
+    #             'message': f'{player.username} accepted the match',
+    #         }
+    #     )
+    
+    # # match accepted function
+    # async def match_accepted(self, event):
+    #     message = event['message']
+    #     await self.send(text_data=json.dumps({
+    #         'message': message,
+    #     }))
+
+    # # Handle match rejected from users  
+    # async def handle_match_rejected(self, data):
+    #     data_type = data["type"]
+    #     player = self.scope["user"]
+    #     target = data["player"]
+    #     await self.channel_layer.send(
+    #         self.user_channels[target],
+    #         {
+    #             'type': 'match_rejected',
+    #             'message': f'{player.username} rejected the match',
+    #         }
+    #     )
+
+    # async def match_rejected(self, event):
+    #     message = event['message']
+    #     await self.send(text_data=json.dumps({
+    #         'message': message,
+    #     }))
+    
+    # async def send_timeout_notification(self, player1, player2):
+    #     await self.channel_layer.send(
+    #         self.user_channels[player1.username],
+    #         {
+    #             'type': 'match_timeout',
+    #             'message': f'Match response timed out',
+    #         }
+    #     )
+    #     await self.channel_layer.send(
+    #         self.user_channels[player2.username],
+    #         {
+    #             'type': 'match_timeout',
+    #             'message': f'Match response timed out',
+    #         }
+    #     )
+
+    # async def match_timeout(self, event):
+    #     message = event['message']
+    #     await self.send(text_data=json.dumps({
+    #         'message': message,
+    #     }))
