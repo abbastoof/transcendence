@@ -2,8 +2,8 @@
 
 # Activate the virtual environment
 source venv/bin/activate
+pip install --upgrade pip
 pip install --no-cache-dir -r requirements.txt
-pip install tzdata
 
 # Wait for PostgreSQL to be available
 while ! psql -h postgresql -U "${DB_USER}" -d "game_history" -c '\q'; do

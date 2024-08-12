@@ -3,6 +3,7 @@ import logging
 from django.http import Http404
 from rest_framework import status
 from token_service import settings
+from aio_pika import IncomingMessage
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -13,6 +14,7 @@ from .rabbitmq_utils import consume_message, publish_message
 from .serializers import CustomTokenObtainPairSerializer
 from .models import UserTokens
 import jwt
+from channels.db import database_sync_to_async
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -29,8 +31,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     """
     serializer_class = CustomTokenObtainPairSerializer
     @staticmethod
-    @method_decorator(csrf_exempt)
-    def handle_token_request(ch, method, properties, body):
+    async def handle_token_request(message: IncomingMessage):
         """
             Method to handle the token request.
 
@@ -43,11 +44,30 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 properties: The properties object.
                 body: The body of the message.
         """
-        data = json.loads(body)
-        username = data.get("username")
-        id = data.get("id")
+
+        logger.info("Received a message for token request processing.")
+        try:
+            data = json.loads(message.body.decode())
+            logger.info(f"Decoded message: {data}")
+            username = data.get("username")
+            id = data.get("id")
+            response_message = await CustomTokenObtainPairView.create_token_for_user(username, id)
+            logger.info(f"Generated response message: {response_message}")
+            await publish_message("user_token_response_queue", response_message)
+            logger.info(f"Published response to user_token_response_queue")
+        except Exception as e:
+            logger.error(f"Error processing token request: {e}")
+
+    async def start_consumer(self) -> None:
+        await consume_message("user_token_request_queue", self.handle_token_request)
+
+    @database_sync_to_async
+    def create_token_for_user(self, username, id):
+        response_message = {}
         try:
             user, create = UserTokens.objects.get_or_create(id=id, username=username)
+            logger.info('user= %s', user.username)
+            logger.info('create= %s', create)
             if create:
                 refresh = RefreshToken.for_user(user)
                 access_token = str(refresh.access_token)
@@ -90,12 +110,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                     response_message = {"error": str(err)}
         except Exception as err:
             response_message = {"error": str(err)}
-        publish_message("user_token_response_queue", json.dumps(response_message))
-
-
-    def start_consumer(self) -> None:
-        consume_message("user_token_request_queue", self.handle_token_request)
-
+        return response_message
 
 class CustomTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs) -> Response:
@@ -126,8 +141,8 @@ class CustomTokenRefreshView(TokenRefreshView):
 
 
 class ValidateToken():
-    @staticmethod
-    def validate_token(access_token) -> bool:
+
+    def validate_token(self, access_token) -> bool:
         """
             Validate the refresh token.
 
@@ -148,23 +163,8 @@ class ValidateToken():
         except jwt.InvalidTokenError:
             return False
 
-    def validate_token_request_queue(self, ch, method, properties, body):
-        """
-            Method to handle the token validation request.
-
-            This method processes the token validation request message received from the user service.
-            It validates the access token and sends the response back to the user service.
-
-            Args:
-                ch: The channel object.
-                method: The method object.
-                properties: The properties object.
-                body: The body of the message.
-        """
-        data = json.loads(body)
-        access_token = data.get("access")
-        id = data.get("id")
-        response = {}
+    @database_sync_to_async
+    def validate_token_for_user(self, access_token, id):
         try:
             result = self.validate_token(access_token)
             if result:
@@ -185,22 +185,39 @@ class ValidateToken():
             response = {"error": "User has not logged in yet!!"}
         except Exception as err:
             response = {"error": str(err)}
-        logger.info("response = %s", response)
-        publish_message("validate_token_response_queue", json.dumps(response))
+        logger.info("response= %s", response)
+        return response
 
-    def start_consumer(self) -> None:
-        consume_message("validate_token_request_queue", self.validate_token_request_queue)
+    # @staticmethod
+    async def validate_token_request_queue(self, message: IncomingMessage):
+        """
+            Method to handle the token validation request.
+
+            This method processes the token validation request message received from the user service.
+            It validates the access token and sends the response back to the user service.
+
+            Args:
+                ch: The channel object.
+                method: The method object.
+                properties: The properties object.
+                body: The body of the message.
+        """
+        data = json.loads(message.body.decode())
+        access_token = data.get("access")
+        id = data.get("id")
+        response = await self.validate_token_for_user(access_token, id)
+        logger.info("response = %s", response)
+        await publish_message("validate_token_response_queue", json.dumps(response))
+
+    async def start_consumer(self) -> None:
+        await consume_message("validate_token_request_queue", self.validate_token_request_queue)
 
 class InvalidateToken():
-    @staticmethod
-    @method_decorator(csrf_exempt)
-    def handle_logout_request_queue(ch, method, properties, body):
-        data = json.loads(body)
-        access = data.get("access")
-        id = data.get("id")
-        response_message={}
+    @database_sync_to_async
+    def invalidate_token_for_user(self, access, id):
         try:
-            if ValidateToken.validate_token(access):
+            check_token = ValidateToken()
+            if check_token.validate_token(access):
                 user = get_object_or_404(UserTokens, id=id)
                 if user is not None:
                     user.delete()
@@ -213,7 +230,15 @@ class InvalidateToken():
             response_message = {"error": "User has not logged in yet"}
         except Exception as err:
             response_message = {"error": str(err)}
-        publish_message("logout_response_queue", json.dumps(response_message))
+        return response_message
 
-    def start_consumer(self):
-        consume_message("logout_request_queue", self.handle_logout_request_queue)
+    @staticmethod
+    async def handle_logout_request_queue(message: IncomingMessage):
+        data = json.loads(message.body.decode())
+        access = data.get("access")
+        id = data.get("id")
+        response_message = await InvalidateToken.invalidate_token_for_user(access, id)
+        await publish_message("logout_response_queue", json.dumps(response_message))
+
+    async def start_consumer(self):
+        await consume_message("logout_request_queue", self.handle_logout_request_queue)

@@ -15,4 +15,5 @@ urlpatterns = [
     path("user/<int:user_pk>/pending/", FriendsViewSet.as_view({"get": "friend_requests"}), name="friend-request-list"),
     path("user/<int:user_pk>/reject/<int:pk>/", FriendsViewSet.as_view({"put": "reject_friend_request"}), name="reject-request"),
     path("user/<int:user_pk>/friends/<int:pk>/remove/", FriendsViewSet.as_view({"delete": "remove_friend"}), name="remove-friend"),
+    # path('chat/<str:username>/', chat_Page, name='chat'),
 ]

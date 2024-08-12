@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the project root directory
-PROJECT_ROOT=$(pwd)
+PROJECT_ROOT="$(pwd)"
 
 # Define the list of target files
 TARGET_FILES=(
@@ -19,10 +19,19 @@ TARGET_FILES=(
     "rabbitmq_utils.py"
     "user_session_views.py"
     "validators.py"
+    "signals.py"
+    "consumers.py"
+    "asgi.py"
+    "apps.py"
     "urls.py"
     "asgi.py"
     "wsgi.py"
     "*.yml"
+    "*.conf"
+    "*.ini"
+    "*.env"
+    "*.sh"
+
 )
 
 # Function to print the directory tree with an arrow

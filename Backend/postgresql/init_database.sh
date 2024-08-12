@@ -1,17 +1,23 @@
 #! /bin/bash
 
+# Stop any running PostgreSQL processes
+pg_ctl stop -D /var/lib/postgresql/data || true
+
+# Remove any existing data directory
+rm -rf /var/lib/postgresql/data
+
 # Create necessary directories with appropriate permissions
-cd /
+mkdir -p /var/lib/postgresql/data
+chown postgres:postgres /var/lib/postgresql/data
 mkdir -p /run/postgresql
 chown postgres:postgres /run/postgresql/
 
-# Switch to the postgres user and run the following commands
-mkdir -p /var/lib/postgresql/data
+# Initialize the PostgreSQL data directory
 initdb -D /var/lib/postgresql/data
 
 # Append configurations to pg_hba.conf and postgresql.conf as the postgres user
-echo "host all all 0.0.0.0/0 md5" >>/var/lib/postgresql/data/pg_hba.conf
-echo "listen_addresses='*'" >>/var/lib/postgresql/data/postgresql.conf
+echo "host all all 0.0.0.0/0 md5" >> /var/lib/postgresql/data/pg_hba.conf
+echo "listen_addresses='*'" >> /var/lib/postgresql/data/postgresql.conf
 
 # Remove the unix_socket_directories line from postgresql.conf as the postgres user
 sed -i "/^unix_socket_directories = /d" /var/lib/postgresql/data/postgresql.conf

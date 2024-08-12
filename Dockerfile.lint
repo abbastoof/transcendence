@@ -1,17 +1,15 @@
 FROM alpine:3.20
 
 # Install Python and pip
-RUN apk add --no-cache python3 py3-pip && \
-    python3 -m ensurepip && \
-    ln -sf python3 /usr/bin/python
+RUN apk add --no-cache python3 py3-pip
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+# Create and activate virtual environment
+RUN python3 -m venv /venv
 
+# Copy requirements and install within virtual environment
 COPY ./requirements.txt /requirements.txt
-RUN python -m pip install --upgrade pip
-RUN pip install setuptools==58.0.4 wheel
-RUN pip install flake8
+RUN /venv/bin/pip install --no-cache-dir -r /requirements.txt
+RUN /venv/bin/pip install --no-cache-dir flake8
 
 WORKDIR /app
 
@@ -22,4 +20,4 @@ RUN addgroup -S www-data && adduser -S www-data -G www-data && \
 
 USER www-data
 
-CMD ["flake8", "."]
+CMD ["/venv/bin/flake8", "."]

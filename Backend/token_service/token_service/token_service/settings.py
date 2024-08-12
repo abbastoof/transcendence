@@ -54,13 +54,14 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "token_app",
     "corsheaders",
+    "channels",
 ]
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-    "ROTATE_REFRESH_TOKENS": False,  # If True, refresh tokens will rotate, meaning that a new token is returned with each request to the refresh endpoint. for example, if a user is logged in on multiple devices, rotating refresh tokens will cause all devices to be logged out when the user logs out on one device.
-    "BLACKLIST_AFTER_ROTATION": True,  # If True, the refresh token will be blacklisted after it is used to obtain a new access token. This means that if a refresh token is stolen, it can only be used once to obtain a new access token. This is useful if rotating refresh tokens is enabled, but can cause problems if a refresh token is shared between multiple clients.
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
     "TOKEN_OBTAIN_SERIALIZER": "token_app.serializers.CustomTokenObtainPairSerializer"
