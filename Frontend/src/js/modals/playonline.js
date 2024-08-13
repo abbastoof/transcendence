@@ -2,22 +2,34 @@ import * as bootstrap from 'bootstrap';
 import { startGame } from '../pong/pong';
 
 const pongModal = new bootstrap.Modal(document.getElementById('pongModal')); // Peli modalin määrittely
+var waitingLobbyModalLabel = document.getElementById('waitingLobbyModalLabel');
+var lobbyContent = document.getElementById('lobbyContent')
 
 // Function to open the waiting lobby
 export function openWaitingLobby() {
     var waitingLobbyModal = new bootstrap.Modal(document.getElementById('waitingLobbyModal'));
     waitingLobbyModal.show();
 
+    lobbyContent.innerHTML = 
+    `<div class="d-flex justify-content-center">
+        <div class="spinner-border"  style="width: 4rem; height: 4rem;" role="status">
+            <span class="visually-hidden">Waiting for players...</span>
+        </div>
+    </div>
+    `
+    waitingLobbyModalLabel.textContent = "Waiting for players.."
+
     //document.getElementById('startGameButton').addEventListener('click', startRemoteGame);
     // Simulate a call to the server to find other players
-    connectToWebSockets();
+    setTimeout(() => {
+        connectToWebSockets();
+    }, 1000);
 
 //    searchForPlayers();
 }
 
 function connectToWebSockets() {
-    var waitingLobbyModalLabel = document.getElementById('waitingLobbyModalLabel');
-    var lobbyContent = document.getElementById('lobbyContent')
+
     const userData = JSON.parse(localStorage.getItem('userData'));
     if (!userData || !userData.token) {
         console.error('User data or token is missing');
@@ -31,14 +43,7 @@ function connectToWebSockets() {
 
     // Setup WebSocket event handlers for online status
     onlineStatusSocket.onopen = function() {
-        lobbyContent.innerHTML = 
-        `<div class="d-flex justify-content-center">
-            <div class="spinner-border"  style="width: 4rem; height: 4rem;" role="status">
-                <span class="visually-hidden">Waiting for players...</span>
-            </div>
-        </div>
-        `
-        waitingLobbyModalLabel.textContent = "Waiting for players.."
+
         console.log('Connected to online status WebSocket');
     };
 
@@ -104,9 +109,20 @@ function connectToWebSockets() {
                     player2Alias: data.message.player2_username,
                     isLocalTournament: false,
                 }
+                            // Close the waiting lobby modal
+
+                // Close the online status WebSocket
+                if (onlineStatusSocket.readyState === WebSocket.OPEN) {
+                    onlineStatusSocket.close();
+                }
+
+                // Close the game room WebSocket if it exists and is open
+                if (gameRoomSocket && gameRoomSocket.readyState === WebSocket.OPEN) {
+                    gameRoomSocket.close();
+                }
                 pongModal.show();
-                startGame('pongGameContainer', config)
-        }
+                startGame('pongGameContainer', config, handleGameEnd);
+            }
         };
 
         gameRoomSocket.onclose = function(event) {
@@ -131,6 +147,59 @@ function connectToWebSockets() {
             gameRoomSocket.close();
         }
     });
+}
+
+function handleGameEnd(data) {
+    // Update the game history record with the winner_id
+    console.log('Updating game history record with winner_id:', data.winner);
+
+    fetch(`/game-history/${data.game_id}/`)
+        .then(response => response.json())
+        .then(gameHistoryRecord => {
+            // Update the winner_id field
+            gameHistoryRecord.winner_id = 1;
+
+            return fetch(`/game-history/${data.game_id}/`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(gameHistoryRecord)
+            });
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            // Create the game statistics record
+            const gameStatData = {
+                game_id: data.game_id,
+                player1_score: data.player1_score,
+                player2_score: data.player2_score,
+                total_hits: data.player1_hits + data.player2_hits,
+                longest_rally: data.longest_rally
+            };
+            console.log('Creating game stat record:', gameStatData);
+            return fetch('/game-stat/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(gameStatData)
+            });
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Game stat record created:', data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
 }
 // Function to start the remote game
 export function startRemoteGame(gameId, playerIds) {
