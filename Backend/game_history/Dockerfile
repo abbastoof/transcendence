@@ -15,22 +15,19 @@ WORKDIR /app/
 
 # Install Python virtual environment
 RUN python3 -m venv venv && chown -R postgres:postgres venv
+RUN touch /var/log/django_debug.log && chown -R postgres:postgres /var/log/django_debug.log
+RUN touch /var/log/django_error.log && chown -R postgres:postgres /var/log/django_error.log
 
 # Copy application code and adjust permissions
-COPY --chown=postgres:postgres ./Backend/game_history/supervisord.conf /etc/supervisor/conf.d/supervisord.conf 
 COPY --chown=postgres:postgres ./Backend/game_history/requirements.txt .
 COPY --chown=postgres:postgres ./Backend/game_history/game_history /app/game_history
 COPY --chown=postgres:postgres ./Backend/game_history/tools.sh /app
-COPY --chown=postgres:postgres ./Backend/game_history/run_consumer.sh /app
 
 # Ensure supervisord and scripts are executable and owned by postgres
 RUN chown -R postgres:postgres /app && \
     chown -R postgres:postgres /var/log && \
     chown -R postgres:postgres /app/venv && \
-    chown -R postgres:postgres /app/game_history && \
-    chown -R postgres:postgres /etc/supervisor && \
-    chown -R postgres:postgres /usr/bin/supervisord && \
-    chown -R postgres:postgres /etc/supervisor/conf.d/supervisord.conf
+    chown -R postgres:postgres /app/game_history
 
 USER postgres
 

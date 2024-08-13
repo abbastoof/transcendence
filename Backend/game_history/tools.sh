@@ -26,9 +26,6 @@ ls /app/game_history
 python3 /app/game_history/manage.py makemigrations
 python3 /app/game_history/manage.py migrate
 
-# Run pytest with explicit PYTHONPATH
-# PYTHONPATH=/app pytest -vv
-
 # Start the Django application
 cd /app/game_history
 # exec uvicorn game_history.asgi:application --host 0.0.0.0 --port 8002
