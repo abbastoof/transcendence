@@ -135,7 +135,7 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         }))
 
     @database_sync_to_async
-    def create_game_history_record(self):
+    def create_and_send_game_history_record(self):
         from .models import GameRoom
         from .serializers import GameRoomSerializer
         from django.utils.timezone import now
@@ -154,9 +154,8 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
                     "player2_username": serializer["player2_username"],
                     "start_time": now()
                 }
-                response = requests.post('http://game-history:8002/game-history/', json=request)
+                response = requests.post('http://game-history:8002/game-history/', data=request)
                 logger.info('Response = %s', response.json())
-                
         return response.json()
 
     @database_sync_to_async

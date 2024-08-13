@@ -3,11 +3,7 @@ from .models import GameHistory, GameStat
 from .serializers import GameHistorySerializer, GameStatSerializer
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 import logging
-from channels.db import database_sync_to_async
-from aio_pika.message import IncomingMessage
 
 logger = logging.getLogger(__name__)
 

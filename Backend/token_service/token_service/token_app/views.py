@@ -7,19 +7,16 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework import viewsets
 from .serializers import CustomTokenObtainPairSerializer
 from .models import UserTokens
 import jwt
-from channels.db import database_sync_to_async
 from rest_framework.permissions import AllowAny
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class CustomTokenObtainPairView(viewsets.ViewSet):
+class CustomTokenObtainPairView(TokenObtainPairView):
     """
         CustomTokenObtainPairView class to handle token request.
 
@@ -31,7 +28,7 @@ class CustomTokenObtainPairView(viewsets.ViewSet):
     """
     permission_classes = [AllowAny]
     serializer_class = CustomTokenObtainPairSerializer
-    def create_token_for_user(self, request, *args, **kwargs) -> Response:
+    def post(self, request, *args, **kwargs) -> Response:
         """
             Create a new token for the user.
 
