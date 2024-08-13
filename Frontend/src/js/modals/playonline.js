@@ -30,7 +30,7 @@ export function openWaitingLobby() {
 
 function connectToWebSockets() {
 
-    const userData = JSON.parse(localStorage.getItem('userData'));
+    const userData = JSON.parse(sessionStorage.getItem('userData'));
     if (!userData || !userData.token) {
         console.error('User data or token is missing');
         return;
@@ -151,14 +151,30 @@ function connectToWebSockets() {
 
 function handleGameEnd(data) {
     // Update the game history record with the winner_id
+    const userData = JSON.parse(sessionStorage.getItem('userData'));
+    if (!userData || !userData.token) {
+        console.error('User data or token is missing');
+        return;
+    }
+    if (userData.id !== data.winner){
+        waitingLobbyModalLabel.textContent = "Game over";
+        lobbyContent.innerHTML = `<p>you are a loser. so sad.</p>`
+        return;
+    }
     console.log('Updating game history record with winner_id:', data.winner);
-
+    waitingLobbyModalLabel.textContent = "Game over";
+    lobbyContent.innerHTML = `<p>you are a winner</p>`
+    
     fetch(`/game-history/${data.game_id}/`)
         .then(response => response.json())
         .then(gameHistoryRecord => {
             // Update the winner_id field
-            gameHistoryRecord.winner_id = 1;
-
+            if (gameHistoryRecord === data.winner) {
+                console.log(gameHistoryRecord)
+                return;
+            }
+            else 
+                gameHistoryRecord.winner_id = data.winner;
             return fetch(`/game-history/${data.game_id}/`, {
                 method: 'PUT',
                 headers: {
