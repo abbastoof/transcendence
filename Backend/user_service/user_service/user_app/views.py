@@ -223,7 +223,7 @@ class FriendsViewSet(viewsets.ViewSet):
             async_to_sync(validate_token)(request)
             user = get_object_or_404(UserProfileModel, id=user_pk)
             serializer = UserSerializer(user.friends.all(), many=True)
-            data = [{"id": item["id"], "username": item["username"], "status": item["status"]} for item in serializer.data]
+            data = [{"id": item["id"], "username": item["username"], "status": item["online_status"]} for item in serializer.data]
             return Response(data, status=status.HTTP_200_OK)
         except Http404:
             return Response({"error": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
