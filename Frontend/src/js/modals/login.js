@@ -1,14 +1,17 @@
-import * as bootstrap from 'bootstrap';
 import { updateUserProfile } from './profile.js';
 import { openWaitingLobby } from './playonline.js';
+import { showMessage } from './messages.js';
 
 document.addEventListener('DOMContentLoaded', function () {
-    var loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-    var logoutModal = new bootstrap.Modal(document.getElementById('logoutModal'));
     var authButton = document.getElementById('authButton');
 
-    // Check localStorage for login state and tokens
-    var isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    // Check sessionStorage for login state and tokens
+    var isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+
+    // Reset form fields and hide error message when modal is hidden
+    loginModal.addEventListener('hidden.bs.modal', function () {
+        loginForm.reset(); // Reset all form fields
+    });
 
     // Function to create and add the profile button
     function addProfileButton() {
@@ -84,10 +87,11 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(data => {
             console.log('Success:', data);
             // Store all tokens and user ID
-            localStorage.setItem('userData', JSON.stringify({ id: data.id, token: data.access, refresh: data.refresh }));
-            localStorage.setItem('isLoggedIn', 'true'); // Save login state to localStorage
+            sessionStorage.setItem('userData', JSON.stringify({ id: data.id, token: data.access, refresh: data.refresh }));
+            sessionStorage.setItem('isLoggedIn', 'true'); // Save login state to sessionStorage
 
-            loginModal.hide(); // Close the modal on success
+            //loginModal.hide(); // Close the modal on success
+            document.getElementById('loginModal').querySelector('.close').click(); // Close the modal on success
             document.getElementById('loginForm').reset(); // Reset form fields
             isLoggedIn = true; // Update login state
             updateAuthButton();
@@ -97,35 +101,10 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .catch(error => {
             console.error('Error:', error);
-            showErrorMessage('Log in failed: ' + error.message);
+            showMessage('Log in failed: ' + error.message, '#loginModal', 'error');
             clearPasswordField();
         });
     });
-
-    // Function to show error message
-    function showErrorMessage(message) {
-        // Remove any existing error message
-        const existingErrorMessage = document.querySelector('#loginModal .ErrorMessage');
-        if (existingErrorMessage) {
-            existingErrorMessage.remove();
-        }
-
-        // Create a span element for the error message
-        var errorSpan = document.createElement('span');
-        errorSpan.classList.add('ErrorMessage');
-        errorSpan.textContent = message;
-
-        // Insert the error message before the modal body
-        var modalBody = document.querySelector('#loginModal .modal-body');
-        modalBody.parentNode.insertBefore(errorSpan, modalBody);
-
-        // Hide the error message after 5 seconds
-        setTimeout(function () {
-            if (errorSpan && errorSpan.parentNode) {
-                errorSpan.parentNode.removeChild(errorSpan);
-            }
-        }, 2500);
-    }
 
     // Function to clear password field
     function clearPasswordField() {
@@ -133,14 +112,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Reset form fields and hide error message when modal is hidden (on modal close)
-    loginModal._element.addEventListener('hidden.bs.modal', function () {
-        document.getElementById('loginForm').reset();
-        // Remove any error messages
-        const errorSpans = document.querySelectorAll('#loginModal .ErrorMessage');
-        errorSpans.forEach(function (errorSpan) {
-            errorSpan.remove();
-        });
-    });
+
+
 
     // Function to update the auth button
     function updateAuthButton() {
@@ -161,9 +134,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Function to handle logout confirmation
     window.confirmLogout = function () {
-        var userData = JSON.parse(localStorage.getItem('userData'));
+        var userData = JSON.parse(sessionStorage.getItem('userData'));
         if (!userData) {
-            console.error('No user data found in localStorage.');
+            console.error('No user data found in sessionStorage.');
             return;
         }
 
@@ -180,12 +153,13 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             console.log('Logout successful');
 
-            localStorage.clear(); // Clear all localStorage items
+            sessionStorage.clear(); // Clear all sessionStorage items
 
             isLoggedIn = false; // Update login state
-            localStorage.setItem('isLoggedIn', 'false'); // Save login state to localStorage
+            sessionStorage.setItem('isLoggedIn', 'false'); // Save login state to sessionStorage
+            history.replaceState(null, null, window.location.pathname);
+            document.getElementById('logoutModal').querySelector('.close').click(); // Close the modal on success
             updateAuthButton();
-            logoutModal.hide();
         })
         .catch(error => {
             console.error('Error:', error);

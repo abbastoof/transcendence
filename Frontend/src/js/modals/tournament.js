@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Reset the form and clear inputs
         playerForm.reset();
         playerAliasInputs.innerHTML = '';
-        modal.hide();
+        modalElement.hide();
     });
 
     function createGamePairs(){

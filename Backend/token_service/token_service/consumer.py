@@ -8,7 +8,6 @@ django.setup()
 
 async def start_consumer():
     from token_app.views import CustomTokenObtainPairView, ValidateToken, InvalidateToken
-    await CustomTokenObtainPairView().start_consumer()
 
     await asyncio.gather(
         CustomTokenObtainPairView().start_consumer(),

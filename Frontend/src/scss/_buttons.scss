@@ -56,7 +56,7 @@
     color: rgb(255, 255, 255);
     outline: none;
     font-family: "Teko", sans-serif;
-    font-size: 200%;
+    font-size: 30px;
 }
 
 .submit:focus {
@@ -68,6 +68,12 @@
     background-color: transparent;
     color: rgb(0, 0, 0);
     text-shadow: -2px 0 rgb(251, 245, 245), 0 2px rgb(255, 255, 255), 1px 0 rgb(255, 255, 255), 0 -2px rgb(255, 255, 255);    
+}
+
+.submit.accept-button:hover {
+background-color: transparent;
+color: green;
+text-shadow: -2px 0 rgb(251, 245, 245), 0 2px rgb(255, 255, 255), 1px 0 rgb(255, 255, 255), 0 -2px rgb(255, 255, 255);    
 }
 
 .close {
@@ -99,5 +105,26 @@
 .close:hover {
     background-color: transparent;
     color: rgb(0, 0, 0);
+    text-shadow: -2px 0 rgb(251, 245, 245), 0 2px rgb(255, 255, 255), 1px 0 rgb(255, 255, 255), 0 -2px rgb(255, 255, 255);    
+}
+
+.reject {
+    background-color: transparent;
+    border: none;
+    color: rgb(255, 255, 255);
+    outline: none;
+    font-family: "Teko", sans-serif;
+    font-size: 30px;
+}
+
+.reject:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.reject:hover {
+    stroke: rgb(0, 0, 0);
+    background-color: transparent;
+    color: rgb(255, 0, 0);
     text-shadow: -2px 0 rgb(251, 245, 245), 0 2px rgb(255, 255, 255), 1px 0 rgb(255, 255, 255), 0 -2px rgb(255, 255, 255);    
 }

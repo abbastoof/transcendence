@@ -130,7 +130,7 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
             console.error('Player IDs are missing or incomplete! Cannot start remote game!');
             return;
         }
-        const userData = JSON.parse(localStorage.getItem('userData'));
+        const userData = JSON.parse(sessionStorage.getItem('userData'));
         console.log('UserData:', userData); // Debugging line
         if (!userData || !userData.id || !userData.token) {
             console.error('UserData is missing or incomplete! Cannot start remote game!');
@@ -150,14 +150,14 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
         }
     }
     else {
-        // const userData = JSON.parse(localStorage.getItem('userData'));
-        // console.log('UserData:', userData); // Debugging line
-        // if (!userData || !userData.id || !userData.token) {
-        //     console.error('UserData is missing or incomplete!');
-        // }
-        // else {
-        //     localPlayerId = userData.id;
-        // }
+        const userData = JSON.parse(sessionStorage.getItem('userData'));
+        console.log('UserData:', userData); // Debugging line
+        if (!userData || !userData.id || !userData.token) {
+            console.error('UserData is missing or incomplete!');
+        }
+        else {
+            localPlayerId = userData.id;
+        }
         player1Id = Math.round(randFloat(1000, 1999));
         player2Id = Math.round(randFloat(2000, 2999));
         finalGameId = Math.round(randFloat(5000, 9999));
