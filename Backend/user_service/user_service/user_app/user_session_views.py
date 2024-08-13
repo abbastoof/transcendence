@@ -62,7 +62,8 @@ class UserLogoutView(viewsets.ViewSet):
         else:
             bearer = request.headers.get("Authorization")
             if not bearer or not bearer.startswith('Bearer '):
-                return Response({"detail": "Access token is required"}, code=status.HTTP_400_BAD_REQUEST)
+                response_message = {"detail": "Access token is required"}
+                status_code =status.HTTP_400_BAD_REQUEST
             access_token = bearer.split(' ')[1]
             data = {"id":pk, "access": access_token}
             response_data = requests.post("http://token-service:8000/auth/token/invalidate-tokens/", data=data)

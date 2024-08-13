@@ -3,23 +3,23 @@ import logging
 from django.http import Http404
 from rest_framework import status
 from token_service import settings
-from aio_pika import IncomingMessage
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from .rabbitmq_utils import consume_message, publish_message
+from rest_framework import viewsets
 from .serializers import CustomTokenObtainPairSerializer
 from .models import UserTokens
 import jwt
 from channels.db import database_sync_to_async
+from rest_framework.permissions import AllowAny
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class CustomTokenObtainPairView(TokenObtainPairView):
+class CustomTokenObtainPairView(viewsets.ViewSet):
     """
         CustomTokenObtainPairView class to handle token request.
 
@@ -29,71 +29,33 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             handle_token_request: Method to handle the token request.
             start_consumer: Method to start the RabbitMQ consumer.
     """
+    permission_classes = [AllowAny]
     serializer_class = CustomTokenObtainPairSerializer
-    @staticmethod
-    async def handle_token_request(message: IncomingMessage):
+    def create_token_for_user(self, request, *args, **kwargs) -> Response:
         """
-            Method to handle the token request.
+            Create a new token for the user.
 
-            This method processes the token request message received from the user service.
-            It publishes the token data to the user token request queue.
+            This method creates a new token for the user and returns the token details.
 
             Args:
-                ch: The channel object.
-                method: The method object.
-                properties: The properties object.
-                body: The body of the message.
+                request: The request object.
+
+            Returns:
+                Response: The response object containing the token details.
         """
-
-        logger.info("Received a message for token request processing.")
-        try:
-            data = json.loads(message.body.decode())
-            logger.info(f"Decoded message: {data}")
-            username = data.get("username")
-            id = data.get("id")
-            response_message = await CustomTokenObtainPairView.create_token_for_user(username, id)
-            logger.info(f"Generated response message: {response_message}")
-            await publish_message("user_token_response_queue", response_message)
-            logger.info(f"Published response to user_token_response_queue")
-        except Exception as e:
-            logger.error(f"Error processing token request: {e}")
-
-    async def start_consumer(self) -> None:
-        await consume_message("user_token_request_queue", self.handle_token_request)
-
-    @database_sync_to_async
-    def create_token_for_user(self, username, id):
         response_message = {}
-        try:
-            user, create = UserTokens.objects.get_or_create(id=id, username=username)
-            logger.info('user= %s', user.username)
-            logger.info('create= %s', create)
-            if create:
-                refresh = RefreshToken.for_user(user)
-                access_token = str(refresh.access_token)
-                user.token_data = {
-                    "refresh": str(refresh),
-                    "access": access_token
-                }
-                user.save()
-                response_message = {
-                    "id": id,
-                    "refresh": str(refresh),
-                    "access": access_token
-                }
-            else:
-                token_data = user.token_data
-                try:
-                    refresh = RefreshToken(token_data["refresh"])
-                    token_data["access"] = str(refresh.access_token)
-                    user.token_data = token_data
-                    user.save()
-                    response_message = {
-                        "id": id,
-                        "refresh": str(refresh),
-                        "access": token_data["access"]
-                    }
-                except jwt.ExpiredSignatureError:
+        status_code = status.HTTP_201_CREATED
+        id = request.data.get("id")
+        username = request.data.get("username")
+        if not username or not id:
+            response_message = {"error": "Username and id are required"}
+            status_code = status.HTTP_400_BAD_REQUEST
+        else:
+            try:
+                user, create = UserTokens.objects.get_or_create(id=id, username=username)
+                logger.info('user= %s', user.username)
+                logger.info('create= %s', create)
+                if create:
                     refresh = RefreshToken.for_user(user)
                     access_token = str(refresh.access_token)
                     user.token_data = {
@@ -106,11 +68,28 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                         "refresh": str(refresh),
                         "access": access_token
                     }
-                except Exception as err:
-                    response_message = {"error": str(err)}
-        except Exception as err:
-            response_message = {"error": str(err)}
-        return response_message
+                else:
+                    token_data = user.token_data
+                    try:
+                        refresh = RefreshToken(token_data["refresh"])
+                        token_data["access"] = str(refresh.access_token)
+                        user.token_data = token_data
+                        user.save()
+                        response_message = {
+                            "id": id,
+                            "refresh": str(refresh),
+                            "access": token_data["access"]
+                        }
+                    except jwt.ExpiredSignatureError:
+                        response_message = {"erro": "User session has expired, You must login again"}
+                        status_code = status.HTTP_401_UNAUTHORIZED
+                    except Exception as err:
+                        response_message = {"error": str(err)}
+                        status_code = status.HTTP_400_BAD_REQUEST
+            except Exception as err:
+                response_message = {"error": str(err)}
+                status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Response(response_message, status=status_code)
 
 class CustomTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs) -> Response:
@@ -140,7 +119,7 @@ class CustomTokenRefreshView(TokenRefreshView):
             return Response({"error": "Could not generate access token", "details": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class ValidateToken():
+class ValidateToken(viewsets.ViewSet):
 
     def validate_token(self, access_token) -> bool:
         """
@@ -163,82 +142,69 @@ class ValidateToken():
         except jwt.InvalidTokenError:
             return False
 
-    @database_sync_to_async
-    def validate_token_for_user(self, access_token, id):
+    def validate_token_for_user(self, request, *args, **kwargs):
+
         try:
-            result = self.validate_token(access_token)
+            status_code = status.HTTP_200_OK
+            response_message = {}
+            access = request.data.get("access")
+            id = request.data.get("id")
+            if not access or not id:
+                response_message = {"error": "Access token and id are required"}
+                status_code = status.HTTP_400_BAD_REQUEST
+            result = self.validate_token(access)
             if result:
                 logger.info("result= %s", result)
-                user = UserTokens.objects.filter(id = id, token_data__access = access_token).first()
+                user = UserTokens.objects.filter(id = id, token_data__access = access).first()
 
                 logger.info("user.username= %s", user.username)
                 logger.info("user.token_data['access']= %s", user.token_data["access"])
                 if result:
-                    response = {"access_token": "Valid token"}
+                    response_message = {"access_token": "Valid token"}
                 else:
-                    response = {"error": "token mismatch"}
+                    response_message = {"error": "token mismatch"}
+                    status_code = status.HTTP_401_UNAUTHORIZED
         except jwt.ExpiredSignatureError:
-            response = {"error": "token is expired"}
+            response_message = {"error": "token is expired"}
+            status_code = status.HTTP_401_UNAUTHORIZED
         except jwt.InvalidTokenError:
-            response = {"error": "Invalid token"}
+            response_message = {"error": "Invalid token"}
+            status_code = status.HTTP_401_UNAUTHORIZED
         except Http404:
-            response = {"error": "User has not logged in yet!!"}
-        except Exception as err:
-            response = {"error": str(err)}
-        logger.info("response= %s", response)
-        return response
-
-    # @staticmethod
-    async def validate_token_request_queue(self, message: IncomingMessage):
-        """
-            Method to handle the token validation request.
-
-            This method processes the token validation request message received from the user service.
-            It validates the access token and sends the response back to the user service.
-
-            Args:
-                ch: The channel object.
-                method: The method object.
-                properties: The properties object.
-                body: The body of the message.
-        """
-        data = json.loads(message.body.decode())
-        access_token = data.get("access")
-        id = data.get("id")
-        response = await self.validate_token_for_user(access_token, id)
-        logger.info("response = %s", response)
-        await publish_message("validate_token_response_queue", json.dumps(response))
-
-    async def start_consumer(self) -> None:
-        await consume_message("validate_token_request_queue", self.validate_token_request_queue)
-
-class InvalidateToken():
-    @database_sync_to_async
-    def invalidate_token_for_user(self, access, id):
-        try:
-            check_token = ValidateToken()
-            if check_token.validate_token(access):
-                user = get_object_or_404(UserTokens, id=id)
-                if user is not None:
-                    user.delete()
-                    response_message = {"detail":"User logged out"}
-        except jwt.ExpiredSignatureError:
-            response_message = {"error": "Access token is expired"}
-        except jwt.InvalidTokenError:
-            response_message = {"error": "Invalid access token"}
-        except Http404:
-            response_message = {"error": "User has not logged in yet"}
+            response_message = {"error": "User has not logged in yet!!"}
+            status_code = status.HTTP_401_UNAUTHORIZED
         except Exception as err:
             response_message = {"error": str(err)}
-        return response_message
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        logger.info("response_message= %s", response_message)
+        return Response(response_message, status=status_code)
 
-    @staticmethod
-    async def handle_logout_request_queue(message: IncomingMessage):
-        data = json.loads(message.body.decode())
-        access = data.get("access")
-        id = data.get("id")
-        response_message = await InvalidateToken.invalidate_token_for_user(access, id)
-        await publish_message("logout_response_queue", json.dumps(response_message))
-
-    async def start_consumer(self):
-        await consume_message("logout_request_queue", self.handle_logout_request_queue)
+class InvalidateToken(viewsets.ViewSet):
+    def invalidate_token_for_user(self, request, *args, **kwargs) -> Response:
+        try:
+            status_code = status.HTTP_200_OK
+            access = request.data.get("access")
+            id = request.data.get("id")
+            if not access or not id:
+                response_message = {"error": "Access token and id are required"}
+                status_code = status.HTTP_400_BAD_REQUEST
+            else:
+                check_token = ValidateToken()
+                if check_token.validate_token(access):
+                    user = get_object_or_404(UserTokens, id=id)
+                    if user is not None:
+                        user.delete()
+                        response_message = {"detail":"User logged out"}
+        except jwt.ExpiredSignatureError:
+            response_message = {"error": "Access token is expired"}
+            status_code = status.HTTP_401_UNAUTHORIZED
+        except jwt.InvalidTokenError:
+            response_message = {"error": "Invalid access token"}
+            status_code = status.HTTP_401_UNAUTHORIZED
+        except Http404:
+            response_message = {"error": "User has not logged in yet"}
+            status_code = status.HTTP_401_UNAUTHORIZED
+        except Exception as err:
+            response_message = {"error": str(err)}
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Response(response_message, status=status_code)
