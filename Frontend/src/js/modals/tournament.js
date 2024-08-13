@@ -142,6 +142,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         let remainingIDs = JSON.parse(localStorage.getItem('remainingIDs'));
         let roundWinners = [];
+        let winnerName = [];
+        let tmpPlayerOne = [];
+        let tmpPlayerTwo = [];
+
+        tmpPlayerOne = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === remainingIDs[0]));
+        tmpPlayerTwo = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === remainingIDs[1]));
+
+        document.getElementById('winner').textContent = [];
+        document.getElementById('nextPlayers').textContent = ("Next Players: " + tmpPlayerOne.name + " and " + tmpPlayerTwo.name);
+
+        localStorage.setItem('infoScreen', 'true');
+        gameInfoModal.show();
+        while (localStorage.getItem('infoScreen') === 'true')
+            await new Promise(resolve => setTimeout(resolve, 100));
+        gameInfoModal.hide();
 
         while(remainingIDs.length !== 2)
         {
@@ -150,15 +165,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                 startNextGame();
                 while (localStorage.getItem('isGameOver') === 'false')
                     await new Promise(resolve => setTimeout(resolve, 100));
+                pongModal.hide();
 
                 remainingIDs = JSON.parse(localStorage.getItem('remainingIDs'));
                 roundWinners = JSON.parse(localStorage.getItem('roundWinners'));
-                let tmpID = roundWinners[roundWinners.length - 1];
-                let winnerName = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === tmpID));
 
-                pongModal.hide();
+                winnerName = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === roundWinners[roundWinners.length - 1]));
 
-                document.getElementById('winner').textContent = ("Game Winner: " + winnerName.name);
+                if(remainingIDs.length !== 0) {
+                    tmpPlayerOne = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === remainingIDs[0]));
+                    tmpPlayerTwo = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === remainingIDs[1]));
+                }
+                else {
+                    tmpPlayerOne = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === roundWinners[0]));
+                    tmpPlayerTwo = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === roundWinners[1]));
+                }
+
+                document.getElementById('winner').textContent = ("Last game winner: " + winnerName.name);
+                document.getElementById('nextPlayers').textContent = ("Next Players: " + tmpPlayerOne.name + " and " + tmpPlayerTwo.name);
 
                 localStorage.setItem('infoScreen', 'true');
                 gameInfoModal.show();
@@ -175,12 +199,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             await new Promise(resolve => setTimeout(resolve, 100));
         pongModal.hide();
         roundWinners = JSON.parse(localStorage.getItem('roundWinners'));
-        let tmpID = roundWinners[roundWinners.length - 1];
-        let winnerName = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === tmpID));
-
-        pongModal.hide();
+        winnerName = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === roundWinners[roundWinners.length - 1]));
 
         document.getElementById('winner').textContent = ("Tournament Winner: " + winnerName.name);
+        document.getElementById('nextPlayers').textContent = [];
 
         localStorage.setItem('infoScreen', 'true');
         gameInfoModal.show();
