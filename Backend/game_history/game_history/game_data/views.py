@@ -3,6 +3,9 @@ from .models import GameHistory, GameStat
 from .serializers import GameHistorySerializer, GameStatSerializer
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+import logging
+
+logger = logging.getLogger(__name__)
 
 class GameHistoryViewSet(viewsets.ModelViewSet):
     """

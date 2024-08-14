@@ -16,6 +16,14 @@ while ! curl -s "${AUTH_SERVICE_URL}" >/dev/null; do
     sleep 5
 done
 
+GAME_HISTORY_URL="http://game-history:8002/"
+
+# Wait until the Auth server is available
+while ! curl -s "${GAME_HISTORY_URL}" >/dev/null; do
+    echo "Waiting for Auth server at ${GAME_HISTORY_URL}..."
+    sleep 5
+done
+
 if [ "$NODE_ENV" = "development" ]; then
     echo "Starting Vite development server"
     # Run Vite in the background

@@ -1,0 +1,8 @@
+# UNCOMMENT THESE LINES TO RUN FRONTEND IN DEV MODE
+# TARGET=development
+# NODE_ENV=development
+
+DB_USER = "root"
+DB_PASS = "root"
+
+PGPASSWORD='root'

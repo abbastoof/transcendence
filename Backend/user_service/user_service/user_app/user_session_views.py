@@ -5,10 +5,14 @@ from rest_framework import status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework import status
-from .models import User
-from .rabbitmq_utils import consume_message, publish_message
+from .models import UserProfileModel as User
 from .serializers import UserSerializer
+from asgiref.sync import async_to_sync
+import logging
+import asyncio
+import requests
+
+logger = logging.getLogger(__name__)
 
 class UserLoginView(viewsets.ViewSet):
     permission_classes = [AllowAny]
@@ -16,29 +20,23 @@ class UserLoginView(viewsets.ViewSet):
     def login(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
-        status_code = 0
+        status_code = status.HTTP_200_OK
+        response = {}
+        response_message = {}
         if username and password:
             user = authenticate(username=username, password=password)
             if user is not None:
                 if user.is_active:
-                    serializer = UserSerializer(user, data={"status": True}, partial=True)
-                    serializer.is_valid(raise_exception=True)
-                    serializer.save()
+                    serializer = UserSerializer(user)
                     data = {"id": serializer.data["id"], "username": serializer.data["username"]}
-                    publish_message("user_token_request_queue", json.dumps(data))
-                    user_data = {}
-
-                    def handle_response(ch, method, properties, body):
-                        nonlocal user_data
-                        user_data.update(json.loads(body))
-                        ch.stop_consuming()
-
-                    consume_message("user_token_response_queue", handle_response)
-
-                    if "error" in user_data:
-                        response_message = {"error": "Couldn't generate tokens", "status":status.HTTP_401_UNAUTHORIZED}
+                    # send post request to token-service
+                    response = requests.post("http://token-service:8000/auth/token/gen-tokens/", data=data)
+                    if response.status_code == 201:
+                        response_message = response.json()
+                    logger.info('user_data = %s', response_message)
+                    if "error" in response_message:
+                        status_code = response_message.get("status_code")
                     else:
-                        response_message = user_data
                         status_code = status.HTTP_200_OK
                 else:
                     response_message = {"detail": "User is Inactive"}
@@ -64,24 +62,16 @@ class UserLogoutView(viewsets.ViewSet):
         else:
             bearer = request.headers.get("Authorization")
             if not bearer or not bearer.startswith('Bearer '):
-                return Response({"detail": "Access token is required"}, code=status.HTTP_400_BAD_REQUEST)
+                response_message = {"detail": "Access token is required"}
+                status_code =status.HTTP_400_BAD_REQUEST
             access_token = bearer.split(' ')[1]
-            print("access=",access_token)
-            publish_message("logout_request_queue", json.dumps({"id":pk, "access": access_token}))
-            response_data = {}
-            def handle_response(ch, method, properties, body):
-                nonlocal response_data
-                response_data.update(json.loads(body))
-                ch.stop_consuming()
-            consume_message("logout_response_queue", handle_response)
-            print("response data = ", response_data)
-            if "error" in response_data:
-                response_message = {"error": response_data}
-                status_code = status.HTTP_401_UNAUTHORIZED
+            data = {"id":pk, "access": access_token}
+            response_data = requests.post("http://token-service:8000/auth/token/invalidate-tokens/", data=data)
+            if response_data.status_code == 200:
+                response_message = response_data.json()
+            if "error" in response_message:
+                status_code = response_message.get("status_code")
             else:
-                serializer = UserSerializer(instance=user, data={'status':False}, partial=True)
-                serializer.is_valid()
-                serializer.save()
                 response_message = {"detail": "User logged out successfully"}
                 status_code = status.HTTP_200_OK
         return Response(response_message, status=status_code)

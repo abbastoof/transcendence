@@ -29,32 +29,53 @@
         <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#aboutModal">About</button>
     </div>
 
-<!-- Pong Game Modal -->
-<div class="modal fade game-modal" id="pongModal" tabindex="-1" role="dialog" aria-labelledby="pongModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" style="max-width: 820px;" role="document">
-        <div class="modal-content">
-            <div class="modal-header row col-md-12">
-                <div class="col-md-2"></div>
-                <div class="col-md-8">
-                    <h2 class="modal-title" id="pongModalLabel">Local game (press esc to quit)</h2>
-                </div>
-                <div class="col-md-2 text-end">
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+    <!-- Waiting room -->
+    <div class="modal fade" id="waitingLobbyModal" tabindex="-1" aria-labelledby="waitingLobbyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="waitingLobbyModalLabel">Lobby</h2>
+                    <button type="button" data-bs-dismiss="modal" class="close" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-            </div>
-            <div class="modal-body" id="pongContent">
-                <div id="pongGameContainer" style="width: 800px; height: 600px; margin: auto;"></div>
+                <div class="modal-body">
+                    <p id="lobbyMessage">Waiting for players...</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="submit" data-bs-dismiss="modal">Cancel</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
+    
+
+    <!-- Pong Game Modal -->
+    <div class="modal fade game-modal" id="pongModal" tabindex="-1" role="dialog" aria-labelledby="pongModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" style="max-width: 820px;" role="document">
+            <div class="modal-content">
+                <div class="modal-header row col-md-12">
+                    <div class="col-md-2"></div>
+                    <div class="col-md-8">
+                        <h2 class="modal-title" id="pongModalLabel">Local game (press esc to quit)</h2>
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-body" id="pongContent">
+                    <div id="pongGameContainer" style="width: 800px; height: 600px; margin: auto;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
 
       <!-- Tournament Modal -->
-    <canvas class="tournament"></canvas>
+    <div class="tournament"></div>
 
     <!-- About Modal -->
     <div class="about"></div>

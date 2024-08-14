@@ -1,4 +1,4 @@
-import * as bootstrap from 'bootstrap'
+import { showMessage } from './messages.js';
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the Bootstrap modal
@@ -7,10 +7,14 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Sign Up modal element not found');
         return;
     }
-    var signUpModal = new bootstrap.Modal(signUpModalElement);
-        
+    
     var modalTitle = document.getElementById('signUpLabel');
     var modalBody = document.querySelector('#signUpModal .modal-body');
+    var signUpForm = document.getElementById('signUpForm');
+    
+    signUpModalElement.addEventListener('hidden.bs.modal', function () {
+        signUpForm.reset(); // Reset all form fields
+    });
 
     // Check if modalTitle and modalBody elements exist
     if (!modalTitle || !modalBody) {
@@ -30,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Check if passwords match
         if (password !== repeatPassword) {
-            showErrorMessage('Passwords do not match!');
+            showMessage('Passwords do not match!', '#signUpModal', 'error');
             clearPasswordFields();
             return;
         }
@@ -53,65 +57,34 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             console.log('Success:', data);
-            signUpModal.hide();
+            history.back();
             document.getElementById('signUpForm').reset();
         })
         .catch(error => {
             console.error('Error:', error);
             if (error.error) {
-                if (error.error.username) {
-                    showErrorMessage('Sign up failed: ' + error.error.username.join(' '));
-                }
-                if (error.error.email) {
-                    showErrorMessage('Sign up failed: ' + error.error.email.join(' '));
+                for (let key in error.error) {
+                    if (error.error.hasOwnProperty(key)) {
+                        let errorMessage = error.error[key];
+                        if (Array.isArray(errorMessage)) {
+                            errorMessage = errorMessage.join(' ');
+                        }
+                        showMessage('Sign up failed: ' + errorMessage, '#signUpModal', 'error');
+                    }
                 }
                 if (error.error.password) {
                     showErrorMessage('Sign up failed: ' + error.error.password.join(' '));
                 }
             } else {
-                showErrorMessage('Sign up failed: Something went wrong');
+                showMessage('Sign up failed: Something went wrong', '#signUpModal', 'error');
             }
             clearPasswordFields();
         });
     });
-
-    // Function to show error message
-    function showErrorMessage(message) {
-        // Remove any existing error message
-        const existingErrorMessage = document.querySelector('#signUpModal .ErrorMessage');
-        if (existingErrorMessage) {
-            existingErrorMessage.remove();
-        }
-
-        // Create a span element for the error message
-        var errorSpan = document.createElement('span');
-        errorSpan.classList.add('ErrorMessage');
-        errorSpan.textContent = message;
-
-        // Insert the error message before the modal body
-        modalBody.parentNode.insertBefore(errorSpan, modalBody);
-
-        // Hide the error message after 5 seconds
-        setTimeout(function() {
-            if (errorSpan && errorSpan.parentNode) {
-                errorSpan.parentNode.removeChild(errorSpan);
-            }
-        }, 3500);
-    }
 
     // Function to clear password fields
     function clearPasswordFields() {
         document.getElementById('signUpPassword').value = '';
         document.getElementById('signUpRePassword').value = '';
     }
-
-    // Reset form fields and hide error message when modal is hidden (on modal close)
-    signUpModal._element.addEventListener('hidden.bs.modal', function () {
-        document.getElementById('signUpForm').reset();
-        // Remove any error messages
-        const errorSpans = document.querySelectorAll('#signUpModal .ErrorMessage');
-        errorSpans.forEach(function(errorSpan) {
-            errorSpan.remove();
-        });
-    });
 });
