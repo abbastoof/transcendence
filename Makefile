@@ -106,7 +106,7 @@ dlog:
 		echo "Error: No container name provided."; \
 		exit 1; \
 	fi
-	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) bash -c 'cat /var/log/django.log'
+	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) bash -c 'cat /var/log/django_debug.log'
 
 .PHONY: dlog-err
 dlog-err:
@@ -114,7 +114,7 @@ dlog-err:
 		echo "Error: No container name provided."; \
 		exit 1; \
 	fi
-	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) bash -c 'cat /var/log/django_err.log'
+	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) bash -c 'cat /var/log/django_error.log'
 
 .PHONY: clog
 clog:
