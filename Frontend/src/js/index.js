@@ -77,9 +77,13 @@ document.addEventListener('DOMContentLoaded', function () {
 //     // Optionally, add event listeners for other modals if needed
 // });
 
+// <div class="mb-4 aboutText" style="font-size: 30px" >testText</div>
+// <div class="mb-4 aboutText" style="font-size: 30px" id="nextPlayers"></div>
+
 createModal('gameInfo', 'Game info', `
     <div class="d-flex flex-column">
         <div class="mb-4 aboutText" style="font-size: 30px" id="winner"></div>
+        <div class="mb-4 aboutText" style="font-size: 30px" id="nextPlayers"></div>
         <button type="button" id="gameInfoButton" class="submit">OK</button>
     </div>`);
 
