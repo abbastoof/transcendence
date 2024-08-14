@@ -3,50 +3,9 @@ from .models import GameHistory, GameStat
 from .serializers import GameHistorySerializer, GameStatSerializer
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from .rabbitmq_utils import publish_message, consume_message
-from django.utils.timezone import now
-import json
 import logging
-from channels.db import database_sync_to_async
-from aio_pika.message import IncomingMessage
 
 logger = logging.getLogger(__name__)
-
-    
-@database_sync_to_async
-def create_game_history_record(data):
-    player1_id=data.get('player1_id')
-    player2_id=data.get('player2_id')
-    player1_username=data.get('player1_username')
-    player2_username=data.get('player2_username')
-    obj = GameHistory.objects.create(
-        player1_id=player1_id,
-        player1_username=player1_username,
-        player2_id=player2_id,
-        player2_username=player2_username,
-        start_time=now()
-    )
-    serializer = GameHistorySerializer(obj)
-    return serializer
-
-async def handle_create_record_request(message: IncomingMessage):
-    try:
-        logger.info('message = %s', message.body.decode())
-        data = json.loads(message.body.decode())
-        serializer = await create_game_history_record(data)
-        if serializer is not None:
-            await publish_message("create_gamehistory_record_response", json.dumps(serializer.data))
-            logger.info('Game history record created successfully, serializer = %s', serializer.data)
-    except Exception as err:
-        logger.info('error = %s', err)
-        error_message = {"error": str(err)}
-        await publish_message("create_gamehistory_record_response", json.dumps(error_message))
-        logger.info('Error creating game history record: %s', err)
-
-async def start_consumer() -> None:
-    await consume_message("create_gamehistory_record_queue", handle_create_record_request)
 
 class GameHistoryViewSet(viewsets.ModelViewSet):
     """

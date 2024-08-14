@@ -11,12 +11,10 @@ from django.db.models import Q
 from .models import UserProfileModel, FriendRequest
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.decorators import parser_classes
-from .rabbitmq_utils import publish_message, consume_message
 from .serializers import UserSerializer, FriendSerializer
-from aio_pika.message import IncomingMessage
-from asgiref.sync import async_to_sync
+import requests
 
-async def validate_token(request) -> None:
+def validate_token(request) -> None:
     bearer = request.headers.get("Authorization")
     if not bearer or not bearer.startswith('Bearer '):
         raise ValidationError(
@@ -24,31 +22,10 @@ async def validate_token(request) -> None:
             code=status.HTTP_400_BAD_REQUEST)
     access_token = bearer.split(' ')[1]
     data = {"id": request.user.id, "access": access_token}
-    await publish_message("validate_token_request_queue", json.dumps(data))
-
-    response_data = {}
-
-    async def handle_response(message: IncomingMessage):
-        nonlocal response_data
-        response_data.update(json.loads(message.body.decode()))
-
-    await consume_message("validate_token_response_queue", handle_response)
-
+    response = requests.post("http://token-service:8000/auth/token/validate-token/", data=data)
+    response_data = response.json()
     if "error" in response_data:
-        raise ValidationError(detail={"error": "Invalid access token"},
-            code=status.HTTP_401_UNAUTHORIZED
-        )
-
-# def chat_Page(request, username):
-#     user_obj = User.objects.get(username=username)
-#     users = User.objects.exclude(username=request.user.username)
-
-#     if request.user.pk > user_obj.pk: # to make sure the thread name is always the same for both users
-#         thread_name = f'chat_{request.user.pk}-{user_obj.pk}' # thread name should be unique for each chat room to avoid mixing messages
-#     else:
-#         thread_name = f'chat_{user_obj.pk}-{request.user.pk}'
-#     message_objs = ChatModel.objects.filter(thread_name=thread_name) # get all messages in the chat room with the same thread name
-#     return render(request, 'chat.html', {'users': users, 'user_obj': user_obj, 'messages': message_objs, 'thread_name': thread_name})
+        raise ValidationError(detail=response_data, code=response_data.get("status_code"))
 
 class UserViewSet(viewsets.ViewSet):
     """
@@ -86,7 +63,7 @@ class UserViewSet(viewsets.ViewSet):
                 Response: The response object containing the list of users.
         """
         try:
-            async_to_sync(validate_token)(request)
+            validate_token(request)
             users = UserProfileModel.objects.all()
             serializer = UserSerializer(users, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -108,10 +85,10 @@ class UserViewSet(viewsets.ViewSet):
                 Response: The response object containing the user data.
         """
         try:
-            async_to_sync(validate_token)(request)
+            validate_token(request)
             data = get_object_or_404(UserProfileModel, id=pk)
             if request.user != data:
-                return Response({"detail": "You're not authorized"}, status=status.HTTP)
+                return Response({"detail": "You're not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
             serializer = UserSerializer(data)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as err:
@@ -132,7 +109,7 @@ class UserViewSet(viewsets.ViewSet):
                 Response: The response object containing the updated user data.
         """
         try:
-            async_to_sync(validate_token)(request)
+            validate_token(request)
             data = get_object_or_404(UserProfileModel, id=pk)
             if data != request.user and not request.user.is_superuser:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -162,7 +139,7 @@ class UserViewSet(viewsets.ViewSet):
                 Response: The response object containing the status of the deletion.
         """
         try:
-            async_to_sync(validate_token)(request)
+            validate_token(request)
             data = get_object_or_404(UserProfileModel, id=pk)
             if data != request.user and not request.user.is_superuser:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -220,10 +197,10 @@ class FriendsViewSet(viewsets.ViewSet):
     def friends_list(self, request, user_pk=None):
         try:
 
-            async_to_sync(validate_token)(request)
+            validate_token(request)
             user = get_object_or_404(UserProfileModel, id=user_pk)
             serializer = UserSerializer(user.friends.all(), many=True)
-            data = [{"id": item["id"], "username": item["username"], "status": item["status"]} for item in serializer.data]
+            data = [{"id": item["id"], "username": item["username"], "status": item["online_status"]} for item in serializer.data]
             return Response(data, status=status.HTTP_200_OK)
         except Http404:
             return Response({"error": "User does not exist"}, status=status.HTTP_404_NOT_FOUND)
@@ -233,7 +210,7 @@ class FriendsViewSet(viewsets.ViewSet):
 
     def remove_friend(self, request, user_pk=None, pk=None):
         try:
-            async_to_sync(validate_token)(request)
+            validate_token(request)
             user = get_object_or_404(UserProfileModel, id=user_pk)
             friend = get_object_or_404(UserProfileModel, id=pk)
             if friend in user.friends.all():
@@ -251,7 +228,7 @@ class FriendsViewSet(viewsets.ViewSet):
         response_message = {}
         status_code = 0
         try:
-            async_to_sync(validate_token)(request)
+            validate_token(request)
             current_user = get_object_or_404(UserProfileModel, id=user_pk)
             current_user_friends = current_user.friends.all()
             friend_username = request.data.get("username")
@@ -292,7 +269,7 @@ class FriendsViewSet(viewsets.ViewSet):
 
     def accept_friend_request(self, request, user_pk=None, pk=None):
         try:
-            async_to_sync(validate_token)(request)
+            validate_token(request)
             current_user = get_object_or_404(UserProfileModel, id=user_pk)
             sender_user = get_object_or_404(UserProfileModel, id=pk)
             pending_requests = FriendRequest.objects.filter(receiver_user=current_user, sender_user=sender_user, status='pending')
@@ -309,7 +286,7 @@ class FriendsViewSet(viewsets.ViewSet):
 
     def reject_friend_request(self, request, user_pk=None, pk=None):
         try:
-            async_to_sync(validate_token)(request)
+            validate_token(request)
             current_user = get_object_or_404(UserProfileModel, id=user_pk)
             sender_user = get_object_or_404(UserProfileModel, id=pk)
             pending_request = FriendRequest.objects.filter(receiver_user=current_user, sender_user=sender_user, status='pending').first()
@@ -325,7 +302,7 @@ class FriendsViewSet(viewsets.ViewSet):
 
     def friend_requests(self, request, user_pk=None): # get user pending list
         try:
-            async_to_sync(validate_token)(request)
+            validate_token(request)
             user = get_object_or_404(UserProfileModel, id = user_pk)
             pending_requests = FriendRequest.objects.filter(receiver_user=user, status='pending') # filter returns a list
             data = FriendSerializer(pending_requests, many=True)

@@ -5,6 +5,7 @@ from channels.db import database_sync_to_async
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 import logging
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -39,12 +40,9 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         logger.info('res = %s', res)
         if res:
             asyncio.sleep(1)
-            request = await self.create_game_history_record()
-            logger.info('Request = %s',request)
-            response = await self.publish_and_consume(request)
+            response = await self.create_and_send_game_history_record()
             logger.info('Response = %s', response)
             await self.send_notification('starting_game', response, self.scope['user'].username)
-
 
     # Extract token from Query string
     def get_token_from_query_string(self):
@@ -147,11 +145,13 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
             'player': player
         }))
     @database_sync_to_async
-    def create_game_history_record(self):
+    def create_and_send_game_history_record(self):
         from .models import GameRoom
         from .serializers import GameRoomSerializer
+        from django.utils.timezone import now
     
         request = {}
+        response = {}
         gameroom_obj = GameRoom.objects.get(room_name=self.room_name)
         if gameroom_obj is not None and gameroom_obj.player1 is not None and gameroom_obj.player2 is not None:
             serializer = GameRoomSerializer(gameroom_obj).data
@@ -162,26 +162,12 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
                     "player1_username":serializer["player1_username"],
                     "player2_id": serializer["player2_id"],
                     "player2_username": serializer["player2_username"],
+                    "start_time": now()
                 }
-        return request
-    
-    async def publish_and_consume(self, request):
-        from .rabbitmq_utils import consume_message, publish_message
-        await publish_message('create_gamehistory_record_queue', json.dumps(request))
-        response = {}
+                response = requests.post('http://game-history:8002/game-history/', data=request)
+                logger.info('Response = %s', response.json())
+        return response.json()
 
-        async def handle_response(message):
-            nonlocal response
-            data = json.loads(message.body.decode())
-            response.update(data)
-
-        await consume_message('create_gamehistory_record_response', handle_response)
-
-        logger.info('Response = %s', response)
-        if 'error' in response:
-            return f'Could not create game_history record: {response}'
-        return response
-    
     @database_sync_to_async
     def check_room_players(self):
         from .models import GameRoom

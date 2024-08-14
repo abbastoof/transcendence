@@ -6,28 +6,13 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import UserProfileModel as User
-from .rabbitmq_utils import consume_message, publish_message
 from .serializers import UserSerializer
 from asgiref.sync import async_to_sync
-from aio_pika.message import AbstractIncomingMessage
 import logging
 import asyncio
+import requests
 
 logger = logging.getLogger(__name__)
-
-async def publish_consumer(publish_queue, consume_queue, data):
-    await publish_message(publish_queue, json.dumps(data))
-
-    user_data = {}
-
-    async def handle_response(message):
-        nonlocal user_data
-        data = json.loads(message.body.decode())
-        user_data.update(data)
-
-    await consume_message(consume_queue, handle_response)
-    logger.info(f"Final user_data: {user_data}")
-    return user_data
 
 class UserLoginView(viewsets.ViewSet):
     permission_classes = [AllowAny]
@@ -35,23 +20,23 @@ class UserLoginView(viewsets.ViewSet):
     def login(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
-        status_code = 0
+        status_code = status.HTTP_200_OK
+        response = {}
+        response_message = {}
         if username and password:
             user = authenticate(username=username, password=password)
             if user is not None:
                 if user.is_active:
                     serializer = UserSerializer(user)
-                    # serializer.is_valid(raise_exception=True)
-                    # serializer.save()
                     data = {"id": serializer.data["id"], "username": serializer.data["username"]}
-                    user_data = {}
-                    publish_queue = "user_token_request_queue"
-                    consume_queue = "user_token_response_queue"
-                    user_data = async_to_sync(publish_consumer)(publish_queue, consume_queue, data)
-                    if "error" in user_data:
-                        response_message = {"error": "Couldn't generate tokens", "status":status.HTTP_401_UNAUTHORIZED}
+                    # send post request to token-service
+                    response = requests.post("http://token-service:8000/auth/token/gen-tokens/", data=data)
+                    if response.status_code == 201:
+                        response_message = response.json()
+                    logger.info('user_data = %s', response_message)
+                    if "error" in response_message:
+                        status_code = response_message.get("status_code")
                     else:
-                        response_message = user_data
                         status_code = status.HTTP_200_OK
                 else:
                     response_message = {"detail": "User is Inactive"}
@@ -77,19 +62,16 @@ class UserLogoutView(viewsets.ViewSet):
         else:
             bearer = request.headers.get("Authorization")
             if not bearer or not bearer.startswith('Bearer '):
-                return Response({"detail": "Access token is required"}, code=status.HTTP_400_BAD_REQUEST)
+                response_message = {"detail": "Access token is required"}
+                status_code =status.HTTP_400_BAD_REQUEST
             access_token = bearer.split(' ')[1]
             data = {"id":pk, "access": access_token}
-            publish_queue = "logout_request_queue"
-            consume_queue = "logout_response_queue"
-            response_data = async_to_sync(publish_consumer)(publish_queue, consume_queue, data)
-            if "error" in response_data:
-                response_message = {"error": response_data}
-                status_code = status.HTTP_401_UNAUTHORIZED
+            response_data = requests.post("http://token-service:8000/auth/token/invalidate-tokens/", data=data)
+            if response_data.status_code == 200:
+                response_message = response_data.json()
+            if "error" in response_message:
+                status_code = response_message.get("status_code")
             else:
-                # serializer = UserSerializer(instance=user, data={'online_status':False}, partial=True)
-                # serializer.is_valid()
-                # serializer.save()
                 response_message = {"detail": "User logged out successfully"}
                 status_code = status.HTTP_200_OK
         return Response(response_message, status=status_code)
