@@ -2,6 +2,11 @@ import {showMessage} from './messages.js';
 
 document.addEventListener('DOMContentLoaded', function () {
 	updateFriendsList();
+
+	const friendsModal = document.getElementById('FriendsModal');
+	if (friendsModal) {
+		friendsModal.addEventListener('hide.bs.modal', clearAddFriendForm);
+	}
 });
 
 export function updateFriendsList() {
@@ -77,6 +82,7 @@ function sendFriendRequest(userData) {
 	const friendUsername = document.getElementById('friendUsername').value;
 	if (friendUsername === userData.username) {
 		showMessage('You cannot send a friend request to yourself', '#FriendsModal', 'error');
+		document.getElementById('friendUsername').value = '';
 		throw new Error('You cannot send a friend request to yourself');
 	}
 	fetch(`/user/${userData.id}/request/`, {
@@ -98,9 +104,11 @@ function sendFriendRequest(userData) {
 		})
 		.then(data => {
 			showMessage(data.detail, '#FriendsModal', 'accept');
+			document.getElementById('friendUsername').value = '';
 		})
 		.catch(error => {
 			showMessage(`Error sending friend request: ${error.message}`, '#FriendsModal', 'error');
+			document.getElementById('friendUsername').value = '';
 		});
 }
 
@@ -224,3 +232,10 @@ function removeFriend(userData, friendID) {
         console.error('Error removing friend:', error);
     });
 };
+
+function clearAddFriendForm() {
+    const friendForm = document.getElementById('friendForm');
+    if (friendForm) {
+        friendForm.reset(); // This will clear all input fields within the form
+    }
+}

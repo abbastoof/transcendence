@@ -100,7 +100,7 @@ export function updateUserProfile() {
             }
 
             fetch(`/user/${userData.id}/`, {
-                method: 'PUT',
+                method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${userData.token}`,
                     'Content-Type': 'application/json'
@@ -149,7 +149,7 @@ export function updateUserProfile() {
             }
 
             fetch(`/user/${userData.id}/`, {
-                method: 'PUT',
+                method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${userData.token}`,
                     'Content-Type': 'application/json'
@@ -210,7 +210,7 @@ export function updateUserProfile() {
             formData.append('avatar', file);
 
             fetch(`/user/${userData.id}/`, {
-                method: 'PUT',
+                method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${userData.token}`
                 },
