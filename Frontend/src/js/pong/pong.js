@@ -297,8 +297,8 @@ export function endGame()
     cleanUpThreeJS();
     cleanUpGame();
     gameStarted = false;
-    localStorage.setItem('isGameOver', 'true');
-    console.log("at endgame: gameStarted:", gameStarted, "isGameOver:", localStorage.getItem('isGameOver'));
+    sessionStorage.setItem('isGameOver', 'true');
+    console.log("at endgame: gameStarted:", gameStarted, "isGameOver:", sessionStorage.getItem('isGameOver'));
 }
 
 export function changeCameraAngle()

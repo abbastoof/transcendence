@@ -20,14 +20,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         "GiggleGuru", "HappyHippo", "ZanyZebra", "LaughingLion"
     ];
 
-    localStorage.clear();
-
     let tournamentPlayers = [];
     let currentGame = 0;
     let seed = Math.floor(Math.random() * 1000 + 1000);
 
     gameInfoButton.addEventListener('click', function () {
-        localStorage.setItem('infoScreen', 'false');
+        sessionStorage.setItem('infoScreen', 'false');
     })
 
     playerForm.addEventListener('change', function () {
@@ -121,15 +119,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Reset the form and clear inputs
             playerForm.reset();
             playerAliasInputs.innerHTML = '';
+            sessionStorage.setItem('roundWinners', JSON.stringify([]));
             modal.hide();
 
             // initialize tournament variables
-            localStorage.setItem('tournamentPlayers', JSON.stringify(tournamentPlayers));
-            localStorage.setItem('roundWinners', JSON.stringify([]));
+            sessionStorage.setItem('tournamentPlayers', JSON.stringify(tournamentPlayers));
 
             const numbers = Array.from({ length: tournamentPlayers.length }, (_, index) => index + 1);
             const shuffledNumbers = numbers.sort(() => Math.random() - 0.5);
-            localStorage.setItem('remainingIDs', JSON.stringify(shuffledNumbers));
+            sessionStorage.setItem('remainingIDs', JSON.stringify(shuffledNumbers));
 
             // start tournament
             tournamentLogic();
@@ -140,21 +138,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function tournamentLogic() {
 
-        let remainingIDs = JSON.parse(localStorage.getItem('remainingIDs'));
+        let remainingIDs = JSON.parse(sessionStorage.getItem('remainingIDs'));
         let roundWinners = [];
         let winnerName = [];
         let tmpPlayerOne = [];
         let tmpPlayerTwo = [];
 
-        tmpPlayerOne = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === remainingIDs[0]));
-        tmpPlayerTwo = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === remainingIDs[1]));
+        tmpPlayerOne = JSON.parse(sessionStorage.getItem('tournamentPlayers')).find((player) => (player.id === remainingIDs[0]));
+        tmpPlayerTwo = JSON.parse(sessionStorage.getItem('tournamentPlayers')).find((player) => (player.id === remainingIDs[1]));
 
         document.getElementById('winner').textContent = [];
         document.getElementById('nextPlayers').textContent = ("Next Players: " + tmpPlayerOne.name + " and " + tmpPlayerTwo.name);
 
-        localStorage.setItem('infoScreen', 'true');
+        sessionStorage.setItem('infoScreen', 'true');
         gameInfoModal.show();
-        while (localStorage.getItem('infoScreen') === 'true')
+        while (sessionStorage.getItem('infoScreen') === 'true')
             await new Promise(resolve => setTimeout(resolve, 100));
         gameInfoModal.hide();
 
@@ -163,59 +161,59 @@ document.addEventListener('DOMContentLoaded', async () => {
             while(remainingIDs.length !== 0)
             {
                 startNextGame();
-                while (localStorage.getItem('isGameOver') === 'false')
+                while (sessionStorage.getItem('isGameOver') === 'false')
                     await new Promise(resolve => setTimeout(resolve, 100));
                 pongModal.hide();
 
-                remainingIDs = JSON.parse(localStorage.getItem('remainingIDs'));
-                roundWinners = JSON.parse(localStorage.getItem('roundWinners'));
+                remainingIDs = JSON.parse(sessionStorage.getItem('remainingIDs'));
+                roundWinners = JSON.parse(sessionStorage.getItem('roundWinners'));
 
-                winnerName = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === roundWinners[roundWinners.length - 1]));
+                winnerName = JSON.parse(sessionStorage.getItem('tournamentPlayers')).find((player) => (player.id === roundWinners[roundWinners.length - 1]));
 
                 if(remainingIDs.length !== 0) {
-                    tmpPlayerOne = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === remainingIDs[0]));
-                    tmpPlayerTwo = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === remainingIDs[1]));
+                    tmpPlayerOne = JSON.parse(sessionStorage.getItem('tournamentPlayers')).find((player) => (player.id === remainingIDs[0]));
+                    tmpPlayerTwo = JSON.parse(sessionStorage.getItem('tournamentPlayers')).find((player) => (player.id === remainingIDs[1]));
                 }
                 else {
-                    tmpPlayerOne = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === roundWinners[0]));
-                    tmpPlayerTwo = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === roundWinners[1]));
+                    tmpPlayerOne = JSON.parse(sessionStorage.getItem('tournamentPlayers')).find((player) => (player.id === roundWinners[0]));
+                    tmpPlayerTwo = JSON.parse(sessionStorage.getItem('tournamentPlayers')).find((player) => (player.id === roundWinners[1]));
                 }
 
                 document.getElementById('winner').textContent = ("Last game winner: " + winnerName.name);
                 document.getElementById('nextPlayers').textContent = ("Next Players: " + tmpPlayerOne.name + " and " + tmpPlayerTwo.name);
 
-                localStorage.setItem('infoScreen', 'true');
+                sessionStorage.setItem('infoScreen', 'true');
                 gameInfoModal.show();
-                while (localStorage.getItem('infoScreen') === 'true')
+                while (sessionStorage.getItem('infoScreen') === 'true')
                     await new Promise(resolve => setTimeout(resolve, 100));
                 gameInfoModal.hide();
             }
-            remainingIDs = JSON.parse(localStorage.getItem('roundWinners'));
-            localStorage.setItem('roundWinners', JSON.stringify([]));
-            localStorage.setItem('remainingIDs', JSON.stringify(remainingIDs));
+            remainingIDs = JSON.parse(sessionStorage.getItem('roundWinners'));
+            sessionStorage.setItem('roundWinners', JSON.stringify([]));
+            sessionStorage.setItem('remainingIDs', JSON.stringify(remainingIDs));
         }
         startNextGame();
-        while (localStorage.getItem('isGameOver') === 'false')
+        while (sessionStorage.getItem('isGameOver') === 'false')
             await new Promise(resolve => setTimeout(resolve, 100));
         pongModal.hide();
-        roundWinners = JSON.parse(localStorage.getItem('roundWinners'));
-        winnerName = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === roundWinners[roundWinners.length - 1]));
+        roundWinners = JSON.parse(sessionStorage.getItem('roundWinners'));
+        winnerName = JSON.parse(sessionStorage.getItem('tournamentPlayers')).find((player) => (player.id === roundWinners[roundWinners.length - 1]));
 
         document.getElementById('winner').textContent = ("Tournament Winner: " + winnerName.name);
         document.getElementById('nextPlayers').textContent = [];
 
-        localStorage.setItem('infoScreen', 'true');
+        sessionStorage.setItem('infoScreen', 'true');
         gameInfoModal.show();
-        while (localStorage.getItem('infoScreen') === 'true')
+        while (sessionStorage.getItem('infoScreen') === 'true')
             await new Promise(resolve => setTimeout(resolve, 100));
         gameInfoModal.hide();
     }
 
     function startNextGame() {
 
-        let remainingIDs = JSON.parse(localStorage.getItem('remainingIDs'));
+        let remainingIDs = JSON.parse(sessionStorage.getItem('remainingIDs'));
 
-        localStorage.setItem('isGameOver', 'false');
+        sessionStorage.setItem('isGameOver', 'false');
 
         const config = {
             isRemote: false,
@@ -226,16 +224,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         currentGame++;
         const newRemainingIds = remainingIDs.slice(2);
-        localStorage.setItem('remainingIDs', JSON.stringify(newRemainingIds));
+        sessionStorage.setItem('remainingIDs', JSON.stringify(newRemainingIds));
         pongModal.show();
         startGame('pongGameContainer', config, gameResultCallBack_testi);
     }
 
     function gameResultCallBack_testi(data) {
     
-        let roundWinners = JSON.parse(localStorage.getItem('roundWinners'));
+        let roundWinners = JSON.parse(sessionStorage.getItem('roundWinners'));
         roundWinners.push(data.winner);
-        localStorage.setItem('roundWinners', JSON.stringify(roundWinners));
+        sessionStorage.setItem('roundWinners', JSON.stringify(roundWinners));
     }
 
     // Event listener for when the modal is closed
