@@ -196,7 +196,6 @@ class FriendsViewSet(viewsets.ViewSet):
 
     def friends_list(self, request, user_pk=None):
         try:
-
             validate_token(request)
             user = get_object_or_404(UserProfileModel, id=user_pk)
             serializer = UserSerializer(user.friends.all(), many=True)
@@ -215,7 +214,6 @@ class FriendsViewSet(viewsets.ViewSet):
             friend = get_object_or_404(UserProfileModel, id=pk)
             if friend in user.friends.all():
                 user.friends.remove(friend)
-                user.save()
                 return Response({"detail": "Friend removed"}, status=status.HTTP_204_NO_CONTENT)
             return Response({"detail": "Friend not in user's friends list"}, status=status.HTTP_404_NOT_FOUND)
         except Http404:
@@ -275,7 +273,9 @@ class FriendsViewSet(viewsets.ViewSet):
             pending_requests = FriendRequest.objects.filter(receiver_user=current_user, sender_user=sender_user, status='pending')
             if pending_requests.exists():
                 for req in pending_requests:
-                    req.accept()
+                    current_user.friends.add(sender_user)
+                    sender_user.friends.add(current_user)
+                    req.delete()
                 return Response({"detail": "Request accepted"}, status=status.HTTP_202_ACCEPTED)
             return Response({"detail": "No pending requests found"}, status=status.HTTP_404_NOT_FOUND)
         except Http404:
