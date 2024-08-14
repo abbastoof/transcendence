@@ -214,14 +214,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     function startNextGame() {
 
         let remainingIDs = JSON.parse(localStorage.getItem('remainingIDs'));
-
+        let players = JSON.parse(localStorage.getItem('tournamentPlayers'));
         localStorage.setItem('isGameOver', 'false');
 
         const config = {
             isRemote: false,
             playerIds: [remainingIDs[0], remainingIDs[1]],
             gameId: seed + currentGame,
-            isLocalTournament: true
+            isLocalTournament: true,
+            player1Alias: players[remainingIDs[0] - 1].name,
+            player2Alias: players[remainingIDs[1] - 1].name
         };
 
         currentGame++;

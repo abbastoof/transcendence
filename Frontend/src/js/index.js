@@ -13,47 +13,47 @@ import './modals/friends.js';
 insert('.headerContainer', 'headerSVG.html');
 //insertModal('.tournament', 'tournamentModal.html', 'tournament', 'Tournament');
 
-// Assuming you have imported necessary modules and functions like startGame, cleanupGame
-document.addEventListener('DOMContentLoaded', function () {
-    // Initialize the modal with options to prevent closing on backdrop click
-    const pongModalElement = document.getElementById('pongModal');
-    const pongModal = new bootstrap.Modal(pongModalElement, {
-        backdrop: 'static',
-        keyboard: true // Optional: prevents closing with ESC key
-    });
+// // Assuming you have imported necessary modules and functions like startGame, cleanupGame
+// document.addEventListener('DOMContentLoaded', function () {
+//     // Initialize the modal with options to prevent closing on backdrop click
+//     const pongModalElement = document.getElementById('pongModal');
+//     const pongModal = new bootstrap.Modal(pongModalElement, {
+//         backdrop: 'static',
+//         keyboard: true // Optional: prevents closing with ESC key
+//     });
 
-    function handleHashChange() {
-        if (window.location.hash === '#pong') {
-            pongModal.show();
-        } else {
-            pongModal.hide();
-        }
-    }
+//     function handleHashChange() {
+//         if (window.location.hash === '#pong') {
+//             pongModal.show();
+//         } else {
+//             pongModal.hide();
+//         }
+//     }
 
-    // Show the modal and start the game when it's opened
-    pongModalElement.addEventListener('shown.bs.modal', function () {
-        startGame('pongGameContainer');
-        window.location.hash = 'pong';
-    });
+//     // Show the modal and start the game when it's opened
+//     pongModalElement.addEventListener('shown.bs.modal', function () {
+//         startGame('pongGameContainer');
+//         window.location.hash = 'pong';
+//     });
 
-    // Clean up game resources when the modal is closed
-    pongModalElement.addEventListener('hidden.bs.modal', function () {
-        cleanUpGame();
-        if (window.location.hash === '#pong') {
-            history.back();
-        }
-    });
-    //listen for hashchange events to handle back/forward navigation
-    window.addEventListener('hashchange', function () {
-        if (window.location.hash === '#pong') {
-            pongModal.show();
-        } else {
-            pongModal.hide();
-        }
-    });
-    handleHashChange(); // Handle initial load if the URL contains the modal hash
-    // Optionally, add event listeners for other modals if needed
-});
+//     // Clean up game resources when the modal is closed
+//     pongModalElement.addEventListener('hidden.bs.modal', function () {
+//         cleanUpGame();
+//         if (window.location.hash === '#pong') {
+//             history.back();
+//         }
+//     });
+//     //listen for hashchange events to handle back/forward navigation
+//     window.addEventListener('hashchange', function () {
+//         if (window.location.hash === '#pong') {
+//             pongModal.show();
+//         } else {
+//             pongModal.hide();
+//         }
+//     });
+//     handleHashChange(); // Handle initial load if the URL contains the modal hash
+//     // Optionally, add event listeners for other modals if needed
+// });
 
 // document.addEventListener('DOMContentLoaded', function () {
 //     // Initialize the modal with options to prevent closing on backdrop click

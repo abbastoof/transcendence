@@ -156,7 +156,7 @@ function handleGameEnd(data) {
         console.error('User data or token is missing');
         return;
     }
-    if (userData.id !== data.winner){
+    if (Number(userData.id) !== data.winner){
         waitingLobbyModalLabel.textContent = "Game over";
         lobbyContent.innerHTML = `<p>you are a loser. so sad.</p>`
         return;

@@ -163,10 +163,11 @@ class Ball:
     def bounce_from_paddle(self, paddle) -> float:
         self.direction = self.direction % 360 # make sure direction is between 0 and 360
         hitpos = (self.z - paddle.position.z) / (paddle.width / 2) # hitpos: where the ball hits the paddle
+        speedboost = abs(hitpos) * 1.2
         dz_factor = (self.delta_z / self.speed) * 10 # dz_factor: how much the ball is going up or down
         direction_mod = abs((self.direction % 180) - 90) 
         if direction_mod > MAX_BOUNCE_ANGLE_ADJUSTMENT:
-            direction_mod = 160 - direction_mod # make sure direction_mod does not go above 75
+            direction_mod = (MAX_BOUNCE_ANGLE_ADJUSTMENT * 2) - direction_mod # make sure direction_mod does not go above 80
         # direction_mod: absolute difference from a right angle (90 degrees)
         # treating angles within 15 degrees of 90 and 270 as tight angles.
         
@@ -178,9 +179,9 @@ class Ball:
         # if ball hits the middle of the paddle, it bounces with wider angle
         if hitpos >= 0 and hitpos < 0.2 or hitpos < 0 and hitpos > -.2:
             if (abs(hitpos) < 0.1):
-                self.speed = BALL_SPEED
+                self.speed_up(1.3)
             else:
-                self.speed_up(0.1)
+                self.speed_up(speedboost)
             logging.info(hitpos)
             if self.delta_z < 0.0:
                 self.direction = 357 - (hitpos * adjustment) if self.delta_x < 0.0 else 177 - (hitpos * adjustment)

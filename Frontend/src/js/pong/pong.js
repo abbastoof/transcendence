@@ -138,7 +138,7 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
             return;
         }
         else {
-            localPlayerId = userData.id;
+            localPlayerId = Number(userData.id);
         }
         if (localPlayerId === playerIds[0] || localPlayerId === playerIds[1]) {
         player1Id = playerIds[0];

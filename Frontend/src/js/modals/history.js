@@ -8,6 +8,7 @@ export function updateMatchHistory() {
         console.error('UserData is missing or incomplete');
         return;
     }
+    const userId = Number(userData.id);
     fetch(`/game-history/`, {
         method: 'GET',
         headers: {
@@ -30,7 +31,7 @@ export function updateMatchHistory() {
             let htmlContent = '<div class="container mt-4"><h2>Game History</h2>';
             data.forEach(game => {
                              
-                if (game.player1_id === userData.id || game.player2_id === userData.id) {
+                if (game.player1_id === userId || game.player2_id === userId) {
                     let winner_name;
                     if (game.winner === game.player1_id)
                         winner_name = game.player1_username
