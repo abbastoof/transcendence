@@ -38,16 +38,6 @@ class FriendRequest(models.Model):
     ]
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
 
-    def accept(self):
-        self.receiver_user.friends.add(self.sender_user)
-        self.sender_user.friends.add(self.receiver_user)
-        self.status = 'accepted'
-        self.save()
-
-    def reject(self):
-        self.status='rejected'
-        self.save()
-
     def __str__(self):
         return f"Friend request from {self.sender_user} to {self.receiver_user}"
 
