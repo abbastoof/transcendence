@@ -242,6 +242,7 @@ class PongGame:
                 
                 if player2_id is not None and p2_delta_z is not None:
                     self.game_state.move_player(player2_id, p2_delta_z)
+        await self.send_game_state_to_client()
 
 
 # Event handler for new connections
