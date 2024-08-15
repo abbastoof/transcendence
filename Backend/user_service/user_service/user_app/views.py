@@ -14,18 +14,23 @@ from rest_framework.decorators import parser_classes
 from .serializers import UserSerializer, FriendSerializer
 import requests
 
-def validate_token(request) -> None:
+def extract_token(request):
     bearer = request.headers.get("Authorization")
     if not bearer or not bearer.startswith('Bearer '):
         raise ValidationError(
             detail={"error": "Access token is required"},
             code=status.HTTP_400_BAD_REQUEST)
     access_token = bearer.split(' ')[1]
-    data = {"id": request.user.id, "access": access_token}
-    response = requests.post("http://token-service:8000/auth/token/validate-token/", data=data)
-    response_data = response.json()
-    if "error" in response_data:
-        raise ValidationError(detail=response_data, code=response_data.get("status_code"))
+    return access_token
+
+def validate_token(request) -> None:
+    access_token = extract_token(request)
+    if access_token:
+        data = {"id": request.user.id, "access": access_token}
+        response = requests.post("http://token-service:8000/auth/token/validate-token/", data=data)
+        response_data = response.json()
+        if "error" in response_data:
+            raise ValidationError(detail=response_data, code=response_data.get("status_code"))
 
 class UserViewSet(viewsets.ViewSet):
     """
@@ -143,7 +148,9 @@ class UserViewSet(viewsets.ViewSet):
             data = get_object_or_404(UserProfileModel, id=pk)
             if data != request.user and not request.user.is_superuser:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-            #TODO: delete tokens from token-service for this user
+            access_token = extract_token(request)
+            request_data = {"id":pk, "access": access_token}
+            response_data = requests.post("http://token-service:8000/auth/token/invalidate-tokens/", data=request_data)
             data.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Exception as err:
