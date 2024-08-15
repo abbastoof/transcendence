@@ -67,7 +67,18 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfileModel
-        fields = ["id", "username", "email", "password", "avatar", "online_status", "friends"]
+        fields = [
+            "id",
+            "username",
+            "email",
+            "password",
+            "avatar",
+            "online_status",
+            "friends",
+            "otp_status",
+            "otp",
+            "otp_expiry_time"
+            ]
         extra_kwargs = {"password": {"write_only": True}}
 
         ### Password should be strong password, minimum 8 characters, at least one uppercase letter, one lowercase letter, one number and one special character
