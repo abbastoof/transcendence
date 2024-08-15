@@ -77,6 +77,10 @@ SECRET_KEY = "django-insecure-woftd2en2**zr(b%#*2vit2v%s@(k54gb^c(ots0abo7(wsmo%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+]
+
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
