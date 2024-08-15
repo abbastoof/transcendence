@@ -143,7 +143,7 @@ class UserViewSet(viewsets.ViewSet):
             data = get_object_or_404(UserProfileModel, id=pk)
             if data != request.user and not request.user.is_superuser:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-            # Should send message to all microservices to delete all data related to this user using Kafka
+            #TODO: delete tokens from token-service for this user
             data.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Exception as err:
