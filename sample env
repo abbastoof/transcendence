@@ -6,3 +6,5 @@ DB_USER = "root"
 DB_PASS = "root"
 
 PGPASSWORD='root'
+USER_SERVICE_EMAIL = 'trancendance10@gmail.com'
+USER_SERVICE_PASS = 'prie kqkh dled hlme'
