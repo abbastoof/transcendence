@@ -42,11 +42,6 @@ class GameSession {
         this.player2Alias = player2Alias
         this.isRemote = isRemote;
         this.isLocalTournament = isLocalTournament;
-        // if (isLocalTournament === true) {
-        //     const tournamentPlayers = JSON.parse(localStorage.getItem('tournamentPlayers'));
-        //     this.player1Alias = tournamentPlayers[player1Id - 1].name 
-        //     this.player2Alias = tournamentPlayers[player2Id - 1].name
-        // }
         this.onGameEndCallback = typeof onGameEnd === 'function' ? onGameEnd : null; // Ensure it's a function
         this.playingField = new PlayingField(scene, gameId, player1Id, player2Id);
         this.leftPaddle = new Paddle(scene, LEFT_PADDLE_START, 0xffff00);
@@ -55,14 +50,8 @@ class GameSession {
         this.scoreBoard = new ScoreBoard(scene);
         if (isRemote === true)
             this.scoreBoard.showWaitText();
-        // const player1Text = `${this.player1Alias} ${this.player1Score}`;
-        // const player2Text = `${this.player2Alias} ${this.player2Score}`;
-        // this.scoreBoard.createScoreBoard(player1Text, player2Text);
-        console.log("Type of onGameEndCallback:", typeof this.onGameEndCallback);
         this.playingField.addToScene();
         this.ball.addToScene();
-
-
 
         // Always connect to the server
         if (!this.socket.connected) {
@@ -111,15 +100,8 @@ class GameSession {
 
     handleGameStateUpdate(data) {
         const translatedData = translateCoordinates(data);
-        // if (this.isRemote && (this.localPlayerId !== this.player1Id)) {
-        //     console.log(translatedData.player1_position, translatedData.player2_position);
-        //     // this.leftPaddle.updatePosition(translatedData.player2_position);
-            // this.rightPaddle.updatePosition(translatedData.player1_position);
-        // }
-        // else {
-            this.leftPaddle.updatePosition(translatedData.player1Pos);
-            this.rightPaddle.updatePosition(translatedData.player2Pos);
-        
+        this.leftPaddle.updatePosition(translatedData.player1Pos);
+        this.rightPaddle.updatePosition(translatedData.player2Pos);
         this.ball.updatePosition(translatedData.ball);
         if (data.ballDelta.dx > 0  && globalState.playingFieldMaterial !==  null) {
             globalState.playingFieldMaterial.uniforms.ballDx.value = 1.0;
@@ -128,10 +110,9 @@ class GameSession {
             globalState.playingFieldMaterial.uniforms.ballDx.value = -1.0;
         }
         if (data.bounce === true) {
-            console.log('Bounce detected, hitpos: ' + data.hitpos);
             globalState.rgbShift.enabled = true;
             if (data.hitpos < 0.1) {
-                globalState.rgbShift.uniforms.amount.value = 0.2
+                globalState.rgbShift.uniforms.amount.value = 0.3
                 globalState.glitchPass.enabled = true;
             }
             else {
@@ -155,10 +136,8 @@ class GameSession {
     }
 
     handleGameOver(data) {
-        //globalState.playingFieldMaterial.uniforms.ballDx.value = 0.1;
         this.leftPaddle.removeFromScene();
         this.rightPaddle.removeFromScene();
-        //changeCameraAngle();
         this.disconnect();
         setTimeout(() => {
         if (typeof this.onGameEndCallback === 'function') {
