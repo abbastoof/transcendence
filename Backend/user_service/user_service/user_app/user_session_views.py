@@ -38,7 +38,7 @@ class UserLoginView(viewsets.ViewSet):
                     # send post request to token-service
                     if user.otp_status:
                         user.otp = generate_password()
-                        user.otp_expiry_time = now() + timedelta(seconds=30)
+                        user.otp_expiry_time = now() + timedelta(minutes=1)
                         user.save()
                         send_mail(
                             'Verification Code',
