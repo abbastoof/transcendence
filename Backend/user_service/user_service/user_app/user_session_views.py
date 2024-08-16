@@ -22,7 +22,7 @@ load_dotenv()
 TOEKNSERVICE = os.environ.get('TOKEN_SERVICE')
 
 headers = {
-    "X-SERVICE-SECRET": settings.SECRET_KEY  # Replace with your actual secret key
+    "X-SERVICE-SECRET": settings.SECRET_KEY
 }
 
 logger = logging.getLogger(__name__)
@@ -76,7 +76,7 @@ class UserLoginView(viewsets.ViewSet):
                         response = requests.post(f"{TOEKNSERVICE}/auth/token/gen-tokens/", data=data, headers=headers)
                         if response.status_code == 201:
                             response_message = response.json()
-                        logger.info('user_data = %s', response.json())
+                        # logger.info('user_data = %s', response.json())
                         if "error" in response_message:
                             status_code = response_message.get("status_code")
                             response_message = response.json()
@@ -106,12 +106,12 @@ class UserLoginView(viewsets.ViewSet):
                 if user.otp == otp:
                     if user.otp_expiry_time > now():
                         data = {"id": user.id, "username": username}
-                        response = requests.post(f'{TOEKNSERVICE}/auth/token/gen-tokens/', data=data)
+                        response = requests.post(f'{TOEKNSERVICE}/auth/token/gen-tokens/', data=data, headers=headers)
                         user.otp = None
                         user.otp_expiry_time = None
                         if response.status_code == 201:
                             response_message = response.json()
-                        logger.info('user_data = %s', response_message)
+                        # logger.info('user_data = %s', response_message)
                         if "error" in response_message:
                             status_code = response_message.get("status_code")
                         else:
@@ -144,7 +144,7 @@ class UserLogoutView(viewsets.ViewSet):
                 status_code =status.HTTP_400_BAD_REQUEST
             access_token = bearer.split(' ')[1]
             data = {"id":pk, "access": access_token}
-            response_data = requests.post(f"{TOEKNSERVICE}/auth/token/invalidate-tokens/", data=data)
+            response_data = requests.post(f"{TOEKNSERVICE}/auth/token/invalidate-tokens/", data=data, headers=headers)
             if response_data.status_code == 200:
                 response_message = response_data.json()
             if "error" in response_message:
