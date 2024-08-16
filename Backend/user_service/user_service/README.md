@@ -6,15 +6,13 @@ Upon GET,PUT and DELETE requests for a user record, the user service will retrie
 
 ## Docker container configuration
 
-Every single REST API endpoint has their own database. The database is a PostgreSQL database. The database name for all the endpoints is `postgres`. The database user and password for all the endpoints is inside the env file. The database port for all the endpoints is `5432`.
+Every single REST API endpoint has their own database. The database is a PostgreSQL database. The database name for this endpoints is `user_service`. The database user and password for all the endpoints is inside the env file. The database port for all the endpoints is `5432`.
 
 The requirements package is inside the requirements.txt file.
-The run_consumer.sh file is used to run the consumer.py file inside the user_management/user_management folder. The consumer.py file is used to consume the message from the RabbitMQ message broker and check if the username and password are correct.
-The tools.sh and run_consumer.sh files are running inside the Docker container using the supervisord service. The supervisord service is used to run multiple services inside the Docker container.
-The tools.sh file is used to run the init_database.sh file and run the API.
+The tools.sh file is used to run the API.
 The API runs inside a virtual environment. The virtual environment is created inside the Docker container using command python3.12 -m venv venv. The virtual environment is activated using command source venv/bin/activate inside the tools.sh file.
 
-The API runs on port 8000 and exposed to 8000.
+The API runs on port 8000.
 
 ## Tutorial to use the user_service
 
@@ -33,7 +31,22 @@ You should send a JSON object with the following fields:
 
 - `http://localhost:3000/user/` "List users records using GET method"
 - `http://localhost:3000/user/<int:pk>/` "without angel brackets" "retrieve, update and delete user record using GET, PUT and DELETE methods respectively"
+You can enable otp by sending a JSON object with the following fields:
+```JSON
+{
+    "otp_status": "True"
+}
+```
 - `http://localhost:3000/user/login/` "login user using POST method"
+- `http://localhost:3000/user/verifyotp/` "send user otp using POST method"
+You should send a JSON object with the following fields:
+```JSON
+{
+    "username": "username",
+    "password": "password",
+    "otp": "otp"
+}
+```
 - `http://localhost:3000/user/logout/` "logout user using POST method"
 - `http://localhost:3000/user/<int:user_pk>/friends/` "List friends of a user using GET method"
 The endpoint will return value is a JSON object with the following fields:
@@ -49,7 +62,7 @@ The endpoint will return value is a JSON object with the following fields:
 - `http://localhost:3000/user/<int:user_pk>/request/` send friend request to a user in a JSON object using POST method the JSON object should contain the following fields:
 ```JSON
 {
-    "username": "username",
+    "username": "username"
 }
 ```
 - `http://localhost:3000/user/<int:user_pk>/accept/<int:pk>/` accept friend request PUT method
@@ -76,12 +89,17 @@ The username and email are unique.
 The User table consists of the following fields:
 You can find it in user_management/user_management/users/models.py
 
-| Field Name | Data Type | Description                        |
-| ---------- | --------- | ---------------------------------- |
-| id         | Integer   | Primary Key                        |
-| username   | String    | User Name                          |
-| email      | String    | User Email                         |
-| password   | String    | User Password (Password is hashed) |
+| Field Name      | Data Type | Description                        |
+| --------------- | --------- | ---------------------------------- |
+| id              | Integer   | Primary Key                        |
+| username        | String    | User Name                          |
+| email           | String    | User Email                         |
+| password        | String    | User Password (Password is hashed) |
+| friends         | ManyToMany| Friends of the user                |
+| avatar          | Image     | User Avatar                        |
+| otp_status      | Boolean   | OTP Status                         |
+| otp             | Integer   | OTP                                |
+| otp_expiry_time | DateTime  | OTP Expiry Time                    |
 
 Later I will limit the access to the API using nginx reverse proxy and only the frontend will be able to access the API.
 
@@ -92,6 +110,15 @@ Later I will limit the access to the API using nginx reverse proxy and only the 
 This document provides an overview of how WebSocket integration has been implemented in the Django project, enabling real-time online status updates and notifications. It includes information on the setup, testing, and how the frontend can access the WebSocket services.
 
 ### Backend Setup
+
+## GameRoom model
+The GameRoom model is used to store the game room information. The GameRoom model consists of the following fields:
+
+| Field Name | Data Type                   | Description |
+| ---------- | --------------------------- | ----------- |
+| room_name  | String                      | Room Name   |
+| player1    | ForeignKey from UserProfile | Player 1    |
+| player2    | ForeignKey from UserProfile | Player 2    |
 
 #### Dependencies
 
@@ -289,3 +316,5 @@ To integrate WebSocket connections in the frontend, follow these steps:
 ### Summary
 
 The setup included configuring Django Channels, Redis, and Nginx to support WebSocket connections. The frontend can connect to the WebSocket service and handle events to provide real-time updates to users.
+
+

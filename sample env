@@ -4,5 +4,12 @@
 
 DB_USER = "root"
 DB_PASS = "root"
-
+TOKEN_SERVICE = "http://token-service:8000"
+USER_SERVICE = "http://user-service:8001"
+GAME_HISTORY = "http://game-history:8002"
 PGPASSWORD='root'
+DJANGO_SECRET = "django-insecure-woftd2en2**zr(b%#*2vit2v%s@(k54gb^c(ots0abo7(wsmo%"
+PGSQL_HOST = 'postgresql'
+
+USER_SERVICE_EMAIL = 'trancendance10@gmail.com'
+USER_SERVICE_PASS = 'prie kqkh dled hlme'

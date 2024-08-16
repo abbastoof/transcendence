@@ -25,6 +25,9 @@ class UserProfileModel(AbstractUser):
     avatar = models.ImageField(upload_to=user_directory_path, null=True, blank=True, default='default.jpg')
     friends = models.ManyToManyField("self", blank=True, symmetrical=True)
     online_status = models.BooleanField(default=False)
+    otp_status = models.BooleanField(default=False, blank=True, null=True)
+    otp = models.IntegerField(blank=True, null=True)
+    otp_expiry_time = models.DateTimeField(blank=True, null=True)
     REQUIRED_FIELDS = ["email"]
 
 class FriendRequest(models.Model):
