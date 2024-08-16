@@ -17,7 +17,11 @@ from dotenv import load_dotenv
 import re
 
 load_dotenv()
-
+TOKEN_SERVICE_URL = os.environ.get('TOKEN_SERVICE')
+GAME_HISTORY_URL = os.environ.get('GAME_HISTORY')
+PGSQL_HOST = os.environ.get('PGSQL_HOST')
+DB_USER = os.environ.get('DB_USER')
+DB_PASS = os.environ.get('DB_PASS')
 LOG_DIR = Path('/var/log/')
 
 LOGGING = {
@@ -73,12 +77,10 @@ APPEND_SLASH = False
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-qn48+qe6b*r3p65fb_3fo)_rji73yxoz7++45o773!k2jkvq0v'
-SECRET_KEY = "django-insecure-woftd2en2**zr(b%#*2vit2v%s@(k54gb^c(ots0abo7(wsmo%"
+SECRET_KEY = os.environ.get('DJANGO_SECRET')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.Argon2PasswordHasher",
@@ -147,7 +149,6 @@ REST_FRAMEWORK = {
     ]
 }
 
-
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -185,10 +186,10 @@ ASGI_APPLICATION = "user_service.asgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "user_service",
-        "HOST": "postgresql",
-        "USER": "root",
-        "PASSWORD": "root",
+        "NAME": "token_service",
+        "HOST": PGSQL_HOST,
+        "USER": DB_USER,
+        "PASSWORD": DB_PASS,
         "PORT": "5432",
         "ATOMIC_REQUESTS": True,
         "TEST": {

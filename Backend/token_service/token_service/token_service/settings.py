@@ -13,6 +13,14 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from datetime import timedelta
 from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv()
+
+USER_SERVICE_URL = os.environ.get('USER_SERVICE')
+GAME_HISTORY_URL = os.environ.get('GAME_HISTORY')
+PGSQL_HOST = os.environ.get('PGSQL_HOST')
+DB_USER = os.environ.get('DB_USER')
+DB_PASS = os.environ.get('DB_PASS')
 
 LOG_DIR = Path('/var/log/')
 
@@ -70,10 +78,10 @@ APPEND_SLASH = False
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-woftd2en2**zr(b%#*2vit2v%s@(k54gb^c(ots0abo7(wsmo%"
+SECRET_KEY = os.environ.get('DJANGO_SECRET')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -114,7 +122,6 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
 }
-
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -153,9 +160,9 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "token_service",
-        "HOST": "postgresql",
-        "USER": "root",
-        "PASSWORD": "root",
+        "HOST": PGSQL_HOST,
+        "USER": DB_USER,
+        "PASSWORD": DB_PASS,
         "PORT": "5432",
     }
 }
@@ -201,4 +208,8 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_ALLOWED_ORIGINS = [
+    USER_SERVICE_URL,
+    GAME_HISTORY_URL,
+]
