@@ -15,6 +15,11 @@ from django.conf import settings
 import logging
 import requests
 import random
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+TOEKNSERVICE = os.environ.get('TOKEN_SERVICE')
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +27,19 @@ def generate_password():
     return random.randint(100000,999999)
 class UserLoginView(viewsets.ViewSet):
     permission_classes = [AllowAny]
+
+    def authenticate_user(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+
+        status_code = status.HTTP_200_OK
+        response = {}
+        response_message = {}
+        if username and password:
+            user = authenticate(username=username, password=password)
+        if user is not None:
+            return True
+        return False
 
     def login(self, request):
         username = request.data.get("username")
@@ -51,7 +69,7 @@ class UserLoginView(viewsets.ViewSet):
                         status_code = status.HTTP_200_OK
                     else:
                         data = {"id": serializer.data["id"], "username": serializer.data["username"]}
-                        response = requests.post("http://token-service:8000/auth/token/gen-tokens/", data=data)
+                        response = requests.post(f"{TOEKNSERVICE}/auth/token/gen-tokens/", data=data)
                         if response.status_code == 201:
                             response_message = response.json()
                         logger.info('user_data = %s', response_message)
@@ -80,10 +98,12 @@ class UserLoginView(viewsets.ViewSet):
             user = authenticate(username=username, password=password)
         if user is not None:
             if user.otp_status:
-                if user.otp == otp: 
+                if user.otp == otp:
                     if user.otp_expiry_time > now():
                         data = {"id": user.id, "username": username}
-                        response = requests.post("http://token-service:8000/auth/token/gen-tokens/", data=data)
+                        response = requests.post(f'{TOEKNSERVICE}/auth/token/gen-tokens/', data=data)
+                        user.otp = None
+                        user.otp_expiry_time = None
                         if response.status_code == 201:
                             response_message = response.json()
                         logger.info('user_data = %s', response_message)
@@ -119,7 +139,7 @@ class UserLogoutView(viewsets.ViewSet):
                 status_code =status.HTTP_400_BAD_REQUEST
             access_token = bearer.split(' ')[1]
             data = {"id":pk, "access": access_token}
-            response_data = requests.post("http://token-service:8000/auth/token/invalidate-tokens/", data=data)
+            response_data = requests.post(f"{TOEKNSERVICE}/auth/token/invalidate-tokens/", data=data)
             if response_data.status_code == 200:
                 response_message = response_data.json()
             if "error" in response_message:
