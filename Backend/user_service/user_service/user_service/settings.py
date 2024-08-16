@@ -186,7 +186,7 @@ ASGI_APPLICATION = "user_service.asgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "token_service",
+        "NAME": "user_service",
         "HOST": PGSQL_HOST,
         "USER": DB_USER,
         "PASSWORD": DB_PASS,
