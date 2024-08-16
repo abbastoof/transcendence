@@ -7,6 +7,11 @@ from user_app.views import UserViewSet, RegisterViewSet, FriendsViewSet, validat
 from user_app.user_session_views import UserLoginView, UserLogoutView
 from rest_framework import status
 from user_app.models import UserProfileModel
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+TOEKNSERVICE = os.environ.get('TOKEN_SERVICE')
 
 @pytest.fixture
 def api_client():
@@ -96,7 +101,7 @@ def test_user_logout(mock_post, api_client, admin_user, admin_token):
     assert response.status_code == 200
     assert response.data["detail"] == 'User logged out successfully'
     mock_post.assert_called_once_with(
-        "http://token-service:8000/auth/token/invalidate-tokens/",
+        f"{TOEKNSERVICE}/auth/token/invalidate-tokens/",
         data={"access": admin_token, 'id':admin_user.id}
     )
     assert UserProfileModel.objects.filter(username=admin_user.username).exists()

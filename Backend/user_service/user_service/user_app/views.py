@@ -13,6 +13,11 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.decorators import parser_classes
 from .serializers import UserSerializer, FriendSerializer
 import requests
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+TOEKNSERVICE = os.environ.get('TOKEN_SERVICE')
 
 def extract_token(request):
     bearer = request.headers.get("Authorization")
@@ -27,7 +32,7 @@ def validate_token(request) -> None:
     access_token = extract_token(request)
     if access_token:
         data = {"id": request.user.id, "access": access_token}
-        response = requests.post("http://token-service:8000/auth/token/validate-token/", data=data)
+        response = requests.post(f"{TOEKNSERVICE}/auth/token/validate-token/", data=data)
         response_data = response.json()
         if "error" in response_data:
             raise ValidationError(detail=response_data, code=response_data.get("status_code"))
@@ -150,7 +155,7 @@ class UserViewSet(viewsets.ViewSet):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
             access_token = extract_token(request)
             request_data = {"id":pk, "access": access_token}
-            response_data = requests.post("http://token-service:8000/auth/token/invalidate-tokens/", data=request_data)
+            response_data = requests.post(f"{TOEKNSERVICE}/auth/token/invalidate-tokens/", data=request_data)
             data.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Exception as err:
