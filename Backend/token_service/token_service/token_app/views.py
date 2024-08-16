@@ -12,6 +12,11 @@ from .serializers import CustomTokenObtainPairSerializer
 from .models import UserTokens
 import jwt
 from rest_framework.permissions import AllowAny
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+SECRET = os.environ.get('DJANGO_SECRET')
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -40,52 +45,57 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             Returns:
                 Response: The response object containing the token details.
         """
-        response_message = {}
-        status_code = status.HTTP_201_CREATED
-        id = request.data.get("id")
-        username = request.data.get("username")
-        if not username or not id:
-            response_message = {"error": "Username and id are required"}
-            status_code = status.HTTP_400_BAD_REQUEST
-        else:
-            try:
-                user, create = UserTokens.objects.get_or_create(id=id, username=username)
-                logger.info('user= %s', user.username)
-                logger.info('create= %s', create)
-                if create:
-                    refresh = RefreshToken.for_user(user)
-                    access_token = str(refresh.access_token)
-                    user.token_data = {
-                        "refresh": str(refresh),
-                        "access": access_token
-                    }
-                    user.save()
-                    response_message = {
-                        "id": id,
-                        "refresh": str(refresh),
-                        "access": access_token
-                    }
-                else:
-                    token_data = user.token_data
-                    try:
-                        refresh = RefreshToken(token_data["refresh"])
-                        token_data["access"] = str(refresh.access_token)
-                        user.token_data = token_data
+        secret_key = request.headers.get('X-SERVICE-SECRET')
+        if secret_key == SECRET:
+            response_message = {}
+            status_code = status.HTTP_201_CREATED
+            id = request.data.get("id")
+            username = request.data.get("username")
+            if not username or not id:
+                response_message = {"error": "Username and id are required"}
+                status_code = status.HTTP_400_BAD_REQUEST
+            else:
+                try:
+                    user, create = UserTokens.objects.get_or_create(id=id, username=username)
+                    logger.info('user= %s', user.username)
+                    logger.info('create= %s', create)
+                    if create:
+                        refresh = RefreshToken.for_user(user)
+                        access_token = str(refresh.access_token)
+                        user.token_data = {
+                            "refresh": str(refresh),
+                            "access": access_token
+                        }
                         user.save()
                         response_message = {
                             "id": id,
                             "refresh": str(refresh),
-                            "access": token_data["access"]
+                            "access": access_token
                         }
-                    except jwt.ExpiredSignatureError:
-                        response_message = {"erro": "User session has expired, You must login again"}
-                        status_code = status.HTTP_401_UNAUTHORIZED
-                    except Exception as err:
-                        response_message = {"error": str(err)}
-                        status_code = status.HTTP_400_BAD_REQUEST
-            except Exception as err:
-                response_message = {"error": str(err)}
-                status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+                    else:
+                        token_data = user.token_data
+                        try:
+                            refresh = RefreshToken(token_data["refresh"])
+                            token_data["access"] = str(refresh.access_token)
+                            user.token_data = token_data
+                            user.save()
+                            response_message = {
+                                "id": id,
+                                "refresh": str(refresh),
+                                "access": token_data["access"]
+                            }
+                        except jwt.ExpiredSignatureError:
+                            response_message = {"erro": "User session has expired, You must login again"}
+                            status_code = status.HTTP_401_UNAUTHORIZED
+                        except Exception as err:
+                            response_message = {"error": str(err)}
+                            status_code = status.HTTP_400_BAD_REQUEST
+                except Exception as err:
+                    response_message = {"error": str(err)}
+                    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        else:
+            response_message = {"error": "Unauthorized request"}
+            status_code = status.HTTP_401_UNAUTHORIZED
         return Response(response_message, status=status_code)
 
 class CustomTokenRefreshView(TokenRefreshView):
