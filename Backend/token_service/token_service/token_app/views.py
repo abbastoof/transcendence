@@ -94,8 +94,10 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                     response_message = {"error": str(err)}
                     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         else:
+            logger.info('Invalid secret keys = %s', response_message)
             response_message = {"error": "Unauthorized request"}
             status_code = status.HTTP_401_UNAUTHORIZED
+        logger.info('response_message = %s', response_message)
         return Response(response_message, status=status_code)
 
 class CustomTokenRefreshView(TokenRefreshView):
