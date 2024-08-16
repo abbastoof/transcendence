@@ -21,6 +21,10 @@ from dotenv import load_dotenv
 load_dotenv()
 TOEKNSERVICE = os.environ.get('TOKEN_SERVICE')
 
+headers = {
+    "X-SERVICE-SECRET": settings.SECRET_KEY  # Replace with your actual secret key
+}
+
 logger = logging.getLogger(__name__)
 
 def generate_password():
@@ -69,12 +73,13 @@ class UserLoginView(viewsets.ViewSet):
                         status_code = status.HTTP_200_OK
                     else:
                         data = {"id": serializer.data["id"], "username": serializer.data["username"]}
-                        response = requests.post(f"{TOEKNSERVICE}/auth/token/gen-tokens/", data=data)
+                        response = requests.post(f"{TOEKNSERVICE}/auth/token/gen-tokens/", data=data, headers=headers)
                         if response.status_code == 201:
                             response_message = response.json()
-                        logger.info('user_data = %s', response_message)
+                        logger.info('user_data = %s', response.json())
                         if "error" in response_message:
                             status_code = response_message.get("status_code")
+                            response_message = response.json()
                         else:
                             status_code = status.HTTP_200_OK
                 else:
