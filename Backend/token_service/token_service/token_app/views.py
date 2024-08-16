@@ -12,11 +12,9 @@ from .serializers import CustomTokenObtainPairSerializer
 from .models import UserTokens
 import jwt
 from rest_framework.permissions import AllowAny
-from dotenv import load_dotenv
-import os
+from django.conf import settings
 
-load_dotenv()
-SECRET = os.environ.get('DJANGO_SECRET')
+SECRET = settings.SECRET_KEY
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -46,7 +44,12 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 Response: The response object containing the token details.
         """
         secret_key = request.headers.get('X-SERVICE-SECRET')
-        if secret_key == SECRET:
+        response_message = {}
+        if secret_key is None:
+            response_message = {"error": "Unauthorized request"}
+            logger.info('Invalid secret keys = %s', response_message)
+            status_code = status.HTTP_401_UNAUTHORIZED
+        else:
             response_message = {}
             status_code = status.HTTP_201_CREATED
             id = request.data.get("id")
@@ -93,10 +96,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 except Exception as err:
                     response_message = {"error": str(err)}
                     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-        else:
-            logger.info('Invalid secret keys = %s', response_message)
-            response_message = {"error": "Unauthorized request"}
-            status_code = status.HTTP_401_UNAUTHORIZED
+
         logger.info('response_message = %s', response_message)
         return Response(response_message, status=status_code)
 
