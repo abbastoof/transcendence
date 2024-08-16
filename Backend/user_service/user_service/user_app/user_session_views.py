@@ -1,5 +1,6 @@
 import json
 from django.contrib.auth import authenticate
+from django.contrib.auth.hashers import check_password, make_password
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -7,14 +8,13 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import UserProfileModel as User
 from .serializers import UserSerializer
-from .models import UserProfileModel
 from datetime import timedelta
 from django.core.mail import send_mail
 from django.utils.timezone import now
 from django.conf import settings
 import logging
 import requests
-import random
+import secrets
 import os
 from dotenv import load_dotenv
 
@@ -23,68 +23,62 @@ TOEKNSERVICE = os.environ.get('TOKEN_SERVICE')
 
 logger = logging.getLogger(__name__)
 
-def generate_password():
-    return random.randint(100000,999999)
+def generate_secret():
+    return secrets.randbelow(900000) + 100000
+
 class UserLoginView(viewsets.ViewSet):
     permission_classes = [AllowAny]
 
+    def send_email(self, user):
+        send_mail(
+            'Verification Code',
+            f'Your verification code is: {user.otp}',
+            settings.EMAIL_HOST_USER,
+            [user.email],
+            fail_silently=False,
+        )
     def authenticate_user(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
 
-        status_code = status.HTTP_200_OK
-        response = {}
-        response_message = {}
         if username and password:
             user = authenticate(username=username, password=password)
         if user is not None:
-            return True
-        return False
+            return user
+        return None
 
     def login(self, request):
-        username = request.data.get("username")
-        password = request.data.get("password")
-
         status_code = status.HTTP_200_OK
         response = {}
         response_message = {}
-        if username and password:
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                if user.is_active:
-                    serializer = UserSerializer(user)
-                    # send post request to token-service
-                    if user.otp_status:
-                        user.otp = generate_password()
-                        user.otp_expiry_time = now() + timedelta(minutes=1)
-                        user.save()
-                        send_mail(
-                            'Verification Code',
-                            f'Your verification code is: {user.otp}',
-                            settings.EMAIL_HOST_USER,
-                            [user.email],
-                            fail_silently=False,
-                        )
-                        response_message = {"detail":"Verification password sent to your email"}
-                        status_code = status.HTTP_200_OK
-                    else:
-                        data = {"id": serializer.data["id"], "username": serializer.data["username"]}
-                        response = requests.post(f"{TOEKNSERVICE}/auth/token/gen-tokens/", data=data)
-                        if response.status_code == 201:
-                            response_message = response.json()
-                        logger.info('user_data = %s', response_message)
-                        if "error" in response_message:
-                            status_code = response_message.get("status_code")
-                        else:
-                            status_code = status.HTTP_200_OK
+        user = self.authenticate_user(request)
+        if user is not None:
+            if user.is_active:
+                serializer = UserSerializer(user)
+                # send post request to token-service
+                if user.otp_status:
+                    otp = generate_secret()
+                    user.otp = make_password(otp)
+                    user.otp_expiry_time = now() + timedelta(minutes=1)
+                    user.save()
+                    self.send_email(user)
+                    response_message = {"detail":"Verification password sent to your email"}
+                    status_code = status.HTTP_200_OK
                 else:
-                    response_message = {"detail": "User is Inactive"}
-                    status_code = status.HTTP_401_UNAUTHORIZED
+                    data = {"id": serializer.data["id"], "username": serializer.data["username"]}
+                    response = requests.post(f"{TOEKNSERVICE}/auth/token/gen-tokens/", data=data)
+                    if response.status_code == 201:
+                        response_message = response.json()
+                    logger.info('user_data = %s', response_message)
+                    if "error" in response_message:
+                        status_code = response_message.get("status_code")
+                    else:
+                        status_code = status.HTTP_200_OK
             else:
-                response_message = {"detail": "Invalid username or password"}
-                status_code = status.HTTP_400_BAD_REQUEST
+                response_message = {"detail": "User is Inactive"}
+                status_code = status.HTTP_401_UNAUTHORIZED
         else:
-            response_message = {"detail": "Username or password is missing"}
+            response_message = {"detail": "Invalid username or password"}
             status_code = status.HTTP_400_BAD_REQUEST
         return Response(response_message, status=status_code)
 
