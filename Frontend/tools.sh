@@ -1,22 +1,16 @@
 #!/bin/bash
 
-USER_SERVICE_URL="http://user-service:8001/user/register/"
-
 # Wait until the Django server is available
 while ! curl -s "${USER_SERVICE_URL}" >/dev/null; do
     echo "Waiting for Django server at ${USER_SERVICE_URL}..."
     sleep 5
 done
 
-AUTH_SERVICE_URL="http://token-service:8000/"
-
 # Wait until the Auth server is available
 while ! curl -s "${AUTH_SERVICE_URL}" >/dev/null; do
     echo "Waiting for Auth server at ${AUTH_SERVICE_URL}..."
     sleep 5
 done
-
-GAME_HISTORY_URL="http://game-history:8002/"
 
 # Wait until the Auth server is available
 while ! curl -s "${GAME_HISTORY_URL}" >/dev/null; do
