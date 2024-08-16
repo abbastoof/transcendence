@@ -88,6 +88,7 @@ class UserLoginView(viewsets.ViewSet):
             status_code = status.HTTP_400_BAD_REQUEST
         return Response(response_message, status=status_code)
 
+    #TODO: use check password for verify
     def verify_otp(self, request):
         status_code = status.HTTP_200_OK
         response = {}

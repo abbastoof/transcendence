@@ -26,7 +26,7 @@ class UserProfileModel(AbstractUser):
     friends = models.ManyToManyField("self", blank=True, symmetrical=True)
     online_status = models.BooleanField(default=False)
     otp_status = models.BooleanField(default=False, blank=True, null=True)
-    otp = models.IntegerField(blank=True, null=True)
+    otp = models.CharField(blank=True, null=True)
     otp_expiry_time = models.DateTimeField(blank=True, null=True)
     REQUIRED_FIELDS = ["email"]
 

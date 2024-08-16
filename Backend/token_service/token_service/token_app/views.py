@@ -23,11 +23,7 @@ def check_secret(request, response_message, status_code):
     secret_key = request.headers.get('X-SERVICE-SECRET')
     if secret_key is None or secret_key != SECRET:
         response_message = {"error": "Unauthorized request"}
-        # logger.info('Invalid secret keys = %s', response_message)
         status_code = status.HTTP_401_UNAUTHORIZED
-    # logger.info("response_message = %s", response_message)
-    # logger.info("status_code = %s", status_code)
-    # logger.info("secret_key = %s", secret_key)
     return response_message, status_code
 
 class CustomTokenObtainPairView(TokenObtainPairView):

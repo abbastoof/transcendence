@@ -6,15 +6,20 @@ from rest_framework import status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.contrib.auth.hashers import check_password, make_password
 from rest_framework.exceptions import ValidationError
-from django.db.models import Q
 from .models import UserProfileModel, FriendRequest
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.decorators import parser_classes
+from django.utils.timezone import now
 from .serializers import UserSerializer, FriendSerializer
+from django.core.mail import send_mail
 from django.conf import settings
-import requests
+from django.db.models import Q
 from dotenv import load_dotenv
+from .user_session_views import generate_secret
+import secrets
+import requests
 import os
 
 load_dotenv()
@@ -179,6 +184,64 @@ class RegisterViewSet(viewsets.ViewSet):
             create_user: Method to create a new user.
     """
     permission_classes = [AllowAny]
+
+    def send_email(self, user, otp):
+        send_mail(
+            'Email verification code',
+            f'Your verification code is: {otp}',
+            settings.EMAIL_HOST_USER,
+            [user.email],
+            fail_silently=False,
+        )
+
+    def send_email_otp(self, request) -> Response:
+        username = request.data.get("username")
+        try:
+            user_obj = get_object_or_404(UserProfileModel, username = username)
+            response_message = {}
+            status_code = status.HTTP_200_OK
+            if user_obj is not None:
+                otp = generate_secret()
+                user_obj.otp = make_password(str(otp))
+                user_obj.otp_expiry_time = now()
+                user_obj.save()
+                self.send_email(user_obj, otp)
+                response_message = {"detail":"Email verification code sent to your email"}
+            else:
+                response_message = {"error": "email field required"}
+                status_code = status.HTTP_404_NOT_FOUND
+        except Exception as err:
+            response_message = {"error": str(err)}
+            status_code = status.HTTP_400_BAD_REQUEST
+        return Response(response_message, status=status_code)
+
+    def verify_email_otp(self, request) -> Response:
+        response_message = {}
+        status_code = status.HTTP_200_OK
+        username = request.data.get('username')
+        if username is not None:
+            user = get_object_or_404(UserProfileModel, username = username)
+            otp = request.data.get('otp')
+            if otp is not None and user.otp is not None and user.otp_expiry_time is not None:
+                if check_password(str(otp), user.otp):
+                    if user.otp_expiry_time > now():
+                        response_message = {"detail":"Email verified"}
+                        user.otp = None
+                        user.otp_expiry_time = None
+                        user.save()
+                    else:
+                        response_message = {"error":"otp expired"}
+                        status_code = status.HTTP_401_UNAUTHORIZED
+                else:
+                    response_message = {'error':"Invalid otp"}
+                    status_code = status.HTTP_401_UNAUTHORIZED
+            else:
+                response_message = {'otp field required'}
+                status_code = status.HTTP_400_BAD_REQUEST
+        else:
+            response_message = {'error': 'user field required'}
+            status_code = status.HTTP_400_BAD_REQUEST
+        return Response(response_message, status=status_code)
 
     def create_user(self, request) -> Response:
         """
