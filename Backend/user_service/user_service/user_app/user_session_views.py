@@ -1,5 +1,6 @@
 import json
 from django.contrib.auth import authenticate
+from django.contrib.auth.hashers import check_password, make_password
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -7,14 +8,13 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import UserProfileModel as User
 from .serializers import UserSerializer
-from .models import UserProfileModel
 from datetime import timedelta
 from django.core.mail import send_mail
 from django.utils.timezone import now
 from django.conf import settings
 import logging
 import requests
-import random
+import secrets
 import os
 from dotenv import load_dotenv
 
@@ -22,53 +22,51 @@ load_dotenv()
 TOEKNSERVICE = os.environ.get('TOKEN_SERVICE')
 
 headers = {
-    "X-SERVICE-SECRET": settings.SECRET_KEY  # Replace with your actual secret key
+    "X-SERVICE-SECRET": settings.SECRET_KEY
 }
 
 logger = logging.getLogger(__name__)
 
-def generate_password():
-    return random.randint(100000,999999)
+def generate_secret():
+    return secrets.randbelow(900000) + 100000
+
 class UserLoginView(viewsets.ViewSet):
     permission_classes = [AllowAny]
 
-    def authenticate_user(self, request):
-        username = request.data.get("username")
-        password = request.data.get("password")
+    def send_email(self, email, otp):
+        send_mail(
+            'Verification Code',
+            f'Your verification code is: {otp}',
+            settings.EMAIL_HOST_USER,
+            [email],
+            fail_silently=False,
+        )
 
-        status_code = status.HTTP_200_OK
-        response = {}
-        response_message = {}
+    def authenticate_user(self, request, username, password):
         if username and password:
             user = authenticate(username=username, password=password)
         if user is not None:
-            return True
-        return False
+            return user
+        return None
 
     def login(self, request):
-        username = request.data.get("username")
-        password = request.data.get("password")
-
         status_code = status.HTTP_200_OK
         response = {}
         response_message = {}
+        username = request.data.get("username")
+        password = request.data.get("password")
         if username and password:
-            user = authenticate(username=username, password=password)
+            user = self.authenticate_user(request, username, password)
             if user is not None:
                 if user.is_active:
                     serializer = UserSerializer(user)
-                    # send post request to token-service
                     if user.otp_status:
-                        user.otp = generate_password()
-                        user.otp_expiry_time = now() + timedelta(minutes=1)
+                        otp = generate_secret()
+                        user.otp = make_password(str(otp))
+                        user.otp_expiry_time = now() + timedelta(minutes=3)
                         user.save()
-                        send_mail(
-                            'Verification Code',
-                            f'Your verification code is: {user.otp}',
-                            settings.EMAIL_HOST_USER,
-                            [user.email],
-                            fail_silently=False,
-                        )
+                        logger.info('user email = %s', serializer.data["email"])
+                        self.send_email(serializer.data["email"], otp)
                         response_message = {"detail":"Verification password sent to your email"}
                         status_code = status.HTTP_200_OK
                     else:
@@ -76,55 +74,61 @@ class UserLoginView(viewsets.ViewSet):
                         response = requests.post(f"{TOEKNSERVICE}/auth/token/gen-tokens/", data=data, headers=headers)
                         if response.status_code == 201:
                             response_message = response.json()
-                        logger.info('user_data = %s', response.json())
+                        # logger.info('user_data = %s', response.json())
                         if "error" in response_message:
                             status_code = response_message.get("status_code")
                             response_message = response.json()
-                        else:
-                            status_code = status.HTTP_200_OK
                 else:
-                    response_message = {"detail": "User is Inactive"}
+                    response_message = {"error": "User is Inactive"}
                     status_code = status.HTTP_401_UNAUTHORIZED
             else:
-                response_message = {"detail": "Invalid username or password"}
+                response_message = {"error": "Invalid username or password"}
                 status_code = status.HTTP_400_BAD_REQUEST
         else:
-            response_message = {"detail": "Username or password is missing"}
+            response_message = {"error": "username and password fields are required"}
             status_code = status.HTTP_400_BAD_REQUEST
         return Response(response_message, status=status_code)
 
+    #TODO: use check password for verify
     def verify_otp(self, request):
+        status_code = status.HTTP_200_OK
+        response = {}
+        response_message = {}
         username = request.data.get("username")
         password = request.data.get("password")
         otp = request.data.get("otp")
-        response_message = {}
-        status_code = status.HTTP_200_OK
-        if username and password:
-            user = authenticate(username=username, password=password)
-        if user is not None:
-            if user.otp_status:
-                if user.otp == otp:
-                    if user.otp_expiry_time > now():
-                        data = {"id": user.id, "username": username}
-                        response = requests.post(f'{TOEKNSERVICE}/auth/token/gen-tokens/', data=data)
-                        user.otp = None
-                        user.otp_expiry_time = None
-                        if response.status_code == 201:
-                            response_message = response.json()
-                        logger.info('user_data = %s', response_message)
-                        if "error" in response_message:
-                            status_code = response_message.get("status_code")
+        if username and password and otp:
+            user = self.authenticate_user(request, username, password)
+            if user is not None:
+                if user.otp_status:
+                    if check_password(str(otp), user.otp):
+                        if user.otp_expiry_time > now():
+                            data = {"id": user.id, "username": username}
+                            response = requests.post(f'{TOEKNSERVICE}/auth/token/gen-tokens/', data=data, headers=headers)
+                            if response.status_code == 201:
+                                response_message = response.json()
+                                user.otp = None
+                                user.otp_expiry_time = None
+                            # logger.info('user_data = %s', response_message)
+                            if "error" in response_message:
+                                status_code = response_message.get("status_code")
+                            else:
+                                status_code = status.HTTP_200_OK
                         else:
-                            status_code = status.HTTP_200_OK
+                            response_message = {"error":"expired code"}
+                            status_code = status.HTTP_401_UNAUTHORIZED
                     else:
-                        response_message = {"error":"expired password"}
+                        response_message = {"error":"Invalid code"}
                         status_code = status.HTTP_401_UNAUTHORIZED
                 else:
-                    response_message = {"error":"Invalid password"}
-                    status_code = status.HTTP_401_UNAUTHORIZED
+                    response_message = {"error":"You have not enable 2FA yet!"}
+                    status_code = status.HTTP_400_BAD_REQUEST
             else:
-                response_message = {"error":"You have not enable 2FA yet!"}
+                response_message = {"error": "Invalid username or password"}
                 status_code = status.HTTP_400_BAD_REQUEST
+        else:
+            response_message = {"error": "username, password and otp fields are required"}
+            status_code = status.HTTP_400_BAD_REQUEST
         return Response(response_message, status=status_code)
 
 class UserLogoutView(viewsets.ViewSet):
@@ -144,7 +148,7 @@ class UserLogoutView(viewsets.ViewSet):
                 status_code =status.HTTP_400_BAD_REQUEST
             access_token = bearer.split(' ')[1]
             data = {"id":pk, "access": access_token}
-            response_data = requests.post(f"{TOEKNSERVICE}/auth/token/invalidate-tokens/", data=data)
+            response_data = requests.post(f"{TOEKNSERVICE}/auth/token/invalidate-tokens/", data=data, headers=headers)
             if response_data.status_code == 200:
                 response_message = response_data.json()
             if "error" in response_message:

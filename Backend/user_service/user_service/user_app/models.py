@@ -11,6 +11,12 @@ def user_directory_path(instance, filename):
     filename = f'{uuid.uuid4()}.{ext}'
     return os.path.join(str(instance.id), filename)
 
+class ConfirmEmail(models.Model):
+    user_email = models.EmailField(unique=True, primary_key=True)
+    verify_status = models.BooleanField(default=False)
+    otp = models.CharField(null=True, blank=True)
+    otp_expiry_time = models.DateTimeField(blank=True, null=True)
+
 class UserProfileModel(AbstractUser):
     """
         User class to define the user model.
@@ -22,11 +28,12 @@ class UserProfileModel(AbstractUser):
 
         Email: The email field is required for the user model.
     """
+    email = models.OneToOneField(ConfirmEmail, related_name='user_profile_email', on_delete=models.CASCADE)
     avatar = models.ImageField(upload_to=user_directory_path, null=True, blank=True, default='default.jpg')
     friends = models.ManyToManyField("self", blank=True, symmetrical=True)
     online_status = models.BooleanField(default=False)
     otp_status = models.BooleanField(default=False, blank=True, null=True)
-    otp = models.IntegerField(blank=True, null=True)
+    otp = models.CharField(blank=True, null=True)
     otp_expiry_time = models.DateTimeField(blank=True, null=True)
     REQUIRED_FIELDS = ["email"]
 

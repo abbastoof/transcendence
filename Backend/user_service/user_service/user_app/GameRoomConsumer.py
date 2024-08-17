@@ -139,7 +139,7 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         from .models import GameRoom
         from .serializers import GameRoomSerializer
         from django.utils.timezone import now
-    
+
         request = {}
         response = {}
         gameroom_obj = GameRoom.objects.get(room_name=self.room_name)
