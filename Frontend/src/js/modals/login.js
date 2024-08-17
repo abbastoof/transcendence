@@ -111,10 +111,6 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('loginPassword').value = '';
     }
 
-    // Reset form fields and hide error message when modal is hidden (on modal close)
-
-
-
     // Function to update the auth button
     function updateAuthButton() {
         if (isLoggedIn) {

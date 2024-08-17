@@ -114,34 +114,44 @@ createModal('signUp', 'Sign up', `
                 placeholder="Re-enter password" required>
         </div>
         <button type="submit" class="submit">Sign up</button>
-    </form>`)
-
-createModal('login', 'Log in', `
-            <form id="loginForm" class="form">
-                <div class="form-group">
-                    <label class="labelFont" for="loginUsername">Username</label>
-                    <input type="text" class="form-control" id="loginUsername" placeholder="Enter username" required>
-                </div>
-                <div class="form-group">
-                    <label class="labelFont" for="loginPassword">Password</label>
-                    <input type="password" class="form-control" id="loginPassword" placeholder="Enter password" required>
-                </div>
-                <button type="submit" class="submit">Log in</button>
-            </form>
-        </div>
-        <div class="row mt-3">
-            <p class="font text-center">
-                Don't have an account? <a href="#" class="signup-link" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#signUpModal">Sign up</a>
-            </p>`);
-
-createModal('logout', 'Log out', `
-        <div class="modal-body">
-            <p class="ErrorMessage">Are you sure you want to log out?</p>
+    </form>
+    <form id="verificationForm" style="display: none;">
+        <div class="verificationModal">
+            <label for="verificationCode" class="labelFont">Verification Code</label>
+            <input type="text" class="form-control" id="verificationCode" placeholder="Enter code" required>
         </div>
         <div class="modal-footer">
-            <button type="button" class="submit" data-bs-dismiss="modal">Cancel</button>
-            <button type="button" class="submit" onclick="confirmLogout()">Yes, Log out</button>
-        </div>`);
+            <button type="submit" class="submit">Verify</button>
+            <button type="button" id="cancelVerificationButton" class="submit">Cancel</button>
+        </div>
+    </form>`);
+
+createModal('login', 'Log in', `
+    <form id="loginForm" class="form">
+        <div class="form-group">
+            <label class="labelFont" for="loginUsername">Username</label>
+            <input type="text" class="form-control" id="loginUsername" placeholder="Enter username" required></input>
+        </div>
+        <div class="form-group">
+            <label class="labelFont" for="loginPassword">Password</label>
+            <input type="password" class="form-control" id="loginPassword" placeholder="Enter password" required></input>
+        </div>
+        <button type="submit" class="submit">Log in</button>
+    </form>
+    <div class="row mt-3">
+        <p class="font text-center">
+            Don't have an account? <a href="#" class="signup-link" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#signUpModal">Sign up</a>
+        </p>
+    </div>`);
+
+createModal('logout', 'Log out', `
+    <div class="modal-body">
+        <p class="ErrorMessage">Are you sure you want to log out?</p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="submit" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="submit" onclick="confirmLogout()">Yes, Log out</button>
+    </div>`);
 
 createModal('Profile', 'Profile', '<div id="userProfile"></div>');
 

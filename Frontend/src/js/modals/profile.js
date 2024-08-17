@@ -1,6 +1,8 @@
 import { updateFriendsList } from './friends.js';
-import { showMessage } from './messages.js';
 import { updateMatchHistory } from './history.js';
+import { toggleEmailForm, handleEmailUpdate } from './changeEmail.js';
+import { togglePasswordForm, handlePasswordUpdate } from './changePassword.js';
+import { toggleProfilePictureForm, handleProfilePictureUpdate } from './changeProfilePicture.js';
 
 document.addEventListener('DOMContentLoaded', function () {
     updateUserProfile();
@@ -12,14 +14,12 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 export function updateUserProfile() {
-    // Check if the user is logged in
     const userData = JSON.parse(sessionStorage.getItem('userData'));
     if (!userData || !userData.id || !userData.token) {
         console.error('UserData is missing or incomplete');
         return;
     }
 
-    // Fetch user data from the server
     fetch(`/user/${userData.id}/`, {
         method: 'GET',
         headers: {
@@ -72,184 +72,71 @@ export function updateUserProfile() {
                 </form>
                 <button type="button" class="submit" data-bs-toggle="modal" data-bs-target="#FriendsModal">Friends</button>
                 <button type="button" class="submit" data-bs-toggle="modal" data-bs-target="#HistoryModal">Match history</button>
+                
+                <!-- 2FA Toggle Switch -->
+                <div class="toggle-container">
+                    <label class="toggle-label">Two-Factor Authentication:</label>
+                    <label class="switch">
+                        <input type="checkbox" id="twoFactorAuthToggle" ${data.twoFactorEnabled ? 'checked' : ''}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
             </div>
         `;
         userProfileContainer.innerHTML = htmlContent;
 
-        updateFriendsList(); // Ensure this function is not modifying the HTML in unexpected ways
+        updateFriendsList();
         updateMatchHistory();
 
-        // Toggle email update form visibility
-        document.getElementById('changeEmailButton').addEventListener('click', () => {
-            const updateEmailForm = document.getElementById('updateEmailForm');
-            if (updateEmailForm.style.display === 'none' || updateEmailForm.style.display === '') {
-                updateEmailForm.style.display = 'flex';
-                updateEmailForm.style.flexDirection = 'column';
-            } else {
-                updateEmailForm.style.display = 'none';
-            }
-        });
+        // Initialize event handlers
+        document.getElementById('changeEmailButton').addEventListener('click', toggleEmailForm);
+        handleEmailUpdate(userData);
 
-        // Handle email update
-        document.getElementById('updateEmailForm').addEventListener('submit', (event) => {
-            event.preventDefault();
-            const newEmail = document.getElementById('newEmail').value;
-            if (!newEmail) {
-                console.error('Email cannot be empty');
-                return;
-            }
+        document.getElementById('changePasswordButton').addEventListener('click', togglePasswordForm);
+        handlePasswordUpdate(userData);
 
-            fetch(`/user/${userData.id}/`, {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `Bearer ${userData.token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email: newEmail })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Email updated successfully:', data);
-                showMessage('Email updated successfully', '#ProfileModal', 'accept');
-                document.getElementById('emailText').innerText = data.email;
-                document.getElementById('newEmail').value = '';
-                document.getElementById('updateEmailForm').style.display = 'none';
-            })
-            .catch(error => {
-                console.error('Error updating email:', error);
-                showMessage('Error updating email', '#ProfileModal', 'error');
-                document.getElementById('newEmail').value = '';
+        document.getElementById('changeProfilePictureButton').addEventListener('click', toggleProfilePictureForm);
+        handleProfilePictureUpdate(userData);
 
-            });
-        });
-
-        // Toggle password update form visibility
-        document.getElementById('changePasswordButton').addEventListener('click', () => {
-            const updatePasswordForm = document.getElementById('updatePasswordForm');
-            if (updatePasswordForm.style.display === 'none' || updatePasswordForm.style.display === '') {
-                updatePasswordForm.style.display = 'flex';
-                updatePasswordForm.style.flexDirection = 'column';
-            } else {
-                updatePasswordForm.style.display = 'none';
-            }
-        });
-
-        // Handle password update
-        document.getElementById('updatePasswordForm').addEventListener('submit', (event) => {
-            event.preventDefault();
-            const newPassword = document.getElementById('newPassword').value;
-            if (!newPassword) {
-                console.error('Password cannot be empty');
-                return;
-            }
-
-            fetch(`/user/${userData.id}/`, {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `Bearer ${userData.token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ password: newPassword })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Password updated successfully:', data);
-                showMessage('Password updated successfully', '#ProfileModal', 'accept');
-                document.getElementById('newPassword').value = '';
-                document.getElementById('updatePasswordForm').style.display = 'none';
-            })
-            .catch(error => {
-                console.error('Error updating password:', error);
-                showMessage('Error updating password', '#ProfileModal', 'error');
-                document.getElementById('newPassword').value = '';
-            });
-        });
-
-        // Toggle profile picture update form visibility
-        document.getElementById('changeProfilePictureButton').addEventListener('click', () => {
-            const imageUploadForm = document.getElementById('imageUploadForm');
-            if (imageUploadForm.style.display === 'none' || imageUploadForm.style.display === '') {
-                imageUploadForm.style.display = 'flex';
-                imageUploadForm.style.flexDirection = 'column';
-            } else {
-                imageUploadForm.style.display = 'none';
-            }
-        });
-
-        document.getElementById('imageInput').addEventListener('change', (event) => {
-            const fileInput = event.target;
-            const fileNameDisplay = document.getElementById('fileName');
-            if (fileInput.files.length > 0) {
-                fileNameDisplay.textContent = fileInput.files[0].name;
-            } else {
-                fileNameDisplay.textContent = 'No file chosen';
-            }
-        });
-
-        // Handle image upload
-        document.getElementById('imageUploadForm').addEventListener('submit', (event) => {
-            event.preventDefault();
-            const imageInput = document.getElementById('imageInput');
-            const file = imageInput.files[0];
-            if (!file) {
-                console.error('No image selected');
-                showMessage('No image selected', '#ProfileModal', 'error');
-                return;
-            }
-            const formData = new FormData();
-            formData.append('avatar', file);
-
-            fetch(`/user/${userData.id}/`, {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `Bearer ${userData.token}`
-                },
-                body: formData
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Image uploaded successfully:', data);
-                showMessage('Profile picture updated successfully', '#ProfileModal', 'accept');
-                document.getElementById('avatar').src = `${data.avatar}?t=${new Date().getTime()}`;
-                document.getElementById('imageUploadForm').style.display = 'none';
-                document.getElementById('imageInput').value = '';
-                document.getElementById('fileName').textContent = 'No file chosen';
-            })
-            .catch(error => {
-                console.error('Error uploading image:', error);
-                showMessage('Error uploading image', '#ProfileModal', 'error');
-                document.getElementById('imageInput').value = '';
-                document.getElementById('fileName').textContent = 'No file chosen';
-            });
+        // Handle 2FA Toggle Switch
+        document.getElementById('twoFactorAuthToggle').addEventListener('change', function() {
+            toggleTwoFactorAuth(userData.id, this.checked, userData.token);
         });
     })
     .catch(error => {
         console.error('Error fetching user data:', error);
     });
 }
-// Function to reset all forms when the modal is closed
+
+// Function to toggle 2FA status on the server
+function toggleTwoFactorAuth(userId, isEnabled, token) {
+    fetch(`/user/${userId}/two-factor-auth/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ twoFactorEnabled: isEnabled })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to update 2FA status');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('2FA status updated successfully:', data);
+    })
+    .catch(error => {
+        console.error('Error updating 2FA status:', error);
+    });
+}
+
 function resetProfileForms() {
-    // Hide all forms
     document.getElementById('updateEmailForm').style.display = 'none';
     document.getElementById('updatePasswordForm').style.display = 'none';
     document.getElementById('imageUploadForm').style.display = 'none';
 
-    // Clear all input fields
     document.getElementById('newEmail').value = '';
     document.getElementById('newPassword').value = '';
     document.getElementById('imageInput').value = '';
