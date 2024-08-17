@@ -78,8 +78,6 @@ class UserLoginView(viewsets.ViewSet):
                     if "error" in response_message:
                         status_code = response_message.get("status_code")
                         response_message = response.json()
-                    else:
-                            status_code = status.HTTP_200_OK
             else:
                 response_message = {"detail": "User is Inactive"}
                 status_code = status.HTTP_401_UNAUTHORIZED
