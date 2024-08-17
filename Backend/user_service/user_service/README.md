@@ -45,7 +45,7 @@ You should send a JSON object with the following fields:
 }
 ```
 - `http://localhost:3000/user/` "List users records using GET method"
-- `http://localhost:3000/user/<int:pk>/` "without angel brackets" "retrieve, update and delete user record using GET, PUT and DELETE methods respectively"
+- `http://localhost:3000/user/<int:pk>/` "without angel brackets" "retrieve, update and delete user record using GET, PATCH and DELETE methods respectively"
 You can enable otp by sending a JSON object with the following fields:
 ```JSON
 {
