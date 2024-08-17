@@ -28,7 +28,22 @@ You should send a JSON object with the following fields:
     "password": "password"
 }
 ```
+- `"user/register/sendemailotp/"` "send add email to confirmemail model and send otp to user email using POST method"
+You should send a JSON object with the following fields:
+```JSON
+{
+    "email": "email"
+}
+```
 
+- `"user/register/verifyemailotp/"` "verify email otp using POST method"
+You should send a JSON object with the following fields:
+```JSON
+{
+    "email": "email",
+    "otp": "otp"
+}
+```
 - `http://localhost:3000/user/` "List users records using GET method"
 - `http://localhost:3000/user/<int:pk>/` "without angel brackets" "retrieve, update and delete user record using GET, PUT and DELETE methods respectively"
 You can enable otp by sending a JSON object with the following fields:
@@ -38,6 +53,15 @@ You can enable otp by sending a JSON object with the following fields:
 }
 ```
 - `http://localhost:3000/user/login/` "login user using POST method"
+You should send a JSON object with the following fields the user will receive an otp in the email if their otp_status is True:
+
+```JSON
+{
+    "username": "username",
+    "password": "password"
+}
+```
+
 - `http://localhost:3000/user/verifyotp/` "send user otp using POST method"
 You should send a JSON object with the following fields:
 ```JSON
