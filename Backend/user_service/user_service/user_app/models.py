@@ -28,7 +28,7 @@ class UserProfileModel(AbstractUser):
 
         Email: The email field is required for the user model.
     """
-    email = models.OneToOneField(ConfirmEmail, related_name='user_profile', on_delete=models.CASCADE)
+    email = models.OneToOneField(ConfirmEmail, related_name='user_profile_email', on_delete=models.CASCADE)
     avatar = models.ImageField(upload_to=user_directory_path, null=True, blank=True, default='default.jpg')
     friends = models.ManyToManyField("self", blank=True, symmetrical=True)
     online_status = models.BooleanField(default=False)

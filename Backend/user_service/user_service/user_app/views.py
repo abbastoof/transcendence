@@ -201,12 +201,16 @@ class RegisterViewSet(viewsets.ViewSet):
         if email is not None:
             try:
                 email_obj, create = ConfirmEmail.objects.get_or_create(user_email=email)
-                otp = generate_secret()
-                email_obj.otp = make_password(str(otp))
-                email_obj.otp_expiry_time = now() + timedelta(minutes=1)
-                email_obj.save()
-                self.send_email(email_obj.user_email, otp)
-                response_message = {"detail":"Email verification code sent to your email"}
+                if email_obj.verify_status == False:
+                    otp = generate_secret()
+                    email_obj.otp = make_password(str(otp))
+                    email_obj.otp_expiry_time = now() + timedelta(minutes=3)
+                    email_obj.save()
+                    self.send_email(email_obj.user_email, otp)
+                    response_message = {"detail":"Email verification code sent to your email"}
+                else:
+                    response_message = {"error": "This email already verified."}
+                    status_code = status.HTTP_401_UNAUTHORIZED
             except Exception as err:
                 response_message = {"error": str(err)}
                 status_code = status.HTTP_400_BAD_REQUEST
@@ -228,6 +232,7 @@ class RegisterViewSet(viewsets.ViewSet):
                         response_message = {"detail":"Email verified"}
                         email_obj.otp = None
                         email_obj.otp_expiry_time = None
+                        email_obj.verify_status = True
                         email_obj.save()
                     else:
                         response_message = {"error":"otp expired"}
@@ -260,16 +265,21 @@ class RegisterViewSet(viewsets.ViewSet):
             email = request.data.get("email")
             email_obj = get_object_or_404(ConfirmEmail, user_email = email)
             if email_obj is not None:
-                serializer = UserSerializer(data=request.data)
-                if serializer.is_valid():
-                    serializer.save()
-                    response_message = serializer.data
-                if serializer.errors:
-                    data = serializer.errors
-                    if "email" in data:
-                        data["email"] = ["A user with that email already exists."]
-                        response_message = {"error":data},
-                        status_code=status.HTTP_400_BAD_REQUEST
+                if email_obj.verify_status:
+                    serializer = UserSerializer(data=request.data)
+                    if serializer.is_valid():
+                        serializer.validated_data["email"] = email_obj
+                        serializer.save()
+                        response_message = serializer.data
+                    if serializer.errors:
+                        data = serializer.errors
+                        if "email" in data:
+                            data["email"] = ["A user with that email already exists."]
+                            response_message = {"error":data},
+                            status_code=status.HTTP_400_BAD_REQUEST
+                else:
+                    response_message = {"error": "You have not confirmed your email yet!"},
+                    status_code=status.HTTP_401_UNAUTHORIZED
         except Http404:
             response_message = {"error": "You have not verified your email yet!"}
             status_code = status.HTTP_401_UNAUTHORIZED
