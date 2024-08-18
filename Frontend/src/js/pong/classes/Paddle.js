@@ -77,6 +77,7 @@ class Paddle {
     move(deltaZ){
         this.mesh.position.z += deltaZ;
         this.boundingBox.setFromObject(this.mesh);
+        this.edgesMesh.position.copy(this.mesh.position);
     }
     
     updatePosition(position) {
