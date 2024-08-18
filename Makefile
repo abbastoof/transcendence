@@ -108,7 +108,7 @@ dlog:
 	fi
 	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) bash -c 'cat /var/log/django_debug.log'
 
-.PHONY: dlog-err
+.PHONY: dlogerr
 dlog-err:
 	@if [ -z "$(filter-out $@,$(MAKECMDGOALS))" ]; then \
 		echo "Error: No container name provided."; \

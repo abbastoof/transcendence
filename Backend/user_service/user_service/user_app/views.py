@@ -2,12 +2,12 @@ import json
 from django.shortcuts import get_object_or_404, render
 from django.http import Http404
 from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import ValidationError
 from rest_framework import status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth.hashers import check_password, make_password
-from rest_framework.exceptions import ValidationError
 from .models import UserProfileModel, FriendRequest, ConfirmEmail
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.decorators import parser_classes
@@ -18,13 +18,15 @@ from django.conf import settings
 from django.db.models import Q
 from dotenv import load_dotenv
 from .user_session_views import generate_secret
-import secrets
+import logging
 import requests
 import os
 
 load_dotenv()
+
 TOEKNSERVICE = os.environ.get('TOKEN_SERVICE')
 
+logger = logging.getLogger(__name__)
 headers = {
     "X-SERVICE-SECRET": settings.SECRET_KEY  # Replace with your actual secret key
 }
@@ -225,26 +227,54 @@ class RegisterViewSet(viewsets.ViewSet):
         email = request.data.get('email')
         if email is not None:
             email_obj = get_object_or_404(ConfirmEmail, user_email = email)
-            otp = request.data.get('otp')
-            if otp is not None and email_obj.otp is not None and email_obj.otp_expiry_time is not None:
-                if check_password(str(otp), email_obj.otp):
-                    if email_obj.otp_expiry_time > now():
-                        response_message = {"detail":"Email verified"}
-                        email_obj.otp = None
-                        email_obj.otp_expiry_time = None
-                        email_obj.verify_status = True
-                        email_obj.save()
+            if email_obj.verify_status == False:
+                otp = request.data.get('otp')
+                if otp is not None:
+                    if check_password(str(otp), email_obj.otp):
+                        if email_obj.otp_expiry_time > now():
+                            response_message = {"detail":"Email verified"}
+                            email_obj.otp = None
+                            email_obj.otp_expiry_time = None
+                            email_obj.verify_status = True
+                            email_obj.save()
+                        else:
+                            response_message = {"error":"otp expired"}
+                            status_code = status.HTTP_401_UNAUTHORIZED
                     else:
-                        response_message = {"error":"otp expired"}
+                        response_message = {'error':"Invalid otp"}
                         status_code = status.HTTP_401_UNAUTHORIZED
                 else:
-                    response_message = {'error':"Invalid otp"}
-                    status_code = status.HTTP_401_UNAUTHORIZED
+                    response_message = {'error':'otp field required'}
+                    status_code = status.HTTP_400_BAD_REQUEST
             else:
-                response_message = {'otp field required'}
+                response_message = {'error':'This email is already verified.'}
                 status_code = status.HTTP_400_BAD_REQUEST
         else:
             response_message = {'error': 'email field required'}
+            status_code = status.HTTP_400_BAD_REQUEST
+        return Response(response_message, status=status_code)
+
+    def available_username_email(self, request) -> Response:
+        email = request.data.get("email")
+        username = request.data.get("username")
+        response_message = {}
+        status_code = status.HTTP_200_OK
+        if username is not None and email is not None:
+            user_obj = UserProfileModel.objects.filter(username = username).first()
+            email_obj = UserProfileModel.objects.filter(email = email).first()
+            if user_obj is not None and email_obj is not None:
+                response_message = {"error": "username and email are not available"}
+                status_code = status.HTTP_400_BAD_REQUEST
+            elif user_obj is not None:
+                response_message = {"error": "username is not available"}
+                status_code = status.HTTP_400_BAD_REQUEST
+            elif email_obj is not None:
+                response_message = {"error": "email is not available"}
+                status_code = status.HTTP_400_BAD_REQUEST
+            else:
+                response_message = {"detail": "username and email are available"}
+        else:
+            response_message = {'error':"username and email fields are required"}
             status_code = status.HTTP_400_BAD_REQUEST
         return Response(response_message, status=status_code)
 
@@ -264,18 +294,21 @@ class RegisterViewSet(viewsets.ViewSet):
         try:
             email = request.data.get("email")
             email_obj = get_object_or_404(ConfirmEmail, user_email = email)
+            result = UserProfileModel.objects.filter(email = email_obj.pk).first()
             if email_obj is not None:
-                if email_obj.verify_status:
-                    serializer = UserSerializer(data=request.data)
-                    if serializer.is_valid():
-                        serializer.validated_data["email"] = email_obj
-                        serializer.save()
-                        response_message = serializer.data
-                    if serializer.errors:
-                        data = serializer.errors
-                        if "email" in data:
-                            data["email"] = ["A user with that email already exists."]
-                            response_message = {"error":data},
+                if email_obj.verify_status == True:
+                    if result is not None:
+                        response_message = {'error': {"email":"A user with that email already exists."}}
+                        status_code=status.HTTP_400_BAD_REQUEST
+                    else:
+                        data = request.data
+                        data["email"] = email_obj.pk
+                        serializer = UserSerializer(data=data)
+                        if serializer.is_valid():
+                            serializer.save()
+                            response_message = serializer.data
+                        if serializer.errors:
+                            response_message = {"error":serializer.errors},
                             status_code=status.HTTP_400_BAD_REQUEST
                 else:
                     response_message = {"error": "You have not confirmed your email yet!"},
@@ -289,6 +322,9 @@ class RegisterViewSet(viewsets.ViewSet):
                 item_lists.append(item)
             response_message = {'error': item_lists}
             status_code=status.HTTP_400_BAD_REQUEST
+        except Exception as err:
+            response_message = {'error':str(err)}
+            status_code = status.HTTP_400_BAD_REQUEST
         return Response(response_message, status = status_code)
 
 class FriendsViewSet(viewsets.ViewSet):

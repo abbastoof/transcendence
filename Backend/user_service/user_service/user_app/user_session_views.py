@@ -73,6 +73,8 @@ class UserLoginView(viewsets.ViewSet):
                         data = {"id": serializer.data["id"], "username": serializer.data["username"]}
                         response = requests.post(f"{TOEKNSERVICE}/auth/token/gen-tokens/", data=data, headers=headers)
                         if response.status_code == 201:
+                            user.online_status = True
+                            user.save()
                             response_message = response.json()
                         # logger.info('user_data = %s', response.json())
                         if "error" in response_message:
@@ -109,6 +111,8 @@ class UserLoginView(viewsets.ViewSet):
                                 response_message = response.json()
                                 user.otp = None
                                 user.otp_expiry_time = None
+                                user.online_status = True
+                                user.save()
                             # logger.info('user_data = %s', response_message)
                             if "error" in response_message:
                                 status_code = response_message.get("status_code")
@@ -155,5 +159,7 @@ class UserLogoutView(viewsets.ViewSet):
                 status_code = response_message.get("status_code")
             else:
                 response_message = {"detail": "User logged out successfully"}
+                user.online_status = False
+                user.save()
                 status_code = status.HTTP_200_OK
         return Response(response_message, status=status_code)
