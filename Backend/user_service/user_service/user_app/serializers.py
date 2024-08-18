@@ -57,6 +57,7 @@ class UserSerializer(serializers.ModelSerializer):
                 create: Method to create a new user.
                 update: Method to update a user.
     """
+    email = serializers.PrimaryKeyRelatedField(queryset=ConfirmEmail.objects.all())
     avatar = serializers.ImageField(required=False)
     friends = serializers.PrimaryKeyRelatedField(
         many=True, queryset=UserProfileModel.objects.all(), required=False # required=False means that the field is not required
@@ -77,7 +78,6 @@ class UserSerializer(serializers.ModelSerializer):
             "otp_expiry_time"
             ]
         extra_kwargs = {"password": {"write_only": True}}
-
         ### Password should be strong password, minimum 8 characters, at least one uppercase letter, one lowercase letter, one number and one special character
 
     def create(self, validated_data) -> UserProfileModel:

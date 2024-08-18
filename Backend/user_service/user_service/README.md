@@ -44,6 +44,16 @@ You should send a JSON object with the following fields:
     "otp": "otp"
 }
 ```
+
+- `"user/register/availableuser/"` "check if the username and email are available using POST method"
+You should send a JSON object with the following fields:
+```JSON
+{
+    "username": "username",
+    "email": "email"
+}
+```
+
 - `http://localhost:3000/user/` "List users records using GET method"
 - `http://localhost:3000/user/<int:pk>/` "without angel brackets" "retrieve, update and delete user record using GET, PATCH and DELETE methods respectively"
 You can enable otp by sending a JSON object with the following fields:
@@ -212,9 +222,8 @@ pip install channels-redis
   from . import consumers
 
   websocket_urlpatterns = [
-      re_path(r'ws/notify/', consumers.NotificationConsumer.as_asgi()),
-      re_path(r'ws/online/', consumers.OnlineStatusConsumer.as_asgi()),
-      re_path(r'ws/<int:id>/', consumers.PersonalChatConsumer.as_asgi()),
+    re_path(r'ws/online/', consumers.OnlineStatusConsumer.as_asgi()),
+    re_path(r'ws/game/room/(?P<room_name>\w+)/$', GameRoomConsumer.GameRoomConsumer.as_asgi()),
   ]
   ```
 
