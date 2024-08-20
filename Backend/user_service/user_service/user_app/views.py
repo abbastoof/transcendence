@@ -259,7 +259,7 @@ class RegisterViewSet(viewsets.ViewSet):
         username = request.data.get("username")
         response_message = {}
         status_code = status.HTTP_200_OK
-        if username is not None and email is not None:
+        if username is not None or email is not None:
             user_obj = UserProfileModel.objects.filter(username = username).first()
             email_obj = UserProfileModel.objects.filter(email = email).first()
             if user_obj is not None and email_obj is not None:
