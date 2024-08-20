@@ -61,3 +61,7 @@ export const initializeEventHandlers = (gameSession) => {
 export const sendMovement = (data) => {
     socket.emit('move_paddle', data);
 };
+
+export const sendQuit = (gameId, playerId) => {
+    socket.emit('quit_game', {game_id: gameId, player_id: playerId});
+};

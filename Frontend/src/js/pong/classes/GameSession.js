@@ -7,8 +7,9 @@ import Ball from './Ball.js';
 import PlayingField from './PlayingField.js';
 import ScoreBoard from './ScoreBoard.js';
 import { LEFT_PADDLE_START, RIGHT_PADDLE_START } from '../constants.js';
-import { changeCameraAngle, endGame } from '../pong.js';
+import { endGame } from '../pong.js';
 import { globalState } from '../globalState.js';
+import { sendQuit } from '../eventhandlers.js';
 
 class GameSession {
     constructor() {
@@ -110,7 +111,6 @@ class GameSession {
             globalState.playingFieldMaterial.uniforms.ballDx.value = -1.0;
         }
         if (data.bounce === true) {
-            globalState.rgbShift.enabled = true;
             if (data.hitpos < 0.1) {
                 globalState.rgbShift.uniforms.amount.value = 0.3
                 globalState.glitchPass.enabled = true;
@@ -120,9 +120,8 @@ class GameSession {
             }
         }
         else {
-            globalState.rgbShift.enabled = false;
             globalState.glitchPass.enabled = false;
-            globalState.rgbShift.uniforms.amount.value = 0.0;
+            globalState.rgbShift.uniforms.amount.value = 0.0015;
         }
     }
 
@@ -164,6 +163,19 @@ class GameSession {
             this.socket.disconnect();
             console.log('Disconnected from server');
         }
+    }
+
+    clearResources() {
+        this.leftPaddle.removeFromScene();
+        this.rightPaddle.removeFromScene();
+        this.playingField.removeFromScene();
+        this.ball.removeFromScene();
+        this.scoreBoard.removeFromScene();
+        this.disconnect();
+    }
+
+    quitGame() {
+        sendQuit(this.gameId, this.localPlayerId);
     }
 }
 

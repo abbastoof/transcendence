@@ -16,7 +16,7 @@ class ScoreBoard {
         this.player1Mesh = null;
         this.player2Mesh = null;
         this.goalMesh = null;
-        this.gameStartMesh = null;
+        this.messageMesh = null;
         this.font = new FontLoader().parse(fontJson);
 
         // Array to store material instances
@@ -105,30 +105,42 @@ class ScoreBoard {
 
     showGameStartText() {
         this.clearScores();
-        this.gameStartMesh = this.createText('GAME START', 80, 0x00FF00, 0.3, 15.0)
-        this.gameStartMesh.position.set(0, 90.0, 300.0);
+        this.messageMesh = this.createText('GAME START', 80, 0x00FF00, 0.3, 15.0)
+        this.messageMesh.position.set(0, 90.0, 300.0);
         if (globalState.invertedView === true) {
-            this.gameStartMesh.rotation.y = THREE.MathUtils.degToRad(180);
+            this.messageMesh.rotation.y = THREE.MathUtils.degToRad(180);
         }
         else {
-            this.gameStartMesh.position.z = -300.0
+            this.messageMesh.position.z = -300.0
         }
-        this.scene.add(this.gameStartMesh);
+        this.scene.add(this.messageMesh);
     }
 
     showWaitText() {
         this.clearScores();
-        this.gameStartMesh = this.createText('Waiting for your opponent..', 50, 0x4455FF, 1.4, 4.0);
-        this.gameStartMesh.position.set(0, 90.0, 300.0);
+        this.messageMesh = this.createText('Waiting for your opponent..', 50, 0x4455FF, 1.4, 4.0);
+        this.messageMesh.position.set(0, 90.0, 300.0);
         if (globalState.invertedView === true) {
-            this.gameStartMesh.rotation.y = THREE.MathUtils.degToRad(180);
+            this.messageMesh.rotation.y = THREE.MathUtils.degToRad(180);
         }
         else {
-            this.gameStartMesh.position.z = -300.0
+            this.messageMesh.position.z = -300.0
         }
-        this.scene.add(this.gameStartMesh);
+        this.scene.add(this.messageMesh);
     }
 
+    showOpponentQuit() {
+        this.clearScores();
+        this.messageMesh = this.createText('Your opponent has quit the game', 50, 0x2222FF, 1.4, 4.0);
+        this.messageMesh.position.set(0, 90.0, 300.0);
+        if (globalState.invertedView === true) {
+            this.messageMesh.rotation.y = THREE.MathUtils.degToRad(180);
+        }
+        else {
+            this.messageMesh.position.z = -300.0
+        }
+        this.scene.add(this.messageMesh);
+    }
     
     clearScores() {
         if (this.player1Mesh) {
@@ -149,14 +161,17 @@ class ScoreBoard {
             this.goalMesh.material.dispose();
             this.goalMesh = null;
         }
-        if (this.gameStartMesh) {
-            this.scene.remove(this.gameStartMesh);
-            this.gameStartMesh.geometry.dispose();
-            this.gameStartMesh.material.dispose();
-            this.gameStartMesh = null;
+        if (this.messageMesh) {
+            this.scene.remove(this.messageMesh);
+            this.messageMesh.geometry.dispose();
+            this.messageMesh.material.dispose();
+            this.messageMesh = null;
         }
         // Clear the stored materials
         this.materials = [];
+    }
+    removeFromScene() {
+        this.clearScores();
     }
 }
 
