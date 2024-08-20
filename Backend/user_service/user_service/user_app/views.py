@@ -272,7 +272,12 @@ class RegisterViewSet(viewsets.ViewSet):
                 response_message = {"error": "email is not available"}
                 status_code = status.HTTP_400_BAD_REQUEST
             else:
-                response_message = {"detail": "username and email are available"}
+                if email is not None and username is not None:
+                    response_message = {"detail": "username and email are available"}
+                elif username is not None:
+                    response_message = {"detail": "username is available"}
+                elif email is not None:
+                    response_message = {"detail": "email is available"}
         else:
             response_message = {'error':"username and email fields are required"}
             status_code = status.HTTP_400_BAD_REQUEST
