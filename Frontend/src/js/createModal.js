@@ -40,7 +40,17 @@ export function createModal(modalId, modalTitle, content) {
         }
     }
 
-    // Add event listener to hide modal and clear URL hash when modal is hidden
+    // Add event listener to hide modal and prevent hiding tournament and game modal
+    modalElement._element.addEventListener('hide.bs.modal', function (event) {
+        if (modalId === 'tournament'){
+            event.preventDefault();
+            if (confirm("Are you sure you want to leave the tournament?")) {
+                window.location.href = '/';
+            }
+        }
+    });
+
+    // Add event listener to hidden modal and clear URL hash when modal is hidden
     modalElement._element.addEventListener('hidden.bs.modal', function () {
         if (window.location.hash === `#${modalId}`) {
             history.back();
