@@ -116,7 +116,7 @@ createModal('signUp', 'Sign up', `
         <button type="submit" class="submit">Sign up</button>
     </form>
     <form id="verificationForm" style="display: none;">
-        <div class="verificationModal">
+        <div class="verification">
             <label for="verificationCode" class="labelFont">Verification Code</label>
             <input type="text" class="form-control" id="verificationCode" placeholder="Enter code" required>
         </div>
@@ -137,12 +137,22 @@ createModal('login', 'Log in', `
             <input type="password" class="form-control" id="loginPassword" placeholder="Enter password" required></input>
         </div>
         <button type="submit" class="submit">Log in</button>
+        <div class="row mt-3">
+            <p class="font text-center">
+                Don't have an account? <a href="#" class="signup-link" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#signUpModal">Sign up</a>
+            </p>
+        </div>
     </form>
-    <div class="row mt-3">
-        <p class="font text-center">
-            Don't have an account? <a href="#" class="signup-link" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#signUpModal">Sign up</a>
-        </p>
-    </div>`);
+    <form id="loginVerification" style="display: none;">
+        <div class="verification">
+            <label for="loginVerificationCode" class="labelFont">Verification Code</label>
+            <input type="text" class="form-control" id="loginVerificationCode" placeholder="Enter code" required>
+        </div>
+        <div class="modal-footer">
+            <button type="submit" class="submit">Verify</button>
+            <button type="button" id="cancelLoginVerificationButton" class="submit">Cancel</button>
+        </div>
+    </form>`);
 
 createModal('logout', 'Log out', `
     <div class="modal-body">

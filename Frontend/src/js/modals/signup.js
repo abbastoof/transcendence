@@ -1,25 +1,27 @@
 import { showMessage } from './messages.js';
+import { isStrongPassword, clearPasswordFields } from './password.js';
 
 document.addEventListener('DOMContentLoaded', function() {
     var signUpModalElement = document.getElementById('signUpModal');
-    var modalTitle = document.getElementById('signUpLabel');
     var signUpForm = document.getElementById('signUpForm');
     var verificationForm = document.getElementById('verificationForm');
-    var cancelVerificationButton = document.getElementById('cancelVerificationButton');
+    
+    let email, username, password, repeatPassword;
 
     signUpModalElement.addEventListener('hidden.bs.modal', function () {
+        document.getElementById('loginForm').reset();
         signUpForm.reset();
-        verificationForm.reset();
-        showSignUpForm(); // Reset modal to initial state
+        verificationForm.style.display = 'none';
+        signUpForm.style.display = 'flex';
     });
 
     signUpForm.addEventListener('submit', function(event) {
         event.preventDefault();
 
-        const email = document.getElementById('signUpEmail').value;
-        const username = document.getElementById('signUpUsername').value;
-        const password = document.getElementById('signUpPassword').value;
-        const repeatPassword = document.getElementById('signUpRePassword').value;
+        email = document.getElementById('signUpEmail').value;
+        username = document.getElementById('signUpUsername').value;
+        password = document.getElementById('signUpPassword').value;
+        repeatPassword = document.getElementById('signUpRePassword').value;
 
         if (password !== repeatPassword) {
             showMessage('Passwords do not match!', '#signUpModal', 'error');
@@ -27,58 +29,91 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Simulate a successful server response
-        simulateServerResponse(true);
+        if (!isStrongPassword(password).isValid) {
+            showMessage(isStrongPassword(password).message, '#signUpModal', 'error');
+            clearPasswordFields();
+            return;
+        }
+
+        fetch('/user/register/availableuser/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: username, email: email })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('test:', data);
+            if (!data.error) {
+                return fetch('/user/register/sendemailotp/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email }),
+                });
+            } else {
+                clearPasswordFields();
+                throw new Error(data.error);
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.detail && data.detail !== 'This email already verified.') {
+                signUpForm.style.display = 'none';
+                verificationForm.style.display = 'block';
+                showMessage('Verification code sent to your email', '#signUpModal', 'accept');
+            } else {
+                showMessage('Failed to send verification email: ' + data.error, '#signUpModal', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage(error.message || 'Failed to send verification email: Something went wrong', '#signUpModal', 'error');
+        });
     });
 
     verificationForm.addEventListener('submit', function(event) {
         event.preventDefault();
 
-        const verificationCode = document.getElementById('verificationCode').value;
+        const otp = document.getElementById('verificationCode').value;
 
-        // Simulate a verification response
-        simulateVerificationResponse(true);
+        fetch('/user/register/verifyemailotp/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email, otp: otp })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.detail && data.detail === 'Email verified') {
+                return fetch('/user/register/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: username, email: email, password: password })
+                });
+            } else {
+                throw new Error('Verification failed: ' + data.error);
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(username, email, password);
+            console.log('Success:', data);
+            showMessage('Registration successful', '#signUpModal', 'accept');
+            document.getElementById('verificationCode').value = '';
+            setTimeout(() => {
+                signUpModalElement.querySelector('.close').click();
+            }, 2500);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage(error.message || 'Something went wrong', '#signUpModal', 'error');
+            document.getElementById('verificationCode').value = '';
+        });
     });
 
-    // Add event listener for the cancel button
-    cancelVerificationButton.addEventListener('click', function() {
-        showSignUpForm();
-    });
-
-    function simulateServerResponse(success) {
-        if (success) {
-            showVerificationForm();
-        } else {
-            showMessage('Sign up failed: Something went wrong', '#signUpModal', 'error');
-        }
-    }
-
-    function simulateVerificationResponse(success) {
-        if (success) {
-            showMessage('Verification successful!', '#signUpModal', 'success');
-            history.back(); // Simulate redirect or other success action
-        } else {
-            showMessage('Verification failed: Invalid code', '#signUpModal', 'error');
-        }
-    }
-
-    function showVerificationForm() {
-        modalTitle.textContent = 'Enter Verification Code';
-        signUpForm.style.display = 'none';
-        verificationForm.style.display = 'block';
-    }
-
-    function showSignUpForm() {
-        modalTitle.textContent = 'Sign Up';
+    document.getElementById('cancelVerificationButton').addEventListener('click', function() {
         signUpForm.style.display = 'flex';
         verificationForm.style.display = 'none';
-    }
-
-    function clearPasswordFields() {
+        document.getElementById('verificationCode').value = '';
         document.getElementById('signUpPassword').value = '';
         document.getElementById('signUpRePassword').value = '';
-    }
-
-    // Initial call to ensure the modal starts with the sign-up form
-    showSignUpForm();
+    });
 });

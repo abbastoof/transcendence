@@ -3,6 +3,7 @@ import { updateMatchHistory } from './history.js';
 import { toggleEmailForm, handleEmailUpdate } from './changeEmail.js';
 import { togglePasswordForm, handlePasswordUpdate } from './changePassword.js';
 import { toggleProfilePictureForm, handleProfilePictureUpdate } from './changeProfilePicture.js';
+import { showMessage } from './messages.js';
 
 document.addEventListener('DOMContentLoaded', function () {
     updateUserProfile();
@@ -15,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 export function updateUserProfile() {
     const userData = JSON.parse(sessionStorage.getItem('userData'));
+    console.log('User data:', userData);
     if (!userData || !userData.id || !userData.token) {
         console.error('UserData is missing or incomplete');
         return;
@@ -53,6 +55,16 @@ export function updateUserProfile() {
                     </div>
                     <button type="submit" class="submit">Update Email</button>
                 </form>
+                <form id="emailVerificationForm" style="display: none;">
+                    <div class="verification">
+                        <label for="emailVerificationCode" class="labelFont">Verification Code</label>
+                        <input type="text" class="form-control" id="emailVerificationCode" placeholder="Enter code" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="submit">Verify</button>
+                        <button type="button" id="emailCancelVerificationButton" class="submit">Cancel</button>
+                    </div>
+                </form>
                 <button id="changePasswordButton" class="submit">Change Password</button>
                 <form class="form" id="updatePasswordForm" style="display:none;">
                     <div class="form-group">
@@ -72,17 +84,15 @@ export function updateUserProfile() {
                 </form>
                 <button type="button" class="submit" data-bs-toggle="modal" data-bs-target="#FriendsModal">Friends</button>
                 <button type="button" class="submit" data-bs-toggle="modal" data-bs-target="#HistoryModal">Match history</button>
-                
                 <!-- 2FA Toggle Switch -->
                 <div class="toggle-container">
                     <label class="toggle-label">Two-Factor Authentication:</label>
                     <label class="switch">
-                        <input type="checkbox" id="twoFactorAuthToggle" ${data.twoFactorEnabled ? 'checked' : ''}>
+                        <input type="checkbox" id="twoFactorAuthToggle" ${data.otp_status ? 'checked' : ''}>
                         <span class="slider"></span>
                     </label>
                 </div>
-            </div>
-        `;
+            </div>`;
         userProfileContainer.innerHTML = htmlContent;
 
         updateFriendsList();
@@ -100,7 +110,7 @@ export function updateUserProfile() {
 
         // Handle 2FA Toggle Switch
         document.getElementById('twoFactorAuthToggle').addEventListener('change', function() {
-            toggleTwoFactorAuth(userData.id, this.checked, userData.token);
+            toggleTwoFactorAuth(userData, this.checked, userData.token);
         });
     })
     .catch(error => {
@@ -109,14 +119,14 @@ export function updateUserProfile() {
 }
 
 // Function to toggle 2FA status on the server
-function toggleTwoFactorAuth(userId, isEnabled, token) {
-    fetch(`/user/${userId}/two-factor-auth/`, {
-        method: 'POST',
+function toggleTwoFactorAuth(userData, isEnabled, token) {
+    fetch(`/user/${userData.id}/`, {
+        method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ twoFactorEnabled: isEnabled })
+        body: JSON.stringify({ otp_status: isEnabled ? "True" : "False" })
     })
     .then(response => {
         if (!response.ok) {
@@ -125,6 +135,8 @@ function toggleTwoFactorAuth(userId, isEnabled, token) {
         return response.json();
     })
     .then(data => {
+        console.log('2FA status updated successfully:', data.otp_status);
+        showMessage('2FA status updated successfully', '#ProfileModal', 'accept');
         console.log('2FA status updated successfully:', data);
     })
     .catch(error => {
