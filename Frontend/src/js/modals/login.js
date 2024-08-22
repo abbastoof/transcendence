@@ -1,171 +1,155 @@
 import { updateUserProfile } from './profile.js';
-import { openWaitingLobby } from './playonline.js';
 import { showMessage } from './messages.js';
+import { updateAuthButton } from './buttons.js';
 
+// Main entry point for the authentication logic
 document.addEventListener('DOMContentLoaded', function () {
-    var authButton = document.getElementById('authButton');
+    var loginModalElement = document.getElementById('loginModal');
+    var loginForm = document.getElementById('loginForm');
+    
+    const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
 
-    // Check sessionStorage for login state and tokens
-    var isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+    // Attach login event handler
+    loginForm.addEventListener('submit', handleLogin);
 
-    // Reset form fields and hide error message when modal is hidden
-    loginModal.addEventListener('hidden.bs.modal', function () {
-        loginForm.reset(); // Reset all form fields
+    // Assign confirmLogout function to be globally accessible
+    window.confirmLogout = confirmLogout;
+
+    // Initialize auth button state based on login status
+    updateAuthButton(isLoggedIn);
+
+    loginModalElement.addEventListener('hidden.bs.modal', function () {
+        loginForm.reset();
+        document.getElementById('loginVerification').style.display = 'none';
+        document.getElementById('loginForm').style.display = 'flex';
     });
 
-    // Function to create and add the profile button
-    function addProfileButton() {
-        var buttonContainer = document.querySelector('.buttonContainer');
-        if (!document.getElementById('profileButton')) { // Check if profile button already exists
-            var profileButton = document.createElement('button');
-            profileButton.type = 'button';
-            profileButton.className = 'buttons';
-            profileButton.id = 'profileButton';
-            profileButton.textContent = 'Profile';
-            profileButton.setAttribute('data-bs-toggle', 'modal');
-            profileButton.setAttribute('data-bs-target', '#ProfileModal');
-            buttonContainer.appendChild(profileButton);
-            // Insert profile button before the about button
-            buttonContainer.insertBefore(profileButton, buttonContainer.children[3]);
-        }
-    }
-
-    // Function to create and add the play online button
-    function addPlayOnlineButton() {
-        var buttonContainer = document.querySelector('.buttonContainer');
-        if (!document.getElementById('playOnlineButton')) { // Check if play online button already exists
-            var playOnlineButton = document.createElement('button');
-            playOnlineButton.type = 'button';
-            playOnlineButton.className = 'buttons';
-            playOnlineButton.id = 'playOnlineButton';
-            playOnlineButton.textContent = 'Play Online';
-            playOnlineButton.addEventListener('click', openWaitingLobby); // Add event listener to open the waiting lobby
-            buttonContainer.appendChild(playOnlineButton);
-            // Insert play online button before the about button
-            buttonContainer.insertBefore(playOnlineButton, buttonContainer.children[0]);
-        }
-    }
-
-    // Function to remove the profile button
-    function removeProfileButton() {
-        var profileButton = document.getElementById('profileButton');
-        if (profileButton) {
-            profileButton.parentNode.removeChild(profileButton);
-        }
-    }
-
-    // Function to remove the play online button
-    function removePlayOnlineButton() {
-        var playOnlineButton = document.getElementById('playOnlineButton');
-        if (playOnlineButton) {
-            playOnlineButton.parentNode.removeChild(playOnlineButton);
-        }
-    }
-
-    // Login form submit event listener
-    document.getElementById('loginForm').addEventListener('submit', function (event) {
-        event.preventDefault(); // Prevent form submission
-
-        // Get form values
-        const username = document.getElementById('loginUsername').value;
-        const password = document.getElementById('loginPassword').value;
-
-        // Send data to the server
-        fetch('/user/login/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, password }),
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Invalid username or password');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Success:', data);
-            // Store all tokens and user ID
-            sessionStorage.setItem('userData', JSON.stringify({ id: data.id, token: data.access, refresh: data.refresh }));
-            sessionStorage.setItem('isLoggedIn', 'true'); // Save login state to sessionStorage
-
-            //loginModal.hide(); // Close the modal on success
-            document.getElementById('loginModal').querySelector('.close').click(); // Close the modal on success
-            document.getElementById('loginForm').reset(); // Reset form fields
-            isLoggedIn = true; // Update login state
-            updateAuthButton();
-            addProfileButton(); // Add profile button on login
-            addPlayOnlineButton(); // Add play online button on login
-            updateUserProfile();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showMessage('Log in failed: ' + error.message, '#loginModal', 'error');
-            clearPasswordField();
-        });
-    });
-
-    // Function to clear password field
-    function clearPasswordField() {
+    document.getElementById('cancelLoginVerificationButton').addEventListener('click', function() {
+        document.getElementById('loginForm').style.display = 'flex';
         document.getElementById('loginPassword').value = '';
-    }
-
-    // Reset form fields and hide error message when modal is hidden (on modal close)
-
-
-
-    // Function to update the auth button
-    function updateAuthButton() {
-        if (isLoggedIn) {
-            authButton.textContent = 'Log out';
-            authButton.setAttribute('data-bs-toggle', 'modal');
-            authButton.setAttribute('data-bs-target', '#logoutModal');
-            addProfileButton(); // Ensure profile button is added
-            addPlayOnlineButton(); // Ensur e play online button is added
-        } else {
-            authButton.textContent = 'Log in';
-            authButton.setAttribute('data-bs-toggle', 'modal');
-            authButton.setAttribute('data-bs-target', '#loginModal');
-            removeProfileButton(); // Remove profile button if logged out
-            removePlayOnlineButton(); // Remove play online button if logged out
-        }
-    }
-
-    // Function to handle logout confirmation
-    window.confirmLogout = function () {
-        var userData = JSON.parse(sessionStorage.getItem('userData'));
-        if (!userData) {
-            console.error('No user data found in sessionStorage.');
-            return;
-        }
-
-        fetch(`/user/${userData.id}/logout/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + userData.token
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Logout failed');
-            }
-            console.log('Logout successful');
-
-            sessionStorage.clear(); // Clear all sessionStorage items
-
-            isLoggedIn = false; // Update login state
-            sessionStorage.setItem('isLoggedIn', 'false'); // Save login state to sessionStorage
-            history.replaceState(null, null, window.location.pathname);
-            document.getElementById('logoutModal').querySelector('.close').click(); // Close the modal on success
-            updateAuthButton();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    };
-
-    // Initially update the button and profile button
-    updateAuthButton();
+        document.getElementById('loginVerification').style.display = 'none';
+        document.getElementById('loginVerificationCode').value = '';
+    });
 });
+
+export function handleLogin(event) {
+    event.preventDefault();
+
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
+
+    fetch('/user/login/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username: username, password: password }),
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Invalid username or password');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Login response:', data);
+        if (data.detail && data.detail === 'Verification password sent to your email') {
+            // Show OTP verification form
+            document.getElementById('loginVerification').style.display = 'block';
+            document.getElementById('loginForm').style.display = 'none';
+            showMessage('Verification code sent to your email', '#loginModal', 'accept');
+
+            // Attach event listener for OTP verification
+            document.getElementById('loginVerification').addEventListener('submit', event => handleOtpVerification(event, username, password));
+        } else {
+            completeLogin(data);
+        }
+    })
+    .catch(error => {
+        console.error('Login failed:', error);
+        showMessage('Log in failed: ' + error.message, '#loginModal', 'error');
+        clearPasswordField();
+    });
+}
+
+function handleOtpVerification(event, username, password) {
+    event.preventDefault();
+
+    const otp = document.getElementById('loginVerificationCode').value;
+    console.log('Verifying OTP:', otp);
+
+    fetch('/user/login/verifyotp/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username: username, password: password, otp: otp }),
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Invalid OTP');
+        }
+        return response.json();
+    })
+    .then(data => {
+        completeLogin(data);
+    })
+    .catch(error => {
+        console.error('OTP verification failed:', error);
+        showMessage('OTP verification failed: ' + error.message, '#loginModal', 'error');
+        document.getElementById('loginVerificationCode').value = '';
+    });
+}
+
+function completeLogin(data) {
+    document.getElementById('loginVerificationCode').value = '';
+    showMessage('Login successful', '#loginModal', 'accept');
+    sessionStorage.setItem('userData', JSON.stringify({ id: data.id, token: data.access, refresh: data.refresh }));
+    sessionStorage.setItem('isLoggedIn', 'true');
+    setTimeout(() => {
+        document.getElementById('loginModal').querySelector('.close').click();
+        document.getElementById('loginForm').reset();
+        document.getElementById('loginVerification').style.display = 'none';
+    }, 2500);
+
+    // Call to update the auth button and add necessary buttons
+    updateAuthButton(true);
+
+    // Update user profile, assuming it's part of UI update
+    updateUserProfile();
+}
+
+export function confirmLogout() {
+    const userData = JSON.parse(sessionStorage.getItem('userData'));
+    if (!userData) {
+        console.error('No user data found in sessionStorage.');
+        return;
+    }
+
+    fetch(`/user/${userData.id}/logout/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + userData.token
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Logout failed');
+        }
+        console.log('Logout successful');
+
+        sessionStorage.clear();
+
+        updateAuthButton(false);
+        history.replaceState(null, null, window.location.pathname);
+        document.getElementById('logoutModal').querySelector('.close').click();
+    })
+    .catch(error => {
+        console.error('Logout failed:', error);
+    });
+}
+
+function clearPasswordField() {
+    document.getElementById('loginPassword').value = '';
+}

@@ -2,30 +2,52 @@ import json
 from django.shortcuts import get_object_or_404, render
 from django.http import Http404
 from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import ValidationError
 from rest_framework import status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.exceptions import ValidationError
-from django.db.models import Q
-from .models import UserProfileModel, FriendRequest
+from django.contrib.auth.hashers import check_password, make_password
+from .models import UserProfileModel, FriendRequest, ConfirmEmail
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.decorators import parser_classes
-from .serializers import UserSerializer, FriendSerializer
+from django.utils.timezone import now, timedelta
+from .serializers import UserSerializer, FriendSerializer, ConfirmEmailSerializer
+from django.core.mail import send_mail
+from django.conf import settings
+from django.db.models import Q
+from dotenv import load_dotenv
+from .user_session_views import generate_secret
+import logging
 import requests
+import os
 
-def validate_token(request) -> None:
+load_dotenv()
+
+TOEKNSERVICE = os.environ.get('TOKEN_SERVICE')
+
+logger = logging.getLogger(__name__)
+headers = {
+    "X-SERVICE-SECRET": settings.SECRET_KEY  # Replace with your actual secret key
+}
+
+def extract_token(request):
     bearer = request.headers.get("Authorization")
     if not bearer or not bearer.startswith('Bearer '):
         raise ValidationError(
             detail={"error": "Access token is required"},
             code=status.HTTP_400_BAD_REQUEST)
     access_token = bearer.split(' ')[1]
-    data = {"id": request.user.id, "access": access_token}
-    response = requests.post("http://token-service:8000/auth/token/validate-token/", data=data)
-    response_data = response.json()
-    if "error" in response_data:
-        raise ValidationError(detail=response_data, code=response_data.get("status_code"))
+    return access_token
+
+def validate_token(request) -> None:
+    access_token = extract_token(request)
+    if access_token:
+        data = {"id": request.user.id, "access": access_token}
+        response = requests.post(f"{TOEKNSERVICE}/auth/token/validate-token/", data=data, headers=headers)
+        response_data = response.json()
+        if "error" in response_data:
+            raise ValidationError(detail=response_data, code=response_data.get("status_code"))
 
 class UserViewSet(viewsets.ViewSet):
     """
@@ -109,14 +131,25 @@ class UserViewSet(viewsets.ViewSet):
                 Response: The response object containing the updated user data.
         """
         try:
+            response_message = {}
+            status_code = status.HTTP_200_OK
             validate_token(request)
-            data = get_object_or_404(UserProfileModel, id=pk)
-            if data != request.user and not request.user.is_superuser:
+            user_obj = get_object_or_404(UserProfileModel, id=pk)
+            if user_obj != request.user and not request.user.is_superuser:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-            serializer = UserSerializer(instance=data, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+            data = request.data
+            current_email = user_obj.email
+            if "email" in data:
+                response_message, status_code = self.handle_email(data, user_obj)
+            if not response_message:
+                serializer = UserSerializer(instance=user_obj, data=data, partial=True)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                if serializer.data["email"] != current_email.user_email:
+                    current_email.delete()
+                response_message = serializer.data
+                status_code = status.HTTP_202_ACCEPTED
+            return Response(response_message, status=status_code)
         except ValidationError as err:
             item_lists = []
             for item in err.detail:
@@ -124,6 +157,23 @@ class UserViewSet(viewsets.ViewSet):
             return Response({'error': item_lists}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    def handle_email(self, data, user_obj):
+        response_message = {}
+        status_code = status.HTTP_200_OK
+        new_email = data["email"]
+        new_email_obj = ConfirmEmail.objects.filter(user_email=new_email).first()
+        if new_email_obj and new_email_obj.verify_status:
+            existing_user = UserProfileModel.objects.filter(email=new_email).exclude(id=user_obj.id).first()
+            if existing_user:
+                response_message = {"error": "Email already exists"}
+                status_code = status.HTTP_400_BAD_REQUEST
+            else:
+                data["email"] = new_email_obj.pk
+        else:
+            response_message = {"error": "You have not confirmed your email yet!"},
+            status_code=status.HTTP_401_UNAUTHORIZED
+        return response_message, status_code
 
     def destroy_user(self, request, pk=None) -> Response:
         """
@@ -143,7 +193,9 @@ class UserViewSet(viewsets.ViewSet):
             data = get_object_or_404(UserProfileModel, id=pk)
             if data != request.user and not request.user.is_superuser:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-            # Should send message to all microservices to delete all data related to this user using Kafka
+            access_token = extract_token(request)
+            request_data = {"id":pk, "access": access_token}
+            response_data = requests.post(f"{TOEKNSERVICE}/auth/token/invalidate-tokens/", data=request_data, headers=headers)
             data.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Exception as err:
@@ -163,6 +215,102 @@ class RegisterViewSet(viewsets.ViewSet):
     """
     permission_classes = [AllowAny]
 
+    def send_email(self, email, otp):
+        send_mail(
+            'Email verification code',
+            f'Your verification code is: {otp}',
+            settings.EMAIL_HOST_USER,
+            [email],
+            fail_silently=False,
+        )
+
+    def send_email_otp(self, request) -> Response:
+        email = request.data.get("email")
+        response_message = {}
+        status_code = status.HTTP_200_OK
+        if email is not None:
+            try:
+                email_obj, create = ConfirmEmail.objects.get_or_create(user_email=email)
+                if email_obj.verify_status == False:
+                    otp = generate_secret()
+                    email_obj.otp = make_password(str(otp))
+                    email_obj.otp_expiry_time = now() + timedelta(minutes=3)
+                    email_obj.save()
+                    self.send_email(email_obj.user_email, otp)
+                    response_message = {"detail":"Email verification code sent to your email"}
+                else:
+                    response_message = {"error": "This email already verified."}
+                    status_code = status.HTTP_401_UNAUTHORIZED
+            except Exception as err:
+                response_message = {"error": str(err)}
+                status_code = status.HTTP_400_BAD_REQUEST
+        else:
+            response_message = {"error": "email field required"}
+            status_code = status.HTTP_404_NOT_FOUND
+        return Response(response_message, status=status_code)
+
+    def verify_email_otp(self, request) -> Response:
+        response_message = {}
+        status_code = status.HTTP_200_OK
+        email = request.data.get('email')
+        if email is not None:
+            email_obj = get_object_or_404(ConfirmEmail, user_email = email)
+            if email_obj.verify_status == False:
+                otp = request.data.get('otp')
+                if otp is not None:
+                    if check_password(str(otp), email_obj.otp):
+                        if email_obj.otp_expiry_time > now():
+                            response_message = {"detail":"Email verified"}
+                            email_obj.otp = None
+                            email_obj.otp_expiry_time = None
+                            email_obj.verify_status = True
+                            email_obj.save()
+                        else:
+                            response_message = {"error":"otp expired"}
+                            status_code = status.HTTP_401_UNAUTHORIZED
+                    else:
+                        response_message = {'error':"Invalid otp"}
+                        status_code = status.HTTP_401_UNAUTHORIZED
+                else:
+                    response_message = {'error':'otp field required'}
+                    status_code = status.HTTP_400_BAD_REQUEST
+            else:
+                response_message = {'error':'This email is already verified.'}
+                status_code = status.HTTP_400_BAD_REQUEST
+        else:
+            response_message = {'error': 'email field required'}
+            status_code = status.HTTP_400_BAD_REQUEST
+        return Response(response_message, status=status_code)
+
+    def available_username_email(self, request) -> Response:
+        email = request.data.get("email")
+        username = request.data.get("username")
+        response_message = {}
+        status_code = status.HTTP_200_OK
+        if username is not None or email is not None:
+            user_obj = UserProfileModel.objects.filter(username = username).first()
+            email_obj = UserProfileModel.objects.filter(email = email).first()
+            if user_obj is not None and email_obj is not None:
+                response_message = {"error": "username and email are not available"}
+                status_code = status.HTTP_400_BAD_REQUEST
+            elif user_obj is not None:
+                response_message = {"error": "username is not available"}
+                status_code = status.HTTP_400_BAD_REQUEST
+            elif email_obj is not None:
+                response_message = {"error": "email is not available"}
+                status_code = status.HTTP_400_BAD_REQUEST
+            else:
+                if email is not None and username is not None:
+                    response_message = {"detail": "username and email are available"}
+                elif username is not None:
+                    response_message = {"detail": "username is available"}
+                elif email is not None:
+                    response_message = {"detail": "email is available"}
+        else:
+            response_message = {'error':"username and email fields are required"}
+            status_code = status.HTTP_400_BAD_REQUEST
+        return Response(response_message, status=status_code)
+
     def create_user(self, request) -> Response:
         """
             Method to create a new user.
@@ -174,21 +322,43 @@ class RegisterViewSet(viewsets.ViewSet):
             Returns:
                 Response: The response object containing the user data.
         """
+        response_message = {}
+        status_code = status.HTTP_201_CREATED
         try:
-            serializer = UserSerializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            if serializer.errors:
-                data = serializer.errors
-                if "email" in data:
-                    data["email"] = ["A user with that email already exists."]
-            return Response({"error":data}, status=status.HTTP_400_BAD_REQUEST)
+            email = request.data.get("email")
+            email_obj = get_object_or_404(ConfirmEmail, user_email = email)
+            result = UserProfileModel.objects.filter(email = email_obj.pk).first()
+            if email_obj is not None:
+                if email_obj.verify_status == True:
+                    if result is not None:
+                        response_message = {'error': {"email":"A user with that email already exists."}}
+                        status_code=status.HTTP_400_BAD_REQUEST
+                    else:
+                        data = request.data
+                        data["email"] = email_obj.pk
+                        serializer = UserSerializer(data=data)
+                        if serializer.is_valid():
+                            serializer.save()
+                            response_message = serializer.data
+                        if serializer.errors:
+                            response_message = {"error":serializer.errors},
+                            status_code=status.HTTP_400_BAD_REQUEST
+                else:
+                    response_message = {"error": "You have not confirmed your email yet!"},
+                    status_code=status.HTTP_401_UNAUTHORIZED
+        except Http404:
+            response_message = {"error": "You have not verified your email yet!"}
+            status_code = status.HTTP_401_UNAUTHORIZED
         except ValidationError as err:
             item_lists = []
             for item in err.detail:
                 item_lists.append(item)
-            return Response({'error': item_lists}, status=status.HTTP_400_BAD_REQUEST)
+            response_message = {'error': item_lists}
+            status_code=status.HTTP_400_BAD_REQUEST
+        except Exception as err:
+            response_message = {'error':str(err)}
+            status_code = status.HTTP_400_BAD_REQUEST
+        return Response(response_message, status = status_code)
 
 class FriendsViewSet(viewsets.ViewSet):
     authentication_classes = [JWTAuthentication]

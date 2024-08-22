@@ -126,5 +126,72 @@ text-shadow: -2px 0 rgb(251, 245, 245), 0 2px rgb(255, 255, 255), 1px 0 rgb(255,
     stroke: rgb(0, 0, 0);
     background-color: transparent;
     color: rgb(255, 0, 0);
+
     text-shadow: -2px 0 rgb(251, 245, 245), 0 2px rgb(255, 255, 255), 1px 0 rgb(255, 255, 255), 0 -2px rgb(255, 255, 255);    
+}
+
+//toggle button for 2fa
+.toggle-container {
+    display: flex;
+    align-items: center;
+}
+
+.toggle-label {
+    margin-right: 10px;
+    //font-weight: bold;
+    color: white;
+    //display: flex;
+    //justify-content: center;
+    font-family: "Teko", sans-serif;
+    font-size: 25px;
+    //align-items: center;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 20px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
 }
