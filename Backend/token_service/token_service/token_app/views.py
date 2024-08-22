@@ -124,9 +124,19 @@ class CustomTokenRefreshView(TokenRefreshView):
                 {"error": "Refresh token is required"}, status=status.HTTP_400_BAD_REQUEST
             )
         try:
+            user_id = request.data.get("id")
+            if not user_id:
+                return Response({"error": "User id is required"}, status=status.HTTP_400_BAD_REQUEST)
+            user_object = UserTokens.objects.filter(id=user_id)
+            if not user_object:
+                return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+            token_data = user_object.token_data
             refresh_token = bearer.split(' ')[1]
             refresh = RefreshToken(refresh_token)
             access_token = str(refresh.access_token)
+            token_data["access"] = str(refresh.access_token)
+            user_object.token_data=token_data
+            user_object.save()
             return Response({"access": access_token}, status=status.HTTP_200_OK)
         except Exception as err:
             return Response({"error": "Could not generate access token", "details": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
