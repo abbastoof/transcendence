@@ -1,135 +1,110 @@
 // pong.js
 import * as bootstrap from 'bootstrap';
+import * as THREE from 'three'
 import GameSession from './classes/GameSession.js';
-import { PADDLE_SPEED } from './constants.js';
 import { init } from './init.js';
 import { randFloat } from 'three/src/math/MathUtils.js';
-let gameSession = new GameSession();
+import { globalState } from './globalState.js';
+import { localGameControls, remoteGameControls } from './controls.js';
+import { cleanupEventHandlers } from './eventhandlers.js';
+
 let gameStarted = false;
-let renderer, scene, camera, composer, animationId;
+let gameSession, renderer, scene, camera, composer, animationId;
 
-export function cleanUpGame() {
-    if (typeof cancelAnimationFrame !== 'undefined') {
-        cancelAnimationFrame(animationId);
-    }
+/**
+ * validateConfig
+ * Function to validate the configuration object
+ * @param {*} config is the configuration object
+ * @returns returns true if the configuration is valid, otherwise false
+ */
+function validateConfig(config) {
 
-    if (renderer) {
-        renderer.dispose();
-    }
+    const {
+        isRemote = false,
+        gameId = null,
+        playerIds = [],
+        player1Alias = "Player1",
+        player2Alias = "Player2",
+        isLocalTournament = false,
+        isTest = false,
+    } = config;
 
-    if (scene) {
-        scene.traverse((object) => {
-            if (!object.isMesh) return;
-            object.geometry.dispose();
-
-            if (object.material.isMaterial) {
-                cleanMaterial(object.material);
-            } else {
-                for (const material of object.material) cleanMaterial(material);
-            }
-        });
+    console.log('playerIds:', playerIds);  // Debugging line
+    if (playerIds !== null && (!Array.isArray(playerIds) || !playerIds.every(item => item === null || Number.isInteger(item)) || (playerIds.length !== 0 && playerIds.length !== 2))) {
+        console.error('Invalid player IDs:', playerIds[0], playerIds[1]);
+        return false;
     }
-    if (composer) composer.dispose();
-    gameStarted = false;
-    const gameContainer = document.getElementById('pongGameContainer');
-    if (gameContainer) {
-        gameContainer.innerHTML = '';
+    if (gameId !== null && !Number.isInteger(gameId)) {
+        console.error('Invalid game ID:', gameId);
+        return false;
     }
+    if (typeof isRemote !== 'boolean' || typeof isLocalTournament !== 'boolean') {
+        console.error('Invalid boolean value for isRemote or isLocalTournament:', isRemote, isLocalTournament);
+        return false;
+    }
+    if (isLocalTournament === true && isRemote === true) {
+        console.error('Local tournaments cannot be remote!');
+        return false;
+    }
+    if (isRemote === true && (playerIds.length !== 2 || gameId === null)) {
+        console.error('Remote games require player IDs and game ID!');
+        return false;
+    }
+    return true
 }
-
-function cleanMaterial(material) {
-    material.dispose();
-    for (const key in material) {
-        const value = material[key];
-        if (value && typeof value === 'object' && 'minFilter' in value) {
-            value.dispose();
-        }
-    }
-}
-
 /**
  * startGame
  * Function called to start the game
  * @param {*} containerId container for running the game
  * @param {*} config game properties (id, players, online, tournament)
+ * @param {*} onGameEnd callback function that will be called in the end of game
  * @returns if config is invalid, otherwise runs the game
  */
-export function startGame(containerId, config = {}) {
+export function startGame(containerId, config = {}, onGameEnd = null) {
     console.log('Config object:', config);  // Debugging line
-
     const {
         isRemote = false,
-        playerIds = [],
         gameId = null,
-        isLocalTournament = false
+        playerIds = [],
+        player1Alias = "Player1",
+        player2Alias = "Player2",
+    //  localPlayerId = null,
+        isLocalTournament = false,
+        isTest = false,
     } = config;
-    
-    console.log('playerIds:', playerIds);  // Debugging line
-    if (playerIds !== null && (!Array.isArray(playerIds) || !playerIds.every(item => item === null || Number.isInteger(item)) || (playerIds.length !== 0 && playerIds.length !== 2))) {
-        console.error('Invalid player IDs:', playerIds[0], playerIds[1]);
-        return;
-    }
-    if (gameId !== null && !Number.isInteger(gameId)) {
-        console.error('Invalid game ID:', gameId);
-        return;
-    }
-    if (typeof isRemote !== 'boolean' || typeof isLocalTournament !== 'boolean') {
-        console.error('Invalid boolean value for isRemote or isLocalTournament:', isRemote, isLocalTournament);
-        return;
-    }
+
+    if (!validateConfig(config)) return;
     if (gameStarted) return;
-    let player1Id, player2Id, localPlayerId, finalGameId;
-    // if (player1_id === player2_id) {
-    //     player2_id++;
-    // }
-    // gameSession.initialize(game_id, player1_id, player2_id, isRemote, scene);
-    if (isLocalTournament === true && isRemote === true) {
-        console.error('Local tournaments cannot be remote!');
-        return;
-    }
+    let player1Id, player2Id, finalGameId, localPlayerId;
+
     if (isLocalTournament === true) {
-        if (gameId === null) {
-            console.error('Game ID is missing! Cannot start local tournament game!');
-            return;
-        }
-        if (playerIds.length !== 2) {
-            console.error('Player IDs are missing or incomplete! Cannot start local tournament game!');
-            return;
-        }
         player1Id = playerIds[0]; // Use pre-generated player IDs
         player2Id = playerIds[1];
         finalGameId = gameId;
     }
     else if (isRemote === true) {
-        if (gameId === null) {
-            console.error('Game ID is missing! Cannot start remote game!');
-            return;
-        }
-        else finalGameId = gameId;
-        if (playerIds.length !== 2) {
-            console.error('Player IDs are missing or incomplete! Cannot start remote game!');
-            return;
-        }
-        const userData = JSON.parse(localStorage.getItem('userData'));
+        finalGameId = gameId;
+        const userData = JSON.parse(sessionStorage.getItem('userData'));
         console.log('UserData:', userData); // Debugging line
         if (!userData || !userData.id || !userData.token) {
             console.error('UserData is missing or incomplete! Cannot start remote game!');
+            endGame();
             return;
         }
         else {
-            localPlayerId = userData.id;
+            localPlayerId = Number(userData.id);
         }
         if (localPlayerId === playerIds[0] || localPlayerId === playerIds[1]) {
         player1Id = playerIds[0];
         player2Id = playerIds[1];
-        } 
+        }
         else {
             console.error('Local player ID does not match player IDs:', localPlayerId, playerIds[0], playerIds[1]);
             return;
         }
     }
     else {
-        const userData = JSON.parse(localStorage.getItem('userData'));
+        const userData = JSON.parse(sessionStorage.getItem('userData'));
         console.log('UserData:', userData); // Debugging line
         if (!userData || !userData.id || !userData.token) {
             console.error('UserData is missing or incomplete!');
@@ -141,102 +116,43 @@ export function startGame(containerId, config = {}) {
         player2Id = Math.round(randFloat(2000, 2999));
         finalGameId = Math.round(randFloat(5000, 9999));
     }
-    
+    globalState.invertedView = player2Id === localPlayerId
     const container = document.getElementById(containerId);
     const canvas = document.createElement('canvas');
     canvas.width = 800;
     canvas.height = 600;
     container.appendChild(canvas);
 
-    // Initialize game session
-
-    const { renderer: r, scene: s, camera: c, composer: comp } = init(canvas, player2Id === localPlayerId);
+    const { renderer: r, scene: s, camera: c, composer: comp } = init(canvas);
     renderer = r;
     scene = s;
     camera = c;
     composer = comp;
-    gameSession.initialize(finalGameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene);
+    gameSession = new GameSession();
+    gameSession.initialize(finalGameId, localPlayerId, player1Id, player2Id, player1Alias, player2Alias, isRemote, isLocalTournament, scene, onGameEnd);
     gameStarted = true;
 
-    // Keyboard controls
-    const keys = {};
-    document.addEventListener('keydown', (event) => {
-        keys[event.key] = true;
-    });
-    document.addEventListener('keyup', (event) => {
-        keys[event.key] = false;
-    });
-
-    // Update function
-    function localGameControls() {
-        let leftDeltaZ = 0;
-        let rightDeltaZ = 0;
-
-        if ((keys['w'] || keys['W']) && !gameSession.leftPaddle.intersectsWall(gameSession.playingField.upperWall.boundingBox)) {
-            leftDeltaZ -= PADDLE_SPEED;
-        }
-        if ((keys['s'] || keys['S']) && !gameSession.leftPaddle.intersectsWall(gameSession.playingField.lowerWall.boundingBox)) {
-            leftDeltaZ += PADDLE_SPEED;
-        }
-        if ((keys['ArrowUp']) && !gameSession.rightPaddle.intersectsWall(gameSession.playingField.upperWall.boundingBox)) {
-            rightDeltaZ -= PADDLE_SPEED;
-        }
-        if ((keys['ArrowDown']) && !gameSession.rightPaddle.intersectsWall(gameSession.playingField.lowerWall.boundingBox)) {
-            rightDeltaZ += PADDLE_SPEED;
-        }
-        gameSession.leftPaddle.mesh.position.z += leftDeltaZ;
-        gameSession.rightPaddle.mesh.position.z += rightDeltaZ;
-
-        if (leftDeltaZ !== 0 || rightDeltaZ !== 0) {
-            let emitData = JSON.stringify({
-                'type': 'move_paddle',
-                'game_id': gameSession.gameId,
-                'player1_id': gameSession.player1Id, 
-                'p1_delta_z': leftDeltaZ,
-                'player2_id': gameSession.player2Id,
-                'p2_delta_z': rightDeltaZ
-            });
-        gameSession.sendMovement(emitData);
-        }
-    }
-    function remoteGameControls() {
-        let deltaZ = 0;
-    
-        // Capture input for the local player’s paddle
-        if (keys['w'] || keys['W']) {
-            deltaZ -= PADDLE_SPEED;
-        }
-        if (keys['s'] || keys['S']) {
-            deltaZ += PADDLE_SPEED;
-        }
-    
-        // Update the local player's paddle
-        if (localPlayerId === gameSession.player1Id) {
-            gameSession.leftPaddle.mesh.position.z += deltaZ;
-        } else {
-            gameSession.rightPaddle.mesh.position.z -= deltaZ;
-        }
-    
-        // Send movement data to the server for the local player’s paddle
-        if (deltaZ !== 0) {
-            let emitData = JSON.stringify({
-                'type': 'move_paddle',
-                'game_id': gameSession.gameId,
-                'player_id': localPlayerId,
-                'delta_z': deltaZ
-            });
-            gameSession.sendMovement(emitData);
-        }
-    }
-            // Add remote game controls here
+    // This section defines which function is used for player controls
+    // If the game is remote, the remoteGameControls function is used
+    // Otherwise, the localGameControls function is used
     let controlFunction;
-    if (isRemote)
+    if (isRemote === true)
         controlFunction = remoteGameControls;
     else
         controlFunction = localGameControls;
+
+    // Animation loop
+    // This function is called recursively to animate the game
+    // It calls the controlFunction which listens to player controls
+    // It updates the iTime variable for the shaders
+    // Points the camera to center of the scene
+    // It renders the scene using the composer
+    // It requests the next animation frame
+
     function animate() {
-        controlFunction();
-        gameSession.playingField.shaderMaterial.uniforms.iTime.value = performance.now() / 1000;
+        controlFunction(gameSession);
+        updateITimes();
+
         camera.lookAt(0, 0, 0);
         composer.render();
         animationId = requestAnimationFrame(animate);
@@ -244,12 +160,32 @@ export function startGame(containerId, config = {}) {
     animate();
 }
 
-function cleanUpThreeJS() {
-    if (animationId) cancelAnimationFrame(animationId);
-    if (renderer) renderer.dispose();
+function quitRemoteGame() {
+    if (gameSession) {
+        gameSession.quitGame();
+    }
 
 }
 
+// Function to update the iTime variable for the shaders
+// This function is called in the animate function
+// It increments the iTime variable by .01 and updates iTime for all animated shaders
+function updateITimes() {
+    globalState.iTime += .01;
+    if (globalState.playingFieldMaterial)
+        globalState.playingFieldMaterial.uniforms.iTime.value = globalState.iTime;
+    if (globalState.scanlinePass)
+        globalState.scanlinePass.uniforms.iTime.value = globalState.iTime;
+    if (gameSession.scoreBoard.materials) {
+        gameSession.scoreBoard.materials.forEach(material => {
+            material.uniforms.iTime.value = globalState.iTime;
+        });
+    }
+}
+
+// Event listener for the Pong modal
+// This event listener is added to the button for starting the local game
+// opens themodal and starts the game
 document.addEventListener('DOMContentLoaded', () => {
     const pongModal = new bootstrap.Modal(document.getElementById('pongModal'));
 
@@ -260,24 +196,117 @@ document.addEventListener('DOMContentLoaded', () => {
                 playerIds: [],    // Specify player IDs if needed
                 gameId: null,     // Specify game ID if needed
                 isLocalTournament: false,  // Set to true for local tournaments
-            });
+            }, localGameCallBack);
         }, 500); // Ensure the modal is fully visible
     });
 
-    document.getElementById('pongModal').addEventListener('hidden.bs.modal', () => {
-        gameSession.disconnect();  // Handle socket disconnection
-        endGame();
-    });    
+     // Initialize leaving game custom confirmation modal
+     const confirmationModalElement = document.getElementById('confirmationModal');
+     const confirmationModal = new bootstrap.Modal(confirmationModalElement, {
+         backdrop: 'static',
+         keyboard: false // Disable closing the confirmation modal with ESC
+     });
+
+    let isConfirmed = false;
+
+    document.getElementById('pongModal').addEventListener('hide.bs.modal', function(event){
+        // console.log("in pongModal hide with isConfirmed:", isConfirmed);
+        if (!isConfirmed) {
+            // console.log("no confirmation.. preventing default");
+            event.preventDefault();
+            confirmationModal.show();
+        } else {
+            isConfirmed = false;
+        }
+     });
+
+    // Handle confirmation modal buttons
+    document.getElementById('cancelClose').addEventListener('click', function () {
+        confirmationModal.hide();
+    });
+
+    document.getElementById('confirmClose').addEventListener('click', function () {
+        isConfirmed = true;
+        confirmationModal.hide();
+        // console.log("calling pongModal.hide() with isConfirmed:", isConfirmed);
+        const pongModal = bootstrap.Modal.getInstance(document.getElementById('pongModal'));
+        pongModal.hide(); // Use Bootstrap's native method to hide the modal
+    });
+
+    document.getElementById('pongModal').addEventListener('hidden.bs.modal', function(event) {
+        if (gameStarted) {
+            if (gameSession.isRemote === true && gameSession.inProgress === true) {
+                quitRemoteGame();
+            }
+            else
+                endGame();
+        }
+    });
 });
 
-export function endGame()
-{
-    cleanUpGame();
-    gameStarted = false;
+/**
+ * Function to clean up the game
+ * Removes all game resources and resets the game state
+ * @returns void
+ * @modifies gameSession, scene, camera, composer, renderer
+ * @effects clears the game container
+ * @effects removes the animation frame
+ * @effects disposes the renderer
+ * @effects disposes the composer
+ * @effects nulls the game session
+ */
+export function cleanUpGame() {
+    if (gameSession) gameSession = null;
+    console.log(gameSession)
+    if (scene) scene = null;
+    if (camera) camera = null;
+    if (composer) composer = null;
+    if (renderer) renderer = null;
+    if (composer) composer.dispose();
+    const gameContainer = document.getElementById('pongGameContainer');
+    if (gameContainer) {
+        gameContainer.innerHTML = '';
+    }
 }
 
-export function changeCameraAngle()
-{
-    camera.position.set(0, 400, 400);
-    camera.lookAt(0, 0, 0)
+function localGameCallBack(data) {
+    const gameContainer = document.getElementById('pongGameContainer');
+    if (gameContainer) {
+        gameContainer.innerHTML = ''
+        ;
+    }
+}
+
+/**
+ * Function to end the game
+ * Cleans up the game and sets the game state to ended
+ * @returns void
+**/
+export function endGame() {
+    console.log("Starting endGame cleanup...");
+
+    if (typeof cancelAnimationFrame !== 'undefined') {
+        cancelAnimationFrame(animationId);
+        console.log("Animation frame cancelled.");
+    }
+
+    if (renderer) {
+        renderer.dispose();
+        console.log("Renderer disposed.");
+    }
+
+    if (gameSession) {
+        gameSession.clearResources();
+        console.log("Game session resources cleared.");
+    }
+
+    cleanUpGame();
+
+    gameStarted = false;
+    sessionStorage.setItem('isGameOver', 'true');
+
+    console.log("EndGame complete, gameStarted:", gameStarted, "isGameOver:", sessionStorage.getItem('isGameOver'));
+
+
+    console.log("Modal hide attempted at endGame.");
 }

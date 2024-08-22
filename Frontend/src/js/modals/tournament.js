@@ -1,15 +1,36 @@
 import * as bootstrap from 'bootstrap';
+import { startGame, endGame } from '../pong/pong.js';
+import GameSession from '../pong/classes/GameSession.js';
 
-document.addEventListener('DOMContentLoaded', function () {
-    const modalElement = document.getElementById('tournamentModal');
-    const modal = new bootstrap.Modal(modalElement, {
-        backdrop: 'static', // prevent closing on backdrop click
-        keyboard: false, // disable closing the modal with ESC to prevent accidental closing
-    });
+document.addEventListener('DOMContentLoaded', async () => {
     const playerForm = document.getElementById('playerForm');
     const playerAliasInputs = document.getElementById('playerAliasInputs');
+    const modalElement = document.getElementById('tournamentModal');
+    const modal = new bootstrap.Modal(modalElement);
+    const startTournamentButton = document.getElementById('startTournament');
+    const randomNamesButton = document.getElementById('randomNamesButton');
+    const pongModal = new bootstrap.Modal(document.getElementById('pongModal'));
+    const gameInfoModal = new bootstrap.Modal(document.getElementById('gameInfoModal'));
+    const gameInfoButton = document.getElementById('gameInfoButton');
 
-    playerForm.addEventListener('change', function (event) {
+    const randomNames = [
+        "CookieLover", "JarJarBinks", "SillyGoose", "FuzzyWuzzy",
+        "CaptainGiggles", "BumbleBee", "JollyJumper", "WackyWabbit",
+        "SneakySquirrel", "CrazyCat", "FunkyMonkey", "NinjaNoodle",
+        "GiggleGuru", "HappyHippo", "ZanyZebra", "LaughingLion"
+    ];
+
+    localStorage.clear();
+
+    let tournamentPlayers = [];
+    let currentGame = 0;
+    let seed = Math.floor(Math.random() * 1000 + 1000);
+
+    gameInfoButton.addEventListener('click', function () {
+        localStorage.setItem('infoScreen', 'false');
+    })
+
+    playerForm.addEventListener('change', function () {
         const selectedPlayerCount = playerForm.querySelector('input[name="playerCount"]:checked');
 
         if (selectedPlayerCount) {
@@ -24,7 +45,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
 
-            playerAliasInputs.innerHTML = ''; // Clear previous inputs
+            // Clear previous inputs
+            playerAliasInputs.innerHTML = '';
 
             // Create new input fields
             for (let i = 1; i <= numPlayers; i++) {
@@ -37,10 +59,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const input = document.createElement('input');
                 input.setAttribute('type', 'text');
+                input.type = 'text';
                 input.setAttribute('name', `playerAlias${i}`);
                 input.setAttribute('placeholder', `Player ${i} Alias`);
                 input.classList.add('form-control');
                 input.required = true;
+                input.maxLength = 15;
 
                 // Restore previous value if available
                 if (existingAliases[`playerAlias${i}`]) {
@@ -50,63 +74,171 @@ document.addEventListener('DOMContentLoaded', function () {
                 inputGroup.appendChild(label);
                 inputGroup.appendChild(input);
                 playerAliasInputs.appendChild(inputGroup);
+
             }
 
+            randomNamesButton.style.display = 'block';
+            startTournamentButton.style.display = 'block';
             playerAliasInputs.style.display = 'block';
         }
     });
 
-    playerForm.addEventListener('submit', function (event) {
-        event.preventDefault();
-
-        // Collect player aliases
-        const formData = new FormData(playerForm);
-        const playerNames = [];
-        for (let pair of formData.entries()) {
-            if (pair[0].startsWith('playerAlias')) {
-                playerNames.push(pair[1]);
-            }
+    randomNamesButton.addEventListener('click', function () {
+        const playerCount = parseInt(document.querySelector('input[name="playerCount"]:checked').value);
+        if (isNaN(playerCount) || playerCount <= 0) {
+            alert("Choose player amount!");
+            return;
         }
 
-        // Simulate sending data to backend (for testing locally)
-        console.log('Simulating sending player names to backend:', playerNames);
+        const inputs = playerAliasInputs.querySelectorAll('input[type="text"]');
+        const shuffledNames = randomNames.sort(() => 0.5 - Math.random()).slice(0, playerCount);
 
-/*
-        // Send player names to the server
-        fetch('https://example.com/api/save-player-names', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                // Add any headers needed, like authorization headers
-            },
-            body: JSON.stringify({ playerNames: playerNames }),
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
+        // Check for identical names
+        const usedNames = new Set();
+
+        inputs.forEach((input, index) => {
+            let name = shuffledNames[index];
+            while (usedNames.has(name)) {
+                name = randomNames[Math.floor(Math.random() * randomNames.length)];
             }
-            return response.json();
-        })
-        .then(data => {
-            // Handle success response from server if needed
-            console.log('Player names saved successfully:', data);
+            usedNames.add(name);
+            input.value = name;
+        });
+    });
+
+    playerForm.addEventListener('submit', async (event) => {
+
+        event.preventDefault();
+
+        if (playerForm.checkValidity()) {
+            tournamentPlayers = [];
+            const inputs = playerAliasInputs.querySelectorAll('input');
+            inputs.forEach((input, index) => {
+                if(input.value.trim() !== '')
+                    tournamentPlayers.push({ id: index + 1, name: input.value.trim() });
+            });
+
             // Reset the form and clear inputs
             playerForm.reset();
             playerAliasInputs.innerHTML = '';
             modal.hide();
-        })
-        .catch(error => {
-            // Handle error
-            console.error('Error saving player names:', error);
-            // Optionally, inform the user about the error
-        });
-*/
 
-        // Reset the form and clear inputs
-        playerForm.reset();
-        playerAliasInputs.innerHTML = '';
-        modal.hide();
+            // initialize tournament variables
+            localStorage.setItem('tournamentPlayers', JSON.stringify(tournamentPlayers));
+            localStorage.setItem('roundWinners', JSON.stringify([]));
+
+            const numbers = Array.from({ length: tournamentPlayers.length }, (_, index) => index + 1);
+            const shuffledNumbers = numbers.sort(() => Math.random() - 0.5);
+            localStorage.setItem('remainingIDs', JSON.stringify(shuffledNumbers));
+
+            // start tournament
+            tournamentLogic();
+        } else {
+            playerForm.classList.add('was-validated');
+        }
     });
+
+    async function tournamentLogic() {
+
+        let remainingIDs = JSON.parse(localStorage.getItem('remainingIDs'));
+        let roundWinners = [];
+        let winnerName = [];
+        let tmpPlayerOne = [];
+        let tmpPlayerTwo = [];
+
+        tmpPlayerOne = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === remainingIDs[0]));
+        tmpPlayerTwo = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === remainingIDs[1]));
+
+        document.getElementById('winner').textContent = [];
+        document.getElementById('nextPlayers').textContent = ("Next Players: " + tmpPlayerOne.name + " and " + tmpPlayerTwo.name);
+
+        localStorage.setItem('infoScreen', 'true');
+        gameInfoModal.show();
+        while (localStorage.getItem('infoScreen') === 'true')
+            await new Promise(resolve => setTimeout(resolve, 100));
+        gameInfoModal.hide();
+
+        while(remainingIDs.length !== 2)
+        {
+            while(remainingIDs.length !== 0)
+            {
+                startNextGame();
+                while (sessionStorage.getItem('isGameOver') === 'false')
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                pongModal.hide();
+
+                remainingIDs = JSON.parse(localStorage.getItem('remainingIDs'));
+                roundWinners = JSON.parse(localStorage.getItem('roundWinners'));
+
+                winnerName = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === roundWinners[roundWinners.length - 1]));
+
+                if(remainingIDs.length !== 0) {
+                    tmpPlayerOne = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === remainingIDs[0]));
+                    tmpPlayerTwo = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === remainingIDs[1]));
+                }
+                else {
+                    tmpPlayerOne = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === roundWinners[0]));
+                    tmpPlayerTwo = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === roundWinners[1]));
+                }
+
+                document.getElementById('winner').textContent = ("Last game winner: " + winnerName.name);
+                document.getElementById('nextPlayers').textContent = ("Next Players: " + tmpPlayerOne.name + " and " + tmpPlayerTwo.name);
+
+                localStorage.setItem('infoScreen', 'true');
+                gameInfoModal.show();
+                while (localStorage.getItem('infoScreen') === 'true')
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                gameInfoModal.hide();
+            }
+            remainingIDs = JSON.parse(localStorage.getItem('roundWinners'));
+            localStorage.setItem('roundWinners', JSON.stringify([]));
+            localStorage.setItem('remainingIDs', JSON.stringify(remainingIDs));
+        }
+        startNextGame();
+        while (localStorage.getItem('isGameOver') === 'false')
+            await new Promise(resolve => setTimeout(resolve, 100));
+        pongModal.hide();
+        roundWinners = JSON.parse(localStorage.getItem('roundWinners'));
+        winnerName = JSON.parse(localStorage.getItem('tournamentPlayers')).find((player) => (player.id === roundWinners[roundWinners.length - 1]));
+
+        document.getElementById('winner').textContent = ("Tournament Winner: " + winnerName.name);
+        document.getElementById('nextPlayers').textContent = [];
+
+        localStorage.setItem('infoScreen', 'true');
+        gameInfoModal.show();
+        while (localStorage.getItem('infoScreen') === 'true')
+            await new Promise(resolve => setTimeout(resolve, 100));
+        gameInfoModal.hide();
+    }
+
+    function startNextGame() {
+
+        let remainingIDs = JSON.parse(localStorage.getItem('remainingIDs'));
+        let players = JSON.parse(localStorage.getItem('tournamentPlayers'));
+        localStorage.setItem('isGameOver', 'false');
+
+        const config = {
+            isRemote: false,
+            playerIds: [remainingIDs[0], remainingIDs[1]],
+            gameId: seed + currentGame,
+            isLocalTournament: true,
+            player1Alias: players[remainingIDs[0] - 1].name,
+            player2Alias: players[remainingIDs[1] - 1].name
+        };
+
+        currentGame++;
+        const newRemainingIds = remainingIDs.slice(2);
+        localStorage.setItem('remainingIDs', JSON.stringify(newRemainingIds));
+        pongModal.show();
+        startGame('pongGameContainer', config, gameResultCallBack_testi);
+    }
+
+    function gameResultCallBack_testi(data) {
+
+        let roundWinners = JSON.parse(localStorage.getItem('roundWinners'));
+        roundWinners.push(data.winner);
+        localStorage.setItem('roundWinners', JSON.stringify(roundWinners));
+    }
 
     // Event listener for when the modal is closed
     modalElement.addEventListener('hidden.bs.modal', function () {
@@ -115,4 +247,3 @@ document.addEventListener('DOMContentLoaded', function () {
         playerAliasInputs.innerHTML = '';
     });
 });
-

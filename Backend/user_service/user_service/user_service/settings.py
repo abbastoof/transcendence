@@ -13,11 +13,62 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from datetime import timedelta
 from pathlib import Path
+from dotenv import load_dotenv
+import re
 
-RABBITMQ_HOST = os.getenv("RABBITMQ_HOST")
-RABBITMQ_USER = os.getenv("RABBITMQ_USER")
-RABBITMQ_PASS = os.getenv("RABBITMQ_PASS")
-RABBITMQ_PORT = os.getenv("RABBITMQ_PORT")
+load_dotenv()
+TOKEN_SERVICE_URL = os.environ.get('TOKEN_SERVICE')
+GAME_HISTORY_URL = os.environ.get('GAME_HISTORY')
+PGSQL_HOST = os.environ.get('PGSQL_HOST')
+DB_USER = os.environ.get('DB_USER')
+DB_PASS = os.environ.get('DB_PASS')
+LOG_DIR = Path('/var/log/')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(LOG_DIR, 'django_debug.log'),
+            'formatter': 'verbose',
+        },
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(LOG_DIR, 'django_error.log'),
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['error_file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,12 +77,21 @@ APPEND_SLASH = False
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-qn48+qe6b*r3p65fb_3fo)_rji73yxoz7++45o773!k2jkvq0v'
-SECRET_KEY = "django-insecure-woftd2en2**zr(b%#*2vit2v%s@(k54gb^c(ots0abo7(wsmo%"
+SECRET_KEY = os.environ.get('DJANGO_SECRET')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
+
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+]
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = os.environ.get('USER_SERVICE_EMAIL')
+EMAIL_HOST_PASSWORD = os.environ.get('USER_SERVICE_PASS')
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -47,6 +107,7 @@ MEDIA_ROOT='/app/www/avatars/'
 # Application definition
 
 INSTALLED_APPS = [
+    "channels",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -73,8 +134,13 @@ REST_FRAMEWORK = {
     'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser',
     ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
     ),
     "DEFAULT_PARSER_CLASSES": [
         "rest_framework.parsers.JSONParser",
@@ -82,7 +148,6 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.FormParser",
     ]
 }
-
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -115,7 +180,6 @@ TEMPLATES = [
 
 ASGI_APPLICATION = "user_service.asgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
@@ -123,9 +187,9 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "user_service",
-        "HOST": "postgresql",
-        "USER": "root",
-        "PASSWORD": "root",
+        "HOST": PGSQL_HOST,
+        "USER": DB_USER,
+        "PASSWORD": DB_PASS,
         "PORT": "5432",
         "ATOMIC_REQUESTS": True,
         "TEST": {
@@ -134,7 +198,6 @@ DATABASES = {
         },
     },
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -186,6 +249,22 @@ STATIC_URL = "static/"
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('redis', 6379)],
+        },
+    },
+}
+
 CORS_ORIGIN_ALLOW_ALL = True
-AUTH_USER_MODEL = "user_app.User"
+AUTH_USER_MODEL = "user_app.UserProfileModel"
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+
+STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), "static_cdn")
+

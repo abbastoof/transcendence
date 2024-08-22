@@ -2,26 +2,39 @@ import { HEIGHT, WIDTH, LEFT_PADDLE_START, RIGHT_PADDLE_START } from './constant
 
 export const degreesToRads = deg =>(deg * Math.PI) / 180.00;
 
+/**
+ * translateCoordinates - Translate the coordinates from the server to the client
+ * this function exists because the server and client have different coordinate systems
+ * in threejs the origin of the playing field is at the center of the field
+ * in the server the origin is at the bottom left of the field
+ * @param {object} data - The data from the server
+ *
+ * @returns {object} - The translated coordinates
+ */
 export function translateCoordinates(data) {
     return {
-        player1_position: {
+        player1Pos: {
             x: LEFT_PADDLE_START.x,
             y: 0,
-            z: data.player1_position.z - HEIGHT / 2
+            z: data.player1Pos.z - HEIGHT / 2
         },
-        player2_position: {
+        player2Pos: {
             x: RIGHT_PADDLE_START.x,
             y: 0,
-            z: data.player2_position.z - HEIGHT / 2
+            z: data.player2Pos.z - HEIGHT / 2
         },
         ball: {
-            x: data.ball.x - WIDTH / 2,
-            y: data.ball.y,
-            z: data.ball.z - HEIGHT / 2
+            x: data.ballPosition.x - WIDTH / 2,
+            y: data.ballPosition.y,
+            z: data.ballPosition.z - HEIGHT / 2
         }
     };
 }
 
+// The following functions are used to normalize and scale the player and game id's to specific ranges
+// to be used as uniforms/variables in the playing field shader
+// each game session will have unique animation in the shader based on the player and game id's
+// how cool is that?
 /**
  * Normalize a number between 0 and 1
  * @param {number} num - The number to normalize

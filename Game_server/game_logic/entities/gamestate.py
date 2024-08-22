@@ -28,6 +28,8 @@ class GameState:
         self._longest_rally: int = 0
         self._paused: bool = True
         self._in_progress: bool = True
+        self._bounce: bool = False
+        self._hitpos: float = 0.0
     
     # getter for game_id
     @property
@@ -74,6 +76,22 @@ class GameState:
     def longest_rally(self, new_value):
         self._longest_rally = new_value
 
+    @property
+    def bounce(self):
+        return self._bounce
+    
+    @bounce.setter
+    def bounce(self, new_value):
+        self._bounce = new_value
+
+    @property
+    def hitpos(self):
+        return self._hitpos
+
+    @hitpos.setter
+    def hitpos(self, new_value):
+        self._hitpos = new_value
+        
     # get_player_score method
     # returns the score of the player with the given id
     # raises a ValueError if the player id is invalid
@@ -137,16 +155,19 @@ class GameState:
     # handles the collisions between the ball and the walls or paddles
     # and updates the ball's direction and player's hitcount accordingly
     def handle_collisions(self) -> None:
+        self.bounce = False
         if self.ball.x < 0 or self.ball.x > FIELD_DEPTH:
             return
         if self.ball.z - BALL_RADIUS <= 0 or self.ball.z + BALL_RADIUS >= FIELD_WIDTH:
             self.ball.bounce_from_wall()
         elif self.ball.check_collision(self.player1.paddle):
             self.player1.add_hit()
-            self.ball.bounce_from_paddle(self.player1.paddle)
+            self.bounce = True
+            self.hitpos = self.ball.bounce_from_paddle(self.player1.paddle)
         elif self.ball.check_collision(self.player2.paddle):
             self.player2.add_hit()
-            self.ball.bounce_from_paddle(self.player2.paddle)
+            self.bounce = True
+            self.hitpos = self.ball.bounce_from_paddle(self.player2.paddle)
             
     # check_goal method
     # checks if the ball has scored a goal
@@ -174,6 +195,7 @@ class GameState:
                 self.ball.direction = random.randrange(-12, 12)
             else:
                 self.ball.direction = random.randrange(168, 192)
+        self.ball.speed = BALL_SPEED
         self.ball.position = BALL_DEFAULT_X, 0, BALL_DEFAULT_Z
 
     # is_game_over method

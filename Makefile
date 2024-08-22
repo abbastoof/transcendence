@@ -16,11 +16,20 @@ up:
 # Stop all services
 .PHONY: down
 down:
-	docker compose down --rmi all --volumes --remove-orphans
+	docker compose down --remove-orphans --volumes
+
+# Stop all services and remove all containers
+.PHONY: down-all
+down-all:
+	@if [ -n "$(shell docker ps -aq)" ]; then \
+		for container in $(shell docker ps -aq); do \
+			docker rm -f $$container; \
+		done \
+	fi
 
 # Restart all services
 .PHONY: re
-re: down clean up
+re: down-all clean up
 
 # Show logs for all services
 .PHONY: logs
@@ -35,26 +44,36 @@ pull:
 # Remove stopped containers and unused images, networks, and volumes
 .PHONY: clean
 clean:
-	rm -rf /database_volume
-	docker system prune -f --all --volumes
-	docker volume prune -f
-	docker network prune -f
-	docker image prune -f
-	@if [ -n "$(shell docker ps -aq)" ]; then \
-		for container in $(shell docker ps -aq); do \
-			docker rm $$container; \
-		done \
+	@if [ -d "/database_volume" ]; then \
+		rm -rf /database_volume; \
 	fi
+
+	docker system prune -f --all --volumes
+
 	@if [ -n "$(shell docker volume ls -q)" ]; then \
 		for volume in $(shell docker volume ls -q); do \
-			docker volume rm $$volume; \
+			docker volume rm $$volume 2>/dev/null || true; \
+		done \
+	fi
+
+	docker network prune -f
+
+	docker image prune -f
+
+	@if [ -n "$(shell docker ps -aq)" ]; then \
+		for container in $(shell docker ps -aq); do \
+			docker rm $$container 2>/dev/null || true; \
 		done \
 	fi
 
 # Display the status of all services
 .PHONY: status
 status:
-	docker compose ps
+	docker compose ps -a
+
+.PHONY: info
+info:
+	docker ps -a
 
 .PHONY: bvenv
 bvenv:
@@ -80,6 +99,40 @@ pytest-venv:
 	fi
 	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) bash -c '. venv/bin/activate && pytest -svv || echo "Pytest encountered an error"'
 
+
+.PHONY: dlog
+dlog:
+	@if [ -z "$(filter-out $@,$(MAKECMDGOALS))" ]; then \
+		echo "Error: No container name provided."; \
+		exit 1; \
+	fi
+	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) bash -c 'cat /var/log/django_debug.log'
+
+.PHONY: dlog-err
+dlog-err:
+	@if [ -z "$(filter-out $@,$(MAKECMDGOALS))" ]; then \
+		echo "Error: No container name provided."; \
+		exit 1; \
+	fi
+	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) bash -c 'cat /var/log/django_error.log'
+
+.PHONY: clog
+clog:
+	@if [ -z "$(filter-out $@,$(MAKECMDGOALS))" ]; then \
+		echo "Error: No container name provided."; \
+		exit 1; \
+	fi
+	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) bash -c 'cat /var/log/consumer.log'
+
+.PHONY: clog-err
+clog-err:
+	@if [ -z "$(filter-out $@,$(MAKECMDGOALS))" ]; then \
+		echo "Error: No container name provided."; \
+		exit 1; \
+	fi
+	docker exec -it $(filter-out $@,$(MAKECMDGOALS)) bash -c 'cat /var/log/consumer_err.log'
+
+
 %:
 	@:
 
@@ -98,4 +151,6 @@ help:
 	@echo "  pull       - Pull latest images for all services"
 	@echo "  clean      - Remove stopped containers and unused images, networks, and volumes"
 	@echo "  status     - Display the status of all services"
+	@echo "  info       - Display the status of all services"
+	@echo "  bash       - Open a bash shell in a running container"
 	@echo "  help       - Display this help message"

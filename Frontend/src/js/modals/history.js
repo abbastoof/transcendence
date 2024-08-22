@@ -1,42 +1,91 @@
 document.addEventListener('DOMContentLoaded', function () {
-	const userData = JSON.parse(localStorage.getItem('userData'));
-	if (!userData || !userData.id || !userData.token) {
-		console.error('UserData is missing or incomplete');
-		return;
-	}
-
-	fetch(`/user/${userData.id}/game-history`, {
-		method: 'GET',
-		headers: {
-			'Authorization': `Bearer ${userData.token}`
-		}
-	})
-	.then(response => {
-		if (!response.ok) {
-			throw new Error('Network response was not ok');
-		}
-		return response.json();
-	})
-	.then(data => {
-		const gameHistoryContainer = document.getElementById('gameHistory');
-		if (!gameHistoryContainer) {
-			console.error('GameHistory container not found');
-			return;
-		}
-		let htmlContent = '<div class="container mt-4"><h2>Game History</h2>';
-		data.forEach(game => {
-			htmlContent += `
-			<div class="game-record mb-3">
-				<h3>${game.name}</h3>
-				<p>Outcome: ${game.outcome}</p>
-				<p>Date Played: ${new Date(game.datePlayed).toLocaleDateString()}</p>
-			</div>
-			`;
-		});
-		htmlContent += '</div>';
-		gameHistoryContainer.innerHTML = htmlContent;
-	})
-	.catch(error => {
-		console.error('Error fetching game history:', error);
-	});
+    updateMatchHistory();
 });
+
+export function updateMatchHistory() {
+    const userData = JSON.parse(sessionStorage.getItem('userData'));
+    if (!userData || !userData.id || !userData.token) {
+        console.error('UserData is missing or incomplete');
+        return;
+    }
+
+    const userId = Number(userData.id); // Ensure user ID is a number
+
+    fetch(`/game-history/`, {
+        method: 'GET',
+        headers: {
+            // Include authorization headers if needed
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(error => {
+                throw new Error(error.detail || 'Network response was not ok');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        const gameHistoryContainer = document.getElementById('History');
+        if (!gameHistoryContainer) {
+            console.error('GameHistory container not found');
+            return;
+        }
+
+        // Calculate wins and losses
+        let wins = 0;
+        let losses = 0;
+
+        data.forEach(game => {
+            if (game.winner_id === userId) {
+                wins++;
+            } else if ((game.player1_id === userId || game.player2_id === userId) && game.winner_id !== userId) {
+                losses++;
+            }
+        });
+
+        // Build HTML content for wins and losses
+        let statsHtml = `
+            <div class="font" style="margin-top: -20px">
+                <span>Wins:</span> &nbsp; ${wins} &nbsp;&nbsp; <span>Losses:</span> &nbsp; ${losses}
+            </div>
+            <div class="container">
+                <h2 class="font">Game History</h2>
+        `;
+
+        // Build HTML content for game records
+        let gameHistoryHtml = '';
+        data.forEach(game => {
+            if (game.player1_id === userId || game.player2_id === userId) {
+                let winner_name;
+                if (game.winner_id === game.player1_id) {
+                    winner_name = game.player1_username;
+                } else if (game.winner_id === game.player2_id) {
+                    winner_name = game.player2_username;
+                }
+
+                gameHistoryHtml += `
+                    <div class="game-record">
+                        <h3 class="game-font">Game: ${game.game_id}</h3>
+                        <p class="game-label">${new Date(game.start_time).toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                        <p class="game-label">${game.player1_username} - ${game.player2_username}</p>
+                        <p class="game-label">Winner: ${winner_name}</p>
+                    </div>
+                `;
+            }
+        });
+
+        // Combine stats and game history HTML
+        let htmlContent = statsHtml + gameHistoryHtml + '</div>';
+
+        // Set the HTML content to the container
+        gameHistoryContainer.innerHTML = htmlContent;
+    })
+    .catch(error => {
+        console.error('Error fetching game history:', error.message);
+        const gameHistoryContainer = document.getElementById('History');
+        if (gameHistoryContainer) {
+            gameHistoryContainer.innerHTML = `<p>Error fetching game history: ${error.message}</p>`;
+        }
+    });
+};

@@ -6,7 +6,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from user_app.views import UserViewSet, RegisterViewSet, FriendsViewSet, validate_token
 from user_app.user_session_views import UserLoginView, UserLogoutView
 from rest_framework import status
-from user_app.models import User
+from user_app.models import UserProfileModel
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+TOEKNSERVICE = os.environ.get('TOKEN_SERVICE')
 
 @pytest.fixture
 def api_client():
@@ -24,11 +29,11 @@ def user_data():
 
 @pytest.fixture
 def user(db):
-    return User.objects.create_user(username='testuser', email='testuser@123.com', password='Test@123')
+    return UserProfileModel.objects.create_user(username='testuser', email='testuser@123.com', password='Test@123')
 
 @pytest.fixture
 def admin_user(db):
-    return User.objects.create_superuser(username='admin', email='admin@123.com', password='Admin@123')
+    return UserProfileModel.objects.create_superuser(username='admin', email='admin@123.com', password='Admin@123')
 
 @pytest.fixture
 def user_token(user):
@@ -40,20 +45,10 @@ def admin_token(admin_user):
     refresh = RefreshToken.for_user(admin_user)
     return str(refresh.access_token)
 
-@pytest.fixture
-def mock_rabbitmq():
-    with patch('user_app.views.publish_message') as mock_publish, patch('user_app.views.consume_message') as mock_consume:
-        # Set up the mock for consume_message to simulate a valid token response
-        def mock_consume_response(queue_name, callback):
-            response_data = json.dumps({"is_valid": True})
-            ch_mock = MagicMock()
-            method = None
-            properties = None
-            body = response_data.encode('utf-8')
-            callback(ch_mock, method, properties, body)
-
-        mock_consume.side_effect = mock_consume_response
-        yield mock_publish, mock_consume
+@pytest.fixture(autouse=True)
+def mock_validate_token():
+    with patch('user_app.views.validate_token', return_value=True):
+        yield
 
 @pytest.mark.django_db
 def test_user_register(api_client, user_data):
@@ -65,10 +60,10 @@ def test_user_register(api_client, user_data):
     assert response.data['email'] == 'testuser@123.com'
 
 @pytest.mark.django_db
-def test_users_list(api_client, admin_user, admin_token, user_data, mock_rabbitmq):
+def test_users_list(api_client, admin_user, admin_token, user_data):
     # Mock the RabbitMQ interactions
-    user1 = User.objects.create_user(username='testuser1',email='testuser1@123.com',password='Test@123')
-    user2 = User.objects.create_user(username='testuser2',email='testuser2@123.com',password='Test@123')
+    user1 = UserProfileModel.objects.create_user(username='testuser1',email='testuser1@123.com',password='Test@123')
+    user2 = UserProfileModel.objects.create_user(username='testuser2',email='testuser2@123.com',password='Test@123')
 
         # Authenticate the request
     token = admin_token
@@ -94,31 +89,25 @@ def test_user_login(api_client, admin_user):
     assert response.status_code == 200
 
 @pytest.mark.django_db
-def test_user_logout(api_client, admin_user, admin_token):
-    with patch('user_app.user_session_views.publish_message') as mock_publish, patch('user_app.user_session_views.consume_message') as mock_consume:
-        # Set up the mock for consume_message to simulate a valid token response
-        def mock_consume_response(queue_name, callback):
-            response_data = json.dumps({"is_valid": True})
-            ch_mock = MagicMock()
-            method = None
-            properties = None
-            body = response_data.encode('utf-8')
-            callback(ch_mock, method, properties, body)
+@patch('user_app.user_session_views.requests.post')
+def test_user_logout(mock_post, api_client, admin_user, admin_token):
+    # Authenticate the request
+    mock_post.return_value.status_code = 200
+    mock_post.return_value.json.return_value = {"detail": "User logged out successfully"}
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {admin_token}')
 
-        mock_consume.side_effect = mock_consume_response
-
-            # Authenticate the request
-        token = admin_token
-        api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-
-        url = reverse('user-logout', kwargs={'pk': admin_user.id})
-        response = api_client.post(url)
-        assert response.status_code == 200
-        assert response.data["detail"] == 'User logged out successfully'
-        assert User.objects.filter(username=admin_user.username).exists()
+    url = reverse('user-logout', kwargs={'pk': admin_user.id})
+    response = api_client.post(url)
+    assert response.status_code == 200
+    assert response.data["detail"] == 'User logged out successfully'
+    mock_post.assert_called_once_with(
+        f"{TOEKNSERVICE}/auth/token/invalidate-tokens/",
+        data={"access": admin_token, 'id':admin_user.id}
+    )
+    assert UserProfileModel.objects.filter(username=admin_user.username).exists()
 
 @pytest.mark.django_db
-def test_retrieve_user(api_client, user, user_token, mock_rabbitmq):
+def test_retrieve_user(api_client, user, user_token):
         # Authenticate the request
     api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
 
@@ -131,7 +120,7 @@ def test_retrieve_user(api_client, user, user_token, mock_rabbitmq):
     assert response.data['email'] == user.email
 
 @pytest.mark.django_db
-def test_update_user(api_client, user, user_token, mock_rabbitmq):
+def test_update_user(api_client, user, user_token):
     data = {
         "username": "newuser",
         "email": "newuser@123.com"
@@ -139,25 +128,25 @@ def test_update_user(api_client, user, user_token, mock_rabbitmq):
     api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
 
     url = reverse('user-detail', kwargs={'pk': user.id})
-    response = api_client.put(url, data, format='json')
+    response = api_client.patch(url, data, format='json')
 
     assert response.status_code == status.HTTP_202_ACCEPTED
     assert response.data['id'] == user.id
     assert response.data['username'] == 'newuser'
     assert response.data['email'] == 'newuser@123.com'
 
-def test_destroy_user(api_client, user, user_token, mock_rabbitmq):
+def test_destroy_user(api_client, user, user_token):
     api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
 
     url = reverse('user-detail', kwargs={'pk': user.id}) # Get the URL for the user object to be deleted
     response = api_client.delete(url) # Call the API endpoint to delete the user object and assert the response status code
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
-    assert not User.objects.filter(username=user.username).exists()
+    assert not UserProfileModel.objects.filter(username=user.username).exists()
 
 @pytest.mark.django_db
-def test_valid_data_friend_request_functions(api_client, admin_user, user, user_token, admin_token, mock_rabbitmq):
-    
+def test_valid_data_friend_request_functions(api_client, admin_user, user, user_token, admin_token):
+
     print("\ntestuser sends a friend request to admin user")
     api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
     url_request = reverse('send-request', kwargs={'user_pk': user.id})
@@ -185,7 +174,7 @@ def test_valid_data_friend_request_functions(api_client, admin_user, user, user_
     url_request = reverse('friends-list', kwargs={'user_pk': admin_user.id})
     response_request = api_client.get(url_request, format='json')
     assert response_request.data[0]["username"] == "testuser"
-    
+
     print("\ntest user has admin in its friends list")
     url_request = reverse('friends-list', kwargs={'user_pk': user.id})
     response_request = api_client.get(url_request, format='json')
@@ -198,7 +187,7 @@ def test_valid_data_friend_request_functions(api_client, admin_user, user, user_
     assert response_request.status_code == status.HTTP_204_NO_CONTENT
 
 @pytest.mark.django_db
-def test_send_friend_request_invalid_user_id(api_client, admin_user, user, user_token, admin_token, mock_rabbitmq):
+def test_send_friend_request_invalid_user_id(api_client, admin_user, user, user_token, admin_token):
     api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
 
     url_request = reverse('send-request', kwargs={'user_pk': user.id})
@@ -207,8 +196,8 @@ def test_send_friend_request_invalid_user_id(api_client, admin_user, user, user_
     assert response_request.data["error"]=="User does not exist"
 
 @pytest.mark.django_db
-def test_reject_friend_request(api_client, admin_user, user, user_token, admin_token, mock_rabbitmq):
-    
+def test_reject_friend_request(api_client, admin_user, user, user_token, admin_token):
+
     print("\ntestuser sends a friend request to admin user")
     api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
     url_request = reverse('send-request', kwargs={'user_pk': user.id})

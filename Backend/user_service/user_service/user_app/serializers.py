@@ -2,9 +2,29 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-
-from .models import User, FriendRequest
+from .models import UserProfileModel, FriendRequest, GameRoom
 from .validators import CustomPasswordValidator
+
+class GameRoomSerializer(serializers.ModelSerializer):
+    player1_id = serializers.SerializerMethodField()
+    player2_id = serializers.SerializerMethodField()
+    player1_username = serializers.SerializerMethodField()
+    player2_username = serializers.SerializerMethodField()
+    class Meta:
+        model = GameRoom
+        fields = "__all__"
+
+    def get_player1_id(self, obj):
+        return obj.player1.id if obj.player1 else None
+
+    def get_player2_id(self, obj):
+        return obj.player2.id if obj.player2 else None
+
+    def get_player1_username(self, obj):
+        return obj.player1.username if obj.player1 else None
+
+    def get_player2_username(self, obj):
+        return obj.player2.username if obj.player2 else None
 
 
 class FriendSerializer(serializers.ModelSerializer):
@@ -38,21 +58,32 @@ class UserSerializer(serializers.ModelSerializer):
                 update: Method to update a user.
     """
     email = serializers.EmailField(
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        validators=[UniqueValidator(queryset=UserProfileModel.objects.all())]
     )
     avatar = serializers.ImageField(required=False)
     friends = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=User.objects.all(), required=False # required=False means that the field is not required
+        many=True, queryset=UserProfileModel.objects.all(), required=False # required=False means that the field is not required
     )
 
     class Meta:
-        model = User
-        fields = ["id", "username", "email", "password", "avatar", "status", "friends"]
+        model = UserProfileModel
+        fields = [
+            "id",
+            "username",
+            "email",
+            "password",
+            "avatar",
+            "online_status",
+            "friends",
+            "otp_status",
+            "otp",
+            "otp_expiry_time"
+            ]
         extra_kwargs = {"password": {"write_only": True}}
 
         ### Password should be strong password, minimum 8 characters, at least one uppercase letter, one lowercase letter, one number and one special character
 
-    def create(self, validate_data) -> User:
+    def create(self, validate_data) -> UserProfileModel:
         """
             Method to create a new user.
 
@@ -76,7 +107,7 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-    def update(self, instance, validate_data) -> User:
+    def update(self, instance, validate_data) -> UserProfileModel:
         """
             Method to update a user.
 

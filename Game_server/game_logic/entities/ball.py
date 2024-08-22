@@ -128,41 +128,69 @@ class Ball:
     # takes a paddle as argument
     # returns false immediately if ball is not in same x coordinates as paddles
     def check_collision(self, paddle):
-        if(self._position.x - BALL_RADIUS > 0 + PADDLE_DEPTH and self._position.x + BALL_RADIUS < FIELD_DEPTH - PADDLE_DEPTH):
-            return False
-        paddle_z_bottom = paddle.z - PADDLE_WIDTH / 2 
-        paddle_z_top = paddle_z_bottom + PADDLE_WIDTH
-        if (self._position.z >= paddle_z_bottom and self._position.z <= paddle_z_top):
-            return True
-        return False
+        # Calculate the ball's next position
+        expected_x = self.position.x + self.delta_x
+        expected_z = self.position.z + self.delta_z
+
+        # Check collision for the left paddle (positioned at x = 0)
+        if paddle.x == PLAYER1_START_X and expected_x - BALL_RADIUS <= 0:
+            # Calculate the paddle's boundaries along the z-axis
+            paddle_z_bottom = paddle.z - PADDLE_WIDTH / 2
+            paddle_z_top = paddle.z + PADDLE_WIDTH / 2
+
+            # Check if the ball's z position is within the paddle's z-axis range
+            if paddle_z_bottom <= expected_z <= paddle_z_top:
+                return True  # Collision detected
+
+        # Check collision for the right paddle (positioned at x = FIELD_DEPTH)
+        elif paddle.x == PLAYER2_START_X and expected_x + BALL_RADIUS >= FIELD_DEPTH:
+            # Calculate the paddle's boundaries along the z-axis
+            paddle_z_bottom = paddle.z - PADDLE_WIDTH / 2
+            paddle_z_top = paddle.z + PADDLE_WIDTH / 2
+
+            # Check if the ball's z position is within the paddle's z-axis range
+            if paddle_z_bottom <= expected_z <= paddle_z_top:
+                return True  # Collision detected
+
+        return False  # No collision
+
     
     # bounce_from_paddle method
     # reflects the direction of the ball when it bounces from a paddle
     # takes a paddle as argument
     # updates the direction of the ball based on where it hits the paddle
     # and the direction it was going before collision
-    def bounce_from_paddle(self, paddle):
+    def bounce_from_paddle(self, paddle) -> float:
         self.direction = self.direction % 360 # make sure direction is between 0 and 360
         hitpos = (self.z - paddle.position.z) / (paddle.width / 2) # hitpos: where the ball hits the paddle
+        speedboost = abs(hitpos) * 1.2
         dz_factor = (self.delta_z / self.speed) * 10 # dz_factor: how much the ball is going up or down
         direction_mod = abs((self.direction % 180) - 90) 
-        if direction_mod > 75:
-            direction_mod = 150 - direction_mod # make sure direction_mod does not go above 75
+        if direction_mod > MAX_BOUNCE_ANGLE_ADJUSTMENT:
+            direction_mod = (MAX_BOUNCE_ANGLE_ADJUSTMENT * 2) - direction_mod # make sure direction_mod does not go above 80
         # direction_mod: absolute difference from a right angle (90 degrees)
         # treating angles within 15 degrees of 90 and 270 as tight angles.
         
         # adjustment: how much the direction of the ball should be adjusted
-        adjustment = abs(75 - direction_mod) + 5 * abs(hitpos) + dz_factor
+        adjustment = abs(MAX_BOUNCE_ANGLE_ADJUSTMENT - direction_mod) + 5 * abs(hitpos) + dz_factor
         adjustment = min(adjustment, MAX_BOUNCE_ANGLE_ADJUSTMENT)
         # logging.info(f"before bounce, direction: {self.direction}, delta_x: {self.delta_x}, delta_z: {self.delta_z}")
         # logging.info(f"hitpos: {hitpos}, dz_factor: {dz_factor}, direction_mod: {direction_mod}, adjustment: {adjustment}")
         # if ball hits the middle of the paddle, it bounces with wider angle
         if hitpos >= 0 and hitpos < 0.2 or hitpos < 0 and hitpos > -.2:
+            if (abs(hitpos) < 0.1):
+                self.speed_up(1.3)
+            else:
+                self.speed_up(speedboost)
+            logging.info(hitpos)
             if self.delta_z < 0.0:
                 self.direction = 357 - (hitpos * adjustment) if self.delta_x < 0.0 else 177 - (hitpos * adjustment)
             else:
                 self.direction = 3 + (hitpos * adjustment) if self.delta_x < 0.0 else 183 + (hitpos * adjustment)
         else:
+            speedboost = abs(hitpos) * 1.2
+            self.speed_up(speedboost)
+            logging.info(speedboost)
             if self.delta_z < 0.0: # if ball is going down
                 if self.direction > 270: # if ball is going right
                     if hitpos > 0.0: # if ball hits the top area of the paddle
@@ -188,7 +216,7 @@ class Ball:
         self.direction = self.direction % 360 # make sure direction is between 0 and 360
         #logging.info(f"after bounce, direction: {self.direction}, delta_x: {self.delta_x}, delta_z: {self.delta_z}")
         # Reposition ball to avoid being stuck inside paddle
-
+        return (abs(hitpos))
     # bounce_from_wall method
     # reflects the direction of the ball when it bounces from a wall
     def bounce_from_wall(self) -> None:

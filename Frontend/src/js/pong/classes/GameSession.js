@@ -5,8 +5,12 @@ import { translateCoordinates } from '../utils.js';
 import Paddle from './Paddle.js';
 import Ball from './Ball.js';
 import PlayingField from './PlayingField.js';
+import ScoreBoard from './ScoreBoard.js';
 import { LEFT_PADDLE_START, RIGHT_PADDLE_START } from '../constants.js';
-import { changeCameraAngle } from '../pong.js';
+import { endGame } from '../pong.js';
+import { globalState } from '../globalState.js';
+import { sendQuit } from '../eventhandlers.js';
+import { cleanupEventHandlers } from '../eventhandlers.js';
 
 class GameSession {
     constructor() {
@@ -23,22 +27,34 @@ class GameSession {
         this.ball = null;
         this.player1Score = 0;
         this.player2Score = 0;
+        this.onGameEndCallback = null;
+        this.scoreBoard = null;
+        this.dataSent = false;
+        this.player1Alias = "Player1"
+        this.player2Alias = "Player2"
+        this.paused = true;
+        this.inProgress = false;
+        this.quit = false;
     }
 
-    initialize(gameId, localPlayerId, player1Id, player2Id, isRemote, isLocalTournament, scene) {
+    initialize(gameId, localPlayerId, player1Id, player2Id, player1Alias, player2Alias, isRemote, isLocalTournament, scene, onGameEnd) {
         this.gameId = gameId;
+        this.localPlayerId = localPlayerId
         this.player1Id = player1Id;
         this.player2Id = player2Id;
+        this.player1Alias = player1Alias
+        this.player2Alias = player2Alias
         this.isRemote = isRemote;
         this.isLocalTournament = isLocalTournament;
+        this.onGameEndCallback = typeof onGameEnd === 'function' ? onGameEnd : null; // Ensure it's a function
         this.playingField = new PlayingField(scene, gameId, player1Id, player2Id);
-        this.leftPaddle = new Paddle(scene, LEFT_PADDLE_START, 0x00ff00);
+        this.leftPaddle = new Paddle(scene, LEFT_PADDLE_START, 0xffff00);
         this.rightPaddle = new Paddle(scene, RIGHT_PADDLE_START, 0xff0000);
         this.ball = new Ball(scene);
-    
+        this.scoreBoard = new ScoreBoard(scene);
+        if (isRemote === true)
+            this.scoreBoard.showWaitText();
         this.playingField.addToScene();
-        this.leftPaddle.addToScene();
-        this.rightPaddle.addToScene();
         this.ball.addToScene();
 
         // Always connect to the server
@@ -46,7 +62,7 @@ class GameSession {
             this.socket.connect();
         }
         let gameInitData = { 
-            'type': 'start_game',
+            'type': null,
             'game_id': gameId,
             'local_player_id': localPlayerId,
             'player1_id': player1Id,
@@ -58,9 +74,11 @@ class GameSession {
         console.log('Game Init Data:', gameInitData);
 
         if (isRemote === false) {
+            gameInitData['type'] = 'start_game';
             this.socket.emit('start_game', gameInitData);
         }
         else {
+            gameInitData['type'] = 'join_game';
             this.socket.emit('join_game', gameInitData);
         }
         initializeEventHandlers(this);
@@ -71,51 +89,82 @@ class GameSession {
         this.socket.emit('move_paddle', data);
     }
 
+    handleGameStart() {
+        this.scoreBoard.showGameStartText()
+        this.inProgress = true;
+        this.leftPaddle.addToScene();
+        this.rightPaddle.addToScene();
+        setTimeout(() => {
+            this.paused = false
+            const player1Text = `${this.player1Alias} ${this.player1Score}`;
+            const player2Text = `${this.player2Alias} ${this.player2Score}`;
+            this.scoreBoard.createScoreBoard(player1Text, player2Text);
+        }, 2000);
+    }
+
     handleGameStateUpdate(data) {
         const translatedData = translateCoordinates(data);
-        if (this.isRemote && (this.localPlayerId !== this.player1Id)) {
-            this.leftPaddle.updatePosition(translatedData.player2_position);
-            this.rightPaddle.updatePosition(translatedData.player1_position);
+        this.leftPaddle.updatePosition(translatedData.player1Pos);
+        this.rightPaddle.updatePosition(translatedData.player2Pos);
+        this.ball.updatePosition(translatedData.ball);
+        if (data.ballDelta.dx > 0  && globalState.playingFieldMaterial !==  null) {
+            globalState.playingFieldMaterial.uniforms.ballDx.value = 1.0;
+        }
+        else if (globalState.playingFieldMaterial !==  null) {
+            globalState.playingFieldMaterial.uniforms.ballDx.value = -1.0;
+        }
+        if (data.bounce === true) {
+            if (data.hitpos < 0.1) {
+                globalState.rgbShift.uniforms.amount.value = 0.3
+                globalState.glitchPass.enabled = true;
+            }
+            else {
+                globalState.rgbShift.uniforms.amount.value = 0.1 * data.hitpos
+            }
         }
         else {
-            this.leftPaddle.updatePosition(translatedData.player1_position);
-            this.rightPaddle.updatePosition(translatedData.player2_position);
+            globalState.glitchPass.enabled = false;
+            globalState.rgbShift.uniforms.amount.value = 0.0015;
         }
-        this.ball.updatePosition(translatedData.ball);
     }
 
     handleScoreUpdate(data) {
-        console.log('Received score update:', data);
-        this.player1Score = data.player1_score;
-        this.player2Score = data.player2_score;
+        this.scoreBoard.showGoalText();
+        this.player1Score = data.player1Score;
+        this.player2Score = data.player2Score;
+        setTimeout(() => {
+            this.scoreBoard.updateScores(this.player1Alias, this.player1Score, this.player2Alias, this.player2Score);
+        }, 2000);
+    }
+
+    handleOpponentQuit(data) {
+        this.leftPaddle.removeFromScene();
+        this.rightPaddle.removeFromScene();
+        this.ball.removeFromScene();
+        this.scoreBoard.showQuitText();
     }
 
     handleGameOver(data) {
         this.leftPaddle.removeFromScene();
         this.rightPaddle.removeFromScene();
-        changeCameraAngle();
-        console.log(data);
-        let resultMessage = "Final score: " + data.player1_score + " - " + data.player2_score + ". ";
-        if (this.isRemote) {
-            if (data.winner === this.localPlayerId) {
-                resultMessage = 'You win!';
-            } else {
-                resultMessage = 'You lose!';
-            }
-        } else { 
-            if (data.winner === this.player1Id) {
-                resultMessage += ' Player 1 wins!';
-            } else {
-                resultMessage += ' Player 2 wins!';
-            }
-        }
-        // Display the result message
-        console.log(resultMessage);
         setTimeout(() => {
-            console.log("9 second timeout");
-        }, 9000);
-
-    }
+            if (typeof this.onGameEndCallback === 'function') {
+                if (this.dataSent === false) {
+                    
+                    endGame();
+                    this.onGameEndCallback(data);
+                    console.log("Game end callback executed, forwarded data: ", data);
+                    this.dataSent = true;
+                }
+                else {
+                    console.log("Game end callback already executed.");
+                }
+            }
+            else {
+                console.log("No game end callback defined.");
+            }
+            }, 3000);
+        }
     
     
     disconnect() {
@@ -123,6 +172,27 @@ class GameSession {
             this.socket.disconnect();
             console.log('Disconnected from server');
         }
+    }
+
+    clearResources() {
+        this.leftPaddle.removeFromScene();
+        this.rightPaddle.removeFromScene();
+        this.playingField.removeFromScene();
+        this.ball.removeFromScene();
+        this.scoreBoard.removeFromScene();
+        this.disconnect();
+        this.gameId = null
+        cleanupEventHandlers();
+    }
+
+    quitGame() {
+        this.quit = true;
+        this.inProgress = false;
+        this.leftPaddle.removeFromScene();
+        this.rightPaddle.removeFromScene();
+        this.ball.removeFromScene();
+        sendQuit(this.gameId, this.localPlayerId);
+        this.scoreBoard.showQuitText(true);
     }
 }
 

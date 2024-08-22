@@ -1,9 +1,16 @@
+import {showMessage} from './messages.js';
+
 document.addEventListener('DOMContentLoaded', function () {
 	updateFriendsList();
+
+	const friendsModal = document.getElementById('FriendsModal');
+	if (friendsModal) {
+		friendsModal.addEventListener('hide.bs.modal', clearAddFriendForm);
+	}
 });
 
 export function updateFriendsList() {
-	const userData = JSON.parse(localStorage.getItem('userData'));
+	const userData = JSON.parse(sessionStorage.getItem('userData'));
 	if (!userData || !userData.id || !userData.token) {
 		console.error('UserData is missing or incomplete');
 		return;
@@ -26,31 +33,37 @@ export function updateFriendsList() {
 				console.error('Friends container not found');
 				return;
 			}
+
 			let htmlContent = `
-			<div class="container mt-4"><h2>Friends</h2>
-			<form id="friendForm" class="text-center">
+			<div class="container">
+			<form id="friendForm">
                 <div class="form-group">
-                    <label class="labelFont" for="friendUsername">friend Username</label>
-                    <input type="text" class="form-control" id="friendUsername" placeholder="Enter friend username" required>
-                </div>
-                <button type="submit" class="submit">Send request</button>
-            </form>`;
+                    <label class="font" for="friendUsername">Add friend</label>
+                    <input type="text" class="form-control" id="friendUsername" placeholder="Enter username" required>
+					<button type="submit" class="submit">Send request</button>
+				</div>
+            </form>
+			<h2 class="font">Friends list</h2>
+			`;
+
 			data.forEach(friend => {
 				htmlContent += `
-			<div class="friend-record mb-3">
-				<h3>${friend.username}</h3>
-				<p>Status: ${friend.status ? 'Online' : 'Offline'}</p>
-				<button class="remove-btn" data-friend-id="${friend.id}">Remove friend</button>
-			</div>
-			`;
+				<div class="friend-record">
+					<p class="font">${friend.username}: <span class="${friend.status ? 'online' : 'offline'}">&nbsp;${friend.status ? 'Online' : 'Offline'}</span>
+					<button class="remove-btn reject" data-friend-id="${friend.id}">Remove</button>
+					</p>
+				</div>
+				`;
 			});
 			htmlContent += '</div>';
 			friendsContainer.innerHTML = htmlContent;
+
 			document.querySelectorAll('.remove-btn').forEach(button => {
 				button.addEventListener('click', function () {
 					removeFriend(userData, this.getAttribute('data-friend-id'));
 				});
 			});
+
 			getPendingFriendRequests(userData);
 		})
 		.then(() => {
@@ -68,7 +81,8 @@ export function updateFriendsList() {
 function sendFriendRequest(userData) {
 	const friendUsername = document.getElementById('friendUsername').value;
 	if (friendUsername === userData.username) {
-		alert('You cannot send a friend request to yourself');
+		showMessage('You cannot send a friend request to yourself', '#FriendsModal', 'error');
+		document.getElementById('friendUsername').value = '';
 		throw new Error('You cannot send a friend request to yourself');
 	}
 	fetch(`/user/${userData.id}/request/`, {
@@ -89,10 +103,12 @@ function sendFriendRequest(userData) {
 			}
 		})
 		.then(data => {
-			alert(data.detail);
+			showMessage(data.detail, '#FriendsModal', 'accept');
+			document.getElementById('friendUsername').value = '';
 		})
 		.catch(error => {
-			alert(`Error sending friend request: ${error.message}`);
+			showMessage(`Error sending friend request: ${error.message}`, '#FriendsModal', 'error');
+			document.getElementById('friendUsername').value = '';
 		});
 }
 
@@ -116,13 +132,14 @@ function getPendingFriendRequests(userData) {
 				return;
 			}
 			console.log(data);
-			let htmlContent = `<div class="container mt-4"><h2>Pending friend requests</h2>`;
+			let htmlContent = `<div class="container"><h2 class="font">Pending friend requests</h2>`;
 			data.forEach(pending => {
 				htmlContent += `
-                <div class="pending-request mb-3">
-                    <h3>User: ${pending.sender_username}</h3>
-                    <button class="accept-btn" data-pending-sender_user="${pending.sender_id}">Accept friend request</button>
-					<button class="reject-btn" data-pending-sender_user="${pending.sender_id}">Reject friend request</button>
+                <div class="pending-request">
+                    <h2 class="font">User: ${pending.sender_username}
+                    <button class="accept-btn submit accept-button" data-pending-sender_user="${pending.sender_id}">Accept</button>
+					<button class="reject-btn reject" data-pending-sender_user="${pending.sender_id}">Reject</button>
+					</h2>
 					</div>
             `;
 			});
@@ -158,7 +175,7 @@ function acceptPendingFriendRequest(userData, requestID) {
 			return response.json();
 		})
 		.then(data => {
-			alert('Friend request accepted');
+			showMessage('Friend request accepted', '#FriendsModal', 'accept');
 			updateFriendsList();
 		})
 		.catch(error => {
@@ -180,7 +197,7 @@ function rejectPendingFriendRequest(userData, requestID) {
 			return response.json();
 		})
 		.then(data => {
-			alert('Friend request rejected');
+			showMessage('Friend request rejected', '#FriendsModal', 'error');
 			updateFriendsList();
 		})
 		.catch(error => {
@@ -195,7 +212,7 @@ function removeFriend(userData, friendID) {
     })
     .then(response => {
         if (response.status === 204) {
-            alert('Friend removed successfully');
+            showMessage('Friend removed successfully', '#FriendsModal', 'accept');
             updateFriendsList();
         } else if (!response.ok) {
             return response.json().then(errData => {
@@ -207,7 +224,7 @@ function removeFriend(userData, friendID) {
     })
     .then(data => {
         if (data) {
-            alert('Friend removed:', data);
+            showMessage('Friend removed:', data, '#FriendsModal', 'accept');
             updateFriendsList();
         }
     })
@@ -215,3 +232,10 @@ function removeFriend(userData, friendID) {
         console.error('Error removing friend:', error);
     });
 };
+
+function clearAddFriendForm() {
+    const friendForm = document.getElementById('friendForm');
+    if (friendForm) {
+        friendForm.reset(); // This will clear all input fields within the form
+    }
+}
