@@ -7,6 +7,7 @@ import { randFloat } from 'three/src/math/MathUtils.js';
 import { globalState } from './globalState.js';
 import { localGameControls, remoteGameControls } from './controls.js';
 import { cleanupEventHandlers } from './eventhandlers.js';
+import { initializeConfirmationModal } from '../modals/quitConfirmation.js';
 
 let gameStarted = false;
 let gameSession, renderer, scene, camera, composer, animationId;
@@ -200,40 +201,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 500); // Ensure the modal is fully visible
     });
 
-     // Initialize leaving game custom confirmation modal
-     const confirmationModalElement = document.getElementById('confirmationModal');
-     const confirmationModal = new bootstrap.Modal(confirmationModalElement, {
-         backdrop: 'static',
-         keyboard: false // Disable closing the confirmation modal with ESC
-     });
-
-    let isConfirmed = false;
-
-    document.getElementById('pongModal').addEventListener('hide.bs.modal', function(event){
-        // console.log("in pongModal hide with isConfirmed:", isConfirmed);
-        if (!isConfirmed) {
-            // console.log("no confirmation.. preventing default");
-            event.preventDefault();
-            confirmationModal.show();
-        } else {
-            isConfirmed = false;
-        }
-     });
-
-    // Handle confirmation modal buttons
-    document.getElementById('cancelClose').addEventListener('click', function () {
-        confirmationModal.hide();
-    });
-
-    document.getElementById('confirmClose').addEventListener('click', function () {
-        isConfirmed = true;
-        confirmationModal.hide();
-        // console.log("calling pongModal.hide() with isConfirmed:", isConfirmed);
-        const pongModal = bootstrap.Modal.getInstance(document.getElementById('pongModal'));
-        pongModal.hide(); // Use Bootstrap's native method to hide the modal
-    });
+     initializeConfirmationModal('pongModal');
 
     document.getElementById('pongModal').addEventListener('hidden.bs.modal', function(event) {
+        // Thinking we should add a check here to see if the game was quit instead of it ending naturally and handle
+        // tournament ending, online game forfeiting etc here
+        // could be just a simple bool for isQuit or something
         if (gameStarted) {
             if (gameSession.isRemote === true && gameSession.inProgress === true) {
                 quitRemoteGame();
