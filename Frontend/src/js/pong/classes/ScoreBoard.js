@@ -129,9 +129,14 @@ class ScoreBoard {
         this.scene.add(this.messageMesh);
     }
 
-    showOpponentQuit() {
+    showQuitText(localPlayerQuit = false) {
         this.clearScores();
-        this.messageMesh = this.createText('Your opponent has quit the game', 50, 0x2222FF, 1.4, 4.0);
+        if (localPlayerQuit) {
+            this.messageMesh = this.createText('You have quit the game', 50, 0x2222FF, 1.4, 4.0);
+        }
+        else {
+            this.messageMesh = this.createText('Your opponent has quit the game', 50, 0x2222FF, 1.4, 4.0);
+        }
         this.messageMesh.position.set(0, 90.0, 300.0);
         if (globalState.invertedView === true) {
             this.messageMesh.rotation.y = THREE.MathUtils.degToRad(180);

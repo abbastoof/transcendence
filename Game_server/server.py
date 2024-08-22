@@ -21,6 +21,7 @@ class PongGame:
         self.game_state = self.init_game(game_id, player1_id, player2_id)
         self.sids = []
         self.sid_to_player_id = {}
+        self.game_loop_task = None
         self.is_remote = is_remote
         logging.info("Pongstructor")
 
@@ -80,10 +81,11 @@ class PongGame:
                 await asyncio.sleep(0.016)  # Adjust this to control the speed of the animation
             await self.send_score()
             await self.post_rally_animation()
-            if self.game_state.current_rally > self.game_state.longest_rally:
-                self.game_state.longest_rally = self.game_state.current_rally
-            self.game_state.in_progress = not self.game_state.is_game_over()
-    
+            if self.game_state.is_game_over():
+                self.game_state.in_progress = False
+                break  # Ensure the loop exits once the game is over
+
+
     # run_game method
     # Runs the game loop
     # When game loop is over, calls for end_game method
@@ -91,7 +93,10 @@ class PongGame:
         for sid in self.sids:
             await sio.emit('game_start', {'type': 'game_start', 'gameId': self.game_id}, room=sid)
         await asyncio.sleep(1.0)
-        await self.game_loop()
+        self.game_loop_task = asyncio.create_task(self.game_loop())
+        # Wait for the game loop to finish
+        await self.game_loop_task
+        # Call end_game after the
         await self.end_game()
 
     # update_game_state method
@@ -147,6 +152,14 @@ class PongGame:
     # The winner is determined based on the player scores
     # The game over message is sent to the clients with the game stats
     async def end_game(self):
+        self.game_state.in_progress = False
+        if self.game_loop_task and not self.game_loop_task.done():
+            self.game_loop_task.cancel()
+        try:
+            await self.game_loop_task  # Await to handle cancellation gracefully
+        except asyncio.CancelledError:
+            logging.info(f"Game loop for game {self.game_state.game_id} was cancelled.")
+
         if self.game_state.player1.score > self.game_state.player2.score:
             winner = self.game_state.player1.id
         else:
@@ -166,6 +179,11 @@ class PongGame:
         }
         for sid in self.sids:
             await sio.emit('game_over', json_data, room=sid)
+        self.sids.clear()  # Clear all session IDs from the game instance
+        del active_games[self.game_id]  # Remove the game instance from the active games
+        del self.game_state  # If possible, clear the game state
+        print_active_games()
+        
         #logging.info("Game over")
 
     # post_rally_animation method
@@ -244,6 +262,13 @@ class PongGame:
                     self.game_state.move_player(player2_id, p2_delta_z)
         await self.send_game_state_to_client()
 
+def print_active_games():
+    if active_games:
+        logging.info("List of active games:")
+        for game_id, game_instance in active_games.items():
+            logging.info(f"Game ID: {game_id}, Players: {game_instance.game_state.player1.id} vs {game_instance.game_state.player2.id}")
+    else:
+        logging.info("No active games currently.")
 
 # Event handler for new connections
 # This function is called when a new client connects to the server
@@ -263,14 +288,21 @@ async def connect(sid, environ):
 async def disconnect(sid):
     logging.info(f'Disconnect: {sid}')
     if sid in sid_to_game:
-        game_id = sid_to_game.pop(sid)
-        if game_id in active_games:
+        game_id = sid_to_game.pop(sid, None)
+        if game_id is not None and game_id in active_games:
             game_instance = active_games[game_id]
-            if sid in game_instance.sids: # this if statement has to be changed and terminate the game
+            if sid in game_instance.sids:
                 game_instance.sids.remove(sid)
                 if not game_instance.sids:
-                    logging.info(f"No players left in game {game_id}") 
-                    del active_games[game_id]  # this cleanup actually does not work
+                    logging.info(f"No players left in game {game_id}, ending game session")
+                    await game_instance.end_game()
+                    del active_games[game_id]  # Clean up properly
+                    logging.info(f"Game {game_id} terminated and removed from active_games")
+        else:
+            logging.info(f"Game {game_id} not found in active_games during disconnect")
+    else:
+        logging.info(f"SID {sid} not found in sid_to_game")
+
 
 # Event handler for messages
 # This function is called when a client sends a message to the server
@@ -301,7 +333,10 @@ async def start_game(sid, data):
     player1_id = data.get('player1_id')
     player2_id = data.get('player2_id')
     is_remote = data.get('is_remote')
-
+    if game_id in active_games:
+        logging.warning(f"Game {game_id} already active, terminating existing session.")
+        await active_games[game_id].end_game()
+        del active_games[game_id]
     # Create a new game instance
     try:
         game_instance = PongGame(game_id, player1_id, player2_id, is_remote)
@@ -381,6 +416,56 @@ async def move_paddle(sid, data):
         await game_instance.handle_paddle_movement(sid, data)
     else:
         logging.error(f"No active game instance for sid: {sid}")
+
+@sio.event
+async def quit_game(sid, data):
+    logging.info(f"Quit game request from {sid}: {data}")
+    
+    game_id = data.get('game_id')
+    player_id = data.get('player_id')
+
+    if game_id in active_games:
+        game_instance = active_games[game_id]
+
+        # Identify the quitting player and the remaining player
+        if game_instance.game_state.player1.id == player_id:
+            quitting_player = game_instance.game_state.player1
+            remaining_player = game_instance.game_state.player2
+        elif game_instance.game_state.player2.id == player_id:
+            quitting_player = game_instance.game_state.player2
+            remaining_player = game_instance.game_state.player1
+        else:
+            logging.error(f"Player ID {player_id} not found in game {game_id}")
+            return
+
+        # Set the game as over with a default score, e.g., 10-0
+        quitting_player.score = 0
+        remaining_player.score = 10
+
+        # Notify all players in the session that the game has ended because a player quit
+        json_data = {
+            "type": "quit_game",
+            "game_id": game_id,
+            "quitting_player_id": quitting_player.id,
+            "remaining_player_id": remaining_player.id,
+            "quitting_player_score": quitting_player.score,
+            "remaining_player_score": remaining_player.score,
+            "message": f"Player {quitting_player.id} has quit the game."
+        }
+
+        # Emit the `quit_game` event to all connected clients in the game session
+        for receiver_sid in game_instance.sids:
+            if receiver_sid == sid:
+                continue
+            await sio.emit('quit_game', json_data, room=receiver_sid)
+
+        # End the game and remove it from active games
+        await game_instance.end_game()
+        if game_id in active_games:
+            del active_games[game_id]
+        logging.info(f"Game {game_id} terminated after player {player_id} quit.")
+    else:
+        logging.error(f"Game ID {game_id} not found.")
 
 # Event handler for test message
 # This function is called when a client sends a test message to the server

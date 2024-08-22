@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             while(remainingIDs.length !== 0)
             {
                 startNextGame();
-                while (localStorage.getItem('isGameOver') === 'false')
+                while (sessionStorage.getItem('isGameOver') === 'false')
                     await new Promise(resolve => setTimeout(resolve, 100));
                 pongModal.hide();
 

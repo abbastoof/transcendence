@@ -6,52 +6,17 @@ import { init } from './init.js';
 import { randFloat } from 'three/src/math/MathUtils.js';
 import { globalState } from './globalState.js';
 import { localGameControls, remoteGameControls } from './controls.js';
+import { cleanupEventHandlers } from './eventhandlers.js';
 
 let gameStarted = false;
 let gameSession, renderer, scene, camera, composer, animationId;
 
-function callBackTestFunction(data) {
-    console.log(data);
-    console.log("callback called back");
-}
-
-export function cleanUpThreeJS() {
-    if (typeof cancelAnimationFrame !== 'undefined') {
-        cancelAnimationFrame(animationId);
-    }
-
-    if (renderer) {
-        renderer.dispose();
-    }
-
-    if (scene) {
-        scene.traverse((object) => {
-            if (!object.isMesh) return;
-            object.geometry.dispose();
-
-            if (object.material.isMaterial) {
-                cleanMaterial(object.material);
-            } else {
-                for (const material of object.material) cleanMaterial(material);
-            }
-        });
-    }
-    if (composer) composer.dispose();
-    gameStarted = false;
-
-
-}
-
-function cleanMaterial(material) {
-    material.dispose();
-    for (const key in material) {
-        const value = material[key];
-        if (value && typeof value === 'object' && 'minFilter' in value) {
-            value.dispose();
-        }
-    }
-}
-
+/**
+ * validateConfig
+ * Function to validate the configuration object
+ * @param {*} config is the configuration object
+ * @returns returns true if the configuration is valid, otherwise false
+ */
 function validateConfig(config) {
 
     const {
@@ -60,7 +25,6 @@ function validateConfig(config) {
         playerIds = [],
         player1Alias = "Player1",
         player2Alias = "Player2",
-    //  localPlayerId = null,
         isLocalTournament = false,
         isTest = false,
     } = config;
@@ -168,12 +132,23 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
     gameSession.initialize(finalGameId, localPlayerId, player1Id, player2Id, player1Alias, player2Alias, isRemote, isLocalTournament, scene, onGameEnd);
     gameStarted = true;
 
-    // Update function
+    // This section defines which function is used for player controls
+    // If the game is remote, the remoteGameControls function is used
+    // Otherwise, the localGameControls function is used
     let controlFunction;
     if (isRemote === true)
         controlFunction = remoteGameControls;
     else
         controlFunction = localGameControls;
+
+    // Animation loop
+    // This function is called recursively to animate the game
+    // It calls the controlFunction which listens to player controls
+    // It updates the iTime variable for the shaders
+    // Points the camera to center of the scene
+    // It renders the scene using the composer
+    // It requests the next animation frame
+
     function animate() {
         controlFunction(gameSession);
         updateITimes();
@@ -188,11 +163,13 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
 function quitRemoteGame() {
     if (gameSession) {
         gameSession.quitGame();
-        endGame();
     }
 
 }
 
+// Function to update the iTime variable for the shaders
+// This function is called in the animate function
+// It increments the iTime variable by .01 and updates iTime for all animated shaders
 function updateITimes() {
     globalState.iTime += .01;
     if (globalState.playingFieldMaterial)
@@ -205,6 +182,10 @@ function updateITimes() {
         });
     }
 }
+
+// Event listener for the Pong modal
+// This event listener is added to the button for starting the local game
+// opens themodal and starts the game
 document.addEventListener('DOMContentLoaded', () => {
     const pongModal = new bootstrap.Modal(document.getElementById('pongModal'));
 
@@ -215,13 +196,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 playerIds: [],    // Specify player IDs if needed
                 gameId: null,     // Specify game ID if needed
                 isLocalTournament: false,  // Set to true for local tournaments
-            }, callBackTestFunction);
+            }, localGameCallBack);
         }, 500); // Ensure the modal is fully visible
     });
 
     document.getElementById('pongModal').addEventListener('hidden.bs.modal', () => {
         if (gameStarted) {
-            if (isRemote === true) {
+            if (gameSession.isRemote === true && gameSession.inProgress === true) {
                 quitRemoteGame();
             }
             else
@@ -230,8 +211,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });    
 });
 
+/**
+ * Function to clean up the game
+ * Removes all game resources and resets the game state
+ * @returns void
+ * @modifies gameSession, scene, camera, composer, renderer
+ * @effects clears the game container
+ * @effects removes the animation frame
+ * @effects disposes the renderer
+ * @effects disposes the composer
+ * @effects nulls the game session
+ */
 export function cleanUpGame() {
-    gameSession = null;
+    if (gameSession) gameSession = null;
+    console.log(gameSession)
     if (scene) scene = null;
     if (camera) camera = null;
     if (composer) composer = null;
@@ -243,13 +236,44 @@ export function cleanUpGame() {
     }
 }
 
-export function endGame()
-{    
-    if (typeof cancelAnimationFrame !== 'undefined') cancelAnimationFrame(animationId);
-    if (renderer) renderer.dispose();
-    gameSession.clearResources();
+function localGameCallBack(data) {
+    const gameContainer = document.getElementById('pongGameContainer');
+    if (gameContainer) {
+        gameContainer.innerHTML = ''
+        ;
+    }
+}
+
+/**
+ * Function to end the game
+ * Cleans up the game and sets the game state to ended
+ * @returns void
+**/
+export function endGame() {    
+    console.log("Starting endGame cleanup...");
+
+    if (typeof cancelAnimationFrame !== 'undefined') {
+        cancelAnimationFrame(animationId);
+        console.log("Animation frame cancelled.");
+    }
+
+    if (renderer) {
+        renderer.dispose();
+        console.log("Renderer disposed.");
+    }
+
+    if (gameSession) {
+        gameSession.clearResources();
+        console.log("Game session resources cleared.");
+    }
+
     cleanUpGame();
+
     gameStarted = false;
     sessionStorage.setItem('isGameOver', 'true');
-    console.log("at endgame: gameStarted:", gameStarted, "isGameOver:", sessionStorage.getItem('isGameOver'));
+
+    console.log("EndGame complete, gameStarted:", gameStarted, "isGameOver:", sessionStorage.getItem('isGameOver'));
+
+
+    console.log("Modal hide attempted at endGame.");
 }

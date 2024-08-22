@@ -10,6 +10,7 @@ import { LEFT_PADDLE_START, RIGHT_PADDLE_START } from '../constants.js';
 import { endGame } from '../pong.js';
 import { globalState } from '../globalState.js';
 import { sendQuit } from '../eventhandlers.js';
+import { cleanupEventHandlers } from '../eventhandlers.js';
 
 class GameSession {
     constructor() {
@@ -32,6 +33,8 @@ class GameSession {
         this.player1Alias = "Player1"
         this.player2Alias = "Player2"
         this.paused = true;
+        this.inProgress = false;
+        this.quit = false;
     }
 
     initialize(gameId, localPlayerId, player1Id, player2Id, player1Alias, player2Alias, isRemote, isLocalTournament, scene, onGameEnd) {
@@ -88,7 +91,7 @@ class GameSession {
 
     handleGameStart() {
         this.scoreBoard.showGameStartText()
-
+        this.inProgress = true;
         this.leftPaddle.addToScene();
         this.rightPaddle.addToScene();
         setTimeout(() => {
@@ -134,28 +137,34 @@ class GameSession {
         }, 2000);
     }
 
+    handleOpponentQuit(data) {
+        this.leftPaddle.removeFromScene();
+        this.rightPaddle.removeFromScene();
+        this.ball.removeFromScene();
+        this.scoreBoard.showQuitText();
+    }
+
     handleGameOver(data) {
         this.leftPaddle.removeFromScene();
         this.rightPaddle.removeFromScene();
-        this.disconnect();
         setTimeout(() => {
-        if (typeof this.onGameEndCallback === 'function') {
-            if (this.dataSent === false) {
-                
-                endGame();
-                this.onGameEndCallback(data);
-                console.log("Game end callback executed, forwarded data: ", data);
-                this.dataSent = true;
+            if (typeof this.onGameEndCallback === 'function') {
+                if (this.dataSent === false) {
+                    
+                    endGame();
+                    this.onGameEndCallback(data);
+                    console.log("Game end callback executed, forwarded data: ", data);
+                    this.dataSent = true;
+                }
+                else {
+                    console.log("Game end callback already executed.");
+                }
             }
             else {
-                console.log("Game end callback already executed.");
+                console.log("No game end callback defined.");
             }
+            }, 3000);
         }
-        else {
-            console.log("No game end callback defined.");
-        }
-        }, 3000);
-    }
     
     
     disconnect() {
@@ -172,10 +181,18 @@ class GameSession {
         this.ball.removeFromScene();
         this.scoreBoard.removeFromScene();
         this.disconnect();
+        this.gameId = null
+        cleanupEventHandlers();
     }
 
     quitGame() {
+        this.quit = true;
+        this.inProgress = false;
+        this.leftPaddle.removeFromScene();
+        this.rightPaddle.removeFromScene();
+        this.ball.removeFromScene();
         sendQuit(this.gameId, this.localPlayerId);
+        this.scoreBoard.showQuitText(true);
     }
 }
 

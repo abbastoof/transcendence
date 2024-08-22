@@ -1,8 +1,11 @@
 import { PADDLE_SPEED } from './constants.js';
+import { endGame } from './pong.js';
 import { globalState } from './globalState.js';
 
-
+// keys object to store the state of the keys
 const keys = {};
+
+// event listeners for keydown and keyup events
 document.addEventListener('keydown', (event) => {
     keys[event.key] = true;
 });
@@ -10,6 +13,7 @@ document.addEventListener('keyup', (event) => {
     keys[event.key] = false;
 });
 
+// Function to handle the game controls
 export function localGameControls(gameSession) {
     let leftDeltaZ = 0;
     let rightDeltaZ = 0;
@@ -44,13 +48,16 @@ export function localGameControls(gameSession) {
     }
 }
 
+// Function to handle the remote game controls
 export function remoteGameControls(gameSession) {
     let deltaZ = 0;
     
     if (gameSession.paused === true) {
         return;
     }
-
+    if ((keys['q'])) {
+        gameSession.quitGame();
+    }
     let playerPaddle;
     if (globalState.invertedView)
         playerPaddle = gameSession.rightPaddle;
