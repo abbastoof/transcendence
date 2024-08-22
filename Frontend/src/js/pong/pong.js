@@ -83,7 +83,7 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
         isLocalTournament = false,
         isTest = false,
     } = config;
-    
+
     console.log('playerIds:', playerIds);  // Debugging line
     if (playerIds !== null && (!Array.isArray(playerIds) || !playerIds.every(item => item === null || Number.isInteger(item)) || (playerIds.length !== 0 && playerIds.length !== 2))) {
         console.error('Invalid player IDs:', playerIds[0], playerIds[1]);
@@ -143,7 +143,7 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
         if (localPlayerId === playerIds[0] || localPlayerId === playerIds[1]) {
         player1Id = playerIds[0];
         player2Id = playerIds[1];
-        } 
+        }
         else {
             console.error('Local player ID does not match player IDs:', localPlayerId, playerIds[0], playerIds[1]);
             return;
@@ -195,7 +195,7 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
         if (keys['c'] || keys['C']) {
             if (!keyPressed) { // Check if the key was not already pressed
                 keyPressed = true; // Set the flag to indicate the key is now pressed
-    
+
                 if (globalState.view2D === false) {
                     globalState.view2D = true;
                     if (globalState.invertedView === true) {
@@ -203,7 +203,7 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
                     } else {
                         camera.position.set(0, 400, 400);
                     }
-                } 
+                }
                 else {
                     if (globalState.invertedView === true) {
                         camera.position.set(400, 400, -400); // Adjust these values for your desired isometric angle
@@ -248,7 +248,7 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
             let emitData = {
                 'type': 'move_paddle',
                 'game_id': gameSession.gameId,
-                'player1_id': gameSession.player1Id, 
+                'player1_id': gameSession.player1Id,
                 'p1_delta_z': leftDeltaZ,
                 'player2_id': gameSession.player2Id,
                 'p2_delta_z': rightDeltaZ
@@ -258,7 +258,7 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
     }
     function remoteGameControls() {
         let deltaZ = 0;
-        
+
         if (gameSession.paused === true) {
             return;
         }
@@ -269,7 +269,7 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
         else
             playerPaddle = gameSession.leftPaddle;
         // Capture input for the local player’s paddle
-    
+
         if (globalState.invertedView) {
             if ((keys['s'] || keys['S']) && !playerPaddle.intersectsWall(gameSession.playingField.upperWall.boundingBox)) {
                 deltaZ -= PADDLE_SPEED;
@@ -288,7 +288,7 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
             }
         }
         playerPaddle.move(deltaZ)
-    
+
         // Send movement data to the server for the local player’s paddle
         if (deltaZ !== 0) {
             let emitData = {
@@ -330,6 +330,7 @@ function updateITimes() {
         });
     }
 }
+
 document.addEventListener('DOMContentLoaded', () => {
     const pongModal = new bootstrap.Modal(document.getElementById('pongModal'));
 
@@ -344,11 +345,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 500); // Ensure the modal is fully visible
     });
 
+     // Initialize leaving game custom confirmation modal
+     const confirmationModalElement = document.getElementById('confirmationModal');
+     const confirmationModal = new bootstrap.Modal(confirmationModalElement, {
+         backdrop: 'static',
+         keyboard: false // Disable closing the confirmation modal with ESC
+     });
+
+     let isConfirmed = false;
+
+     document.getElementById('pongModal').addEventListener('hide.bs.modal', function(event){
+         console.log("isConfirmed:", isConfirmed);
+        if (!isConfirmed) {
+            event.preventDefault();
+            confirmationModal.show();
+        }
+     });
+
+    // Handle confirmation modal buttons
+    document.getElementById('cancelClose').addEventListener('click', function () {
+        confirmationModal.hide();
+    });
+
+    document.getElementById('confirmClose').addEventListener('click', function () {
+        isConfirmed = true;
+        confirmationModal.hide();
+        pongModal.hide();
+        isConfirmed = false; // Reset the flag for future use
+    });
+
     document.getElementById('pongModal').addEventListener('hidden.bs.modal', () => {
+        console.log("at hidden.bs.modal");
         if (gameStarted) {
             endGame();
         }
-    });    
+    });
 });
 
 export function cleanUpGame() {
