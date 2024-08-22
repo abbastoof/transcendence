@@ -102,11 +102,11 @@ function handleOtpVerification(event, username, password) {
 }
 
 function completeLogin(data) {
+    document.getElementById('loginVerificationCode').value = '';
     showMessage('Login successful', '#loginModal', 'accept');
     sessionStorage.setItem('userData', JSON.stringify({ id: data.id, token: data.access, refresh: data.refresh }));
     sessionStorage.setItem('isLoggedIn', 'true');
     setTimeout(() => {
-        document.getElementById('loginVerificationCode').value = '';
         document.getElementById('loginModal').querySelector('.close').click();
         document.getElementById('loginForm').reset();
         document.getElementById('loginVerification').style.display = 'none';

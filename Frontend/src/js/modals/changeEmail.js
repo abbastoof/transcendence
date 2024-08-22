@@ -68,7 +68,7 @@ export function handleEmailUpdate(userData) {
         })
         .catch(error => {
             console.error('Error:', error);
-            showMessage('Error updating email', '#ProfileModal', 'error');
+            showMessage('Error sending verification code', '#ProfileModal', 'error');
         });
     });
 
