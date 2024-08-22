@@ -201,7 +201,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 500); // Ensure the modal is fully visible
     });
 
-     initializeConfirmationModal('pongModal');
+    let title = "Quit Game";
+    let message = "Are you sure you want to quit the game?";
+
+    // if (gameSession.isRemote === true) {
+    //     title = "Forfeit Game";
+    //     message = "Are you sure you want to forfeit?\nyou will lose!";
+    // } else if (gameSession.isLocalTournament === true) {
+    //     title = "End Tournament";
+    //     message = "Are you sure you want to end the tournament?";
+    // }
+
+    const bypassConfirmationModal = initializeConfirmationModal('pongModal', title, message);
+
+    // test bypassing the confirmation modal
+    // document.addEventListener('keydown', function(event) {
+    //     if (event.key === 'Backspace') {
+    //         bypassConfirmationModal();
+    //     }
+    // });
 
     document.getElementById('pongModal').addEventListener('hidden.bs.modal', function(event) {
         // Thinking we should add a check here to see if the game was quit instead of it ending naturally and handle

@@ -49,7 +49,6 @@
         </div>
     </div>
 
-
     <!-- Pong Game Modal -->
     <div class="modal fade game-modal" id="pongModal" tabindex="-1" role="dialog" aria-labelledby="pongModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" style="max-width: 820px;" role="document">
@@ -73,50 +72,27 @@
     </div>
 
     <!-- Game close confirmation modal -->
-    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalTitle" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="confirmationModalLabel">Confirm Action</h5>
+                    <h5 class="modal-title" id="confirmationModalTitle">Confirm Action</h5>
                     <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body" style="display: flex; flex-direction: column; align-items: center; justify-content: center;"> <!-- can the body be modified based on the game type? -->
+                <div class="modal-body" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
                     <div class="confirm-text" style="margin-bottom: 1rem;">
-                        Are you sure you want to leave the game?
+                        <p id="confirmationModalMessage">Are you sure?</p>
                     </div>
                     <div class="confirm-buttons" style="display: flex; gap: 1rem;">
                         <button type="button" class="btn btn-secondary" id="cancelClose">Cancel</button>
-                        <button type="button" class="btn btn-primary" id="confirmClose">Yes, leave</button>
+                        <button type="button" class="btn btn-primary" id="confirmClose">Confirm</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-<!-- Game close confirmation modal -->
- <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="confirmationModalLabel">Confirm Action</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" style="display: flex; flex-direction: column; align-items: center; justify-content: center;"> <!-- can the body be modified based on the game type? -->
-                <div class="confirm-text" style="margin-bottom: 1rem;">
-                    Are you sure you want to leave the game?
-                </div>
-                <div class="confirm-buttons" style="display: flex; gap: 1rem;">
-                    <button type="button" class="btn btn-secondary" id="cancelClose">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="confirmClose">Yes, leave</button>
-                </div>
-            </div>
-        </div>
-    </div>
- </div>
-
-
-
-      <!-- Tournament Modal -->
+    <!-- Tournament Modal -->
     <div class="tournament"></div>
 
     <!-- About Modal -->
