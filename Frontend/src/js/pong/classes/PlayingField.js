@@ -36,6 +36,24 @@ class PlayingField {
         this.upperWall.addToScene()
         this.lowerWall.addToScene()
     }
+    removeFromScene() {
+        this.scene.remove(this.planeMesh);
+        this.upperWall.removeFromScene()
+        this.lowerWall.removeFromScene()
+        if (this.planeGeometry) {
+            this.planeGeometry.dispose();
+        }
+        if (globalState.playingFieldMaterial) {
+            globalState.playingFieldMaterial.dispose();
+        }
+        this.planeMesh.traverse(child => {
+            if (child.isMesh) {
+                if (child.material.map) {
+                    child.material.map.dispose();
+                }
+            }
+        });
+    }
 }
 
 export default PlayingField;

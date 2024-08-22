@@ -13,7 +13,7 @@ import './modals/friends.js';
 insert('.headerContainer', 'headerSVG.html');
 //insertModal('.tournament', 'tournamentModal.html', 'tournament', 'Tournament');
 
-// // Assuming you have imported necessary modules and functions like startGame, cleanupGame
+// Assuming you have imported necessary modules and functions like startGame, cleanupGame
 // document.addEventListener('DOMContentLoaded', function () {
 //     // Initialize the modal with options to prevent closing on backdrop click
 //     const pongModalElement = document.getElementById('pongModal');

@@ -1,3 +1,5 @@
+// Description: This file contains the global state of the pong game.
+// It contains the following global variables:
 export const globalState = {
     rgbShift: null,
     scoreBoardMaterial: null,
@@ -6,4 +8,5 @@ export const globalState = {
     iTime: 0.0,
     glitchPass: null,
     view2D: false,
+    dataSent: false,
 }
