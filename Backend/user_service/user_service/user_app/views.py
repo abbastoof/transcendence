@@ -131,14 +131,25 @@ class UserViewSet(viewsets.ViewSet):
                 Response: The response object containing the updated user data.
         """
         try:
+            response_message = {}
+            status_code = status.HTTP_200_OK
             validate_token(request)
-            data = get_object_or_404(UserProfileModel, id=pk)
-            if data != request.user and not request.user.is_superuser:
+            user_obj = get_object_or_404(UserProfileModel, id=pk)
+            if user_obj != request.user and not request.user.is_superuser:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-            serializer = UserSerializer(instance=data, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+            data = request.data
+            current_email = user_obj.email
+            if "email" in data:
+                response_message, status_code = self.handle_email(data, user_obj)
+            if not response_message:
+                serializer = UserSerializer(instance=user_obj, data=data, partial=True)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                if serializer.data["email"] != current_email.user_email:
+                    current_email.delete()
+                response_message = serializer.data
+                status_code = status.HTTP_202_ACCEPTED
+            return Response(response_message, status=status_code)
         except ValidationError as err:
             item_lists = []
             for item in err.detail:
@@ -146,6 +157,23 @@ class UserViewSet(viewsets.ViewSet):
             return Response({'error': item_lists}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    def handle_email(self, data, user_obj):
+        response_message = {}
+        status_code = status.HTTP_200_OK
+        new_email = data["email"]
+        new_email_obj = ConfirmEmail.objects.filter(user_email=new_email).first()
+        if new_email_obj and new_email_obj.verify_status:
+            existing_user = UserProfileModel.objects.filter(email=new_email).exclude(id=user_obj.id).first()
+            if existing_user:
+                response_message = {"error": "Email already exists"}
+                status_code = status.HTTP_400_BAD_REQUEST
+            else:
+                data["email"] = new_email_obj.pk
+        else:
+            response_message = {"error": "You have not confirmed your email yet!"},
+            status_code=status.HTTP_401_UNAUTHORIZED
+        return response_message, status_code
 
     def destroy_user(self, request, pk=None) -> Response:
         """
@@ -259,7 +287,7 @@ class RegisterViewSet(viewsets.ViewSet):
         username = request.data.get("username")
         response_message = {}
         status_code = status.HTTP_200_OK
-        if username is not None and email is not None:
+        if username is not None or email is not None:
             user_obj = UserProfileModel.objects.filter(username = username).first()
             email_obj = UserProfileModel.objects.filter(email = email).first()
             if user_obj is not None and email_obj is not None:
@@ -272,7 +300,12 @@ class RegisterViewSet(viewsets.ViewSet):
                 response_message = {"error": "email is not available"}
                 status_code = status.HTTP_400_BAD_REQUEST
             else:
-                response_message = {"detail": "username and email are available"}
+                if email is not None and username is not None:
+                    response_message = {"detail": "username and email are available"}
+                elif username is not None:
+                    response_message = {"detail": "username is available"}
+                elif email is not None:
+                    response_message = {"detail": "email is available"}
         else:
             response_message = {'error':"username and email fields are required"}
             status_code = status.HTTP_400_BAD_REQUEST
