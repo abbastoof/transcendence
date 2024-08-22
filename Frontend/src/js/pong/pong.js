@@ -207,13 +207,16 @@ document.addEventListener('DOMContentLoaded', () => {
          keyboard: false // Disable closing the confirmation modal with ESC
      });
 
-     let isConfirmed = false;
+    let isConfirmed = false;
 
-     document.getElementById('pongModal').addEventListener('hide.bs.modal', function(event){
-         console.log("isConfirmed:", isConfirmed);
+    document.getElementById('pongModal').addEventListener('hide.bs.modal', function(event){
+        // console.log("in pongModal hide with isConfirmed:", isConfirmed);
         if (!isConfirmed) {
+            // console.log("no confirmation.. preventing default");
             event.preventDefault();
             confirmationModal.show();
+        } else {
+            isConfirmed = false;
         }
      });
 
@@ -225,12 +228,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('confirmClose').addEventListener('click', function () {
         isConfirmed = true;
         confirmationModal.hide();
-        pongModal.hide();
-        isConfirmed = false; // Reset the flag for future use
+        // console.log("calling pongModal.hide() with isConfirmed:", isConfirmed);
+        const pongModal = bootstrap.Modal.getInstance(document.getElementById('pongModal'));
+        pongModal.hide(); // Use Bootstrap's native method to hide the modal
     });
 
-    document.getElementById('pongModal').addEventListener('hidden.bs.modal', () => {
-        console.log("at hidden.bs.modal");
+    document.getElementById('pongModal').addEventListener('hidden.bs.modal', function(event) {
         if (gameStarted) {
             if (gameSession.isRemote === true && gameSession.inProgress === true) {
                 quitRemoteGame();
