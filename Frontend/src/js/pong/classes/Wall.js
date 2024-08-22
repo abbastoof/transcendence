@@ -20,6 +20,23 @@ class Wall {
         this.scene.add(this.mesh);
         this.scene.add(this.edgesMesh);
     }
+    removeFromScene() {
+        this.scene.remove(this.mesh);
+        this.scene.remove(this.edgesMesh);
+        if (this.geometry) {
+            this.geometry.dispose();
+        }
+        if (this.material) {
+            this.material.dispose();
+        }
+        this.mesh.traverse(child => {
+            if (child.isMesh) {
+                if (child.material.map) {
+                    child.material.map.dispose();
+                }
+            }
+        });
+    }
 }
 
 export default Wall;

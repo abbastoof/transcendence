@@ -58,10 +58,6 @@ class Paddle {
             }
         }
 
-        if (this.boundingBox) {
-            this.boundingBox.dispose();
-        }
-
         // Dispose of textures if any
         this.mesh.traverse(child => {
             if (child.isMesh) {
