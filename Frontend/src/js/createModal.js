@@ -40,25 +40,11 @@ export function createModal(modalId, modalTitle, content) {
         }
     }
 
-    let isConfirmed = false; // Variable to store the confirmation status
-
-    // Add event listener to hide modal and prevent hiding tournament and game modal
-    modalElement._element.addEventListener('hide.bs.modal', function (event) {
-        console.log("confirm status:", isConfirmed);
-        if ((modalId === 'tournament' || modalId === 'pongModal') && !isConfirmed) {
-            event.preventDefault();
-            if (confirm("Are you sure you want to leave the tournament?")) {
-                isConfirmed = true;
-            }
-        }
-    });
-
     // Add event listener to hidden modal and clear URL hash when modal is hidden
     modalElement._element.addEventListener('hidden.bs.modal', function () {
         if (window.location.hash === `#${modalId}`) {
             history.back();
         }
-        isConfirmed = false;
     });
 
     // Add event listener to set URL hash when modal is shown
