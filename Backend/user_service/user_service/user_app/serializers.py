@@ -2,7 +2,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from .models import UserProfileModel, FriendRequest, GameRoom
+from .models import UserProfileModel, FriendRequest, GameRoom, ConfirmEmail
 from .validators import CustomPasswordValidator
 
 class GameRoomSerializer(serializers.ModelSerializer):
@@ -57,9 +57,7 @@ class UserSerializer(serializers.ModelSerializer):
                 create: Method to create a new user.
                 update: Method to update a user.
     """
-    email = serializers.EmailField(
-        validators=[UniqueValidator(queryset=UserProfileModel.objects.all())]
-    )
+    email = serializers.PrimaryKeyRelatedField(queryset=ConfirmEmail.objects.all())
     avatar = serializers.ImageField(required=False)
     friends = serializers.PrimaryKeyRelatedField(
         many=True, queryset=UserProfileModel.objects.all(), required=False # required=False means that the field is not required
@@ -67,12 +65,22 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfileModel
-        fields = ["id", "username", "email", "password", "avatar", "online_status", "friends"]
+        fields = [
+            "id",
+            "username",
+            "email",
+            "password",
+            "avatar",
+            "online_status",
+            "friends",
+            "otp_status",
+            "otp",
+            "otp_expiry_time"
+            ]
         extra_kwargs = {"password": {"write_only": True}}
-
         ### Password should be strong password, minimum 8 characters, at least one uppercase letter, one lowercase letter, one number and one special character
 
-    def create(self, validate_data) -> UserProfileModel:
+    def create(self, validated_data) -> UserProfileModel:
         """
             Method to create a new user.
 
@@ -80,23 +88,23 @@ class UserSerializer(serializers.ModelSerializer):
             The password is validated using CustomPasswordValidator.
             The password is hashed before saving the user object.
             Args:
-                validate_data: The data to validate.
+                validated_data: The data to validate.
 
             Returns:
                 User: The user object.
         """
         try:
-            validate_password(validate_data["password"])
+            validate_password(validated_data["password"])
         except ValidationError as err:
             raise serializers.ValidationError(detail=err.messages) from err
-        password = validate_data.pop("password", None)
-        instance = self.Meta.model(**validate_data)
+        password = validated_data.pop("password", None)
+        instance = self.Meta.model(**validated_data)
         if password is not None:
             instance.set_password(password)
         instance.save()
         return instance
 
-    def update(self, instance, validate_data) -> UserProfileModel:
+    def update(self, instance, validated_data) -> UserProfileModel:
         """
             Method to update a user.
 
@@ -105,7 +113,7 @@ class UserSerializer(serializers.ModelSerializer):
 
             Args:
                 instance: The user object.
-                validate_data: The data to validate.
+                validated_data: The data to validate.
 
             Returns:
                 User: The updated user object.
@@ -114,7 +122,7 @@ class UserSerializer(serializers.ModelSerializer):
                 serializers.ValidationError: If the password is the same as the current password.
 
         """
-        for attr, value in validate_data.items():
+        for attr, value in validated_data.items():
             if attr == "password" and value is not None:
                 if instance.check_password(value):
                     raise serializers.ValidationError(detail="New password must be different from the current password.")
@@ -130,3 +138,8 @@ class UserSerializer(serializers.ModelSerializer):
                 setattr(instance, attr, value)
         instance.save()
         return instance
+
+class ConfirmEmailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ConfirmEmail
+        fields = '__all__'

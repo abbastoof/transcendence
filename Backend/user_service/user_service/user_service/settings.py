@@ -13,8 +13,15 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from datetime import timedelta
 from pathlib import Path
+from dotenv import load_dotenv
 import re
 
+load_dotenv()
+TOKEN_SERVICE_URL = os.environ.get('TOKEN_SERVICE')
+GAME_HISTORY_URL = os.environ.get('GAME_HISTORY')
+PGSQL_HOST = os.environ.get('PGSQL_HOST')
+DB_USER = os.environ.get('DB_USER')
+DB_PASS = os.environ.get('DB_PASS')
 LOG_DIR = Path('/var/log/')
 
 LOGGING = {
@@ -70,16 +77,21 @@ APPEND_SLASH = False
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-qn48+qe6b*r3p65fb_3fo)_rji73yxoz7++45o773!k2jkvq0v'
-SECRET_KEY = "django-insecure-woftd2en2**zr(b%#*2vit2v%s@(k54gb^c(ots0abo7(wsmo%"
+SECRET_KEY = os.environ.get('DJANGO_SECRET')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.Argon2PasswordHasher",
 ]
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = os.environ.get('USER_SERVICE_EMAIL')
+EMAIL_HOST_PASSWORD = os.environ.get('USER_SERVICE_PASS')
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -137,7 +149,6 @@ REST_FRAMEWORK = {
     ]
 }
 
-
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -176,9 +187,9 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "user_service",
-        "HOST": "postgresql",
-        "USER": "root",
-        "PASSWORD": "root",
+        "HOST": PGSQL_HOST,
+        "USER": DB_USER,
+        "PASSWORD": DB_PASS,
         "PORT": "5432",
         "ATOMIC_REQUESTS": True,
         "TEST": {

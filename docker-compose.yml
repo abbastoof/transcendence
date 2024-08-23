@@ -24,20 +24,6 @@ services:
     networks:
       - transcendence_network
 
-  rabbitmq:
-    container_name: rabbitmq
-    image: rabbitmq
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: Backend/rabbitmq/Dockerfile
-    ports:
-      - 5672:5672
-      - 15672:15672
-    networks:
-      - transcendence_network
-
   user-service:
     container_name: user-service
     image: user-service
@@ -54,7 +40,6 @@ services:
       - www_data:/app/www/avatars
       # - database:/var/lib/postgresql/
     depends_on:
-      - rabbitmq
       - postgresql
 
   token-service:
@@ -70,7 +55,6 @@ services:
     ports:
       - 8000:8000
     depends_on:
-      - rabbitmq
       - postgresql
 
   game-history:
@@ -84,7 +68,6 @@ services:
     networks:
       - transcendence_network
     depends_on:
-      - rabbitmq
       - postgresql
 
   game-server:
@@ -100,7 +83,6 @@ services:
     networks:
       - transcendence_network
     depends_on:
-      - rabbitmq
       - postgresql
 
   postgresql:

@@ -6,7 +6,18 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from user_app.views import UserViewSet, RegisterViewSet, FriendsViewSet, validate_token
 from user_app.user_session_views import UserLoginView, UserLogoutView
 from rest_framework import status
-from user_app.models import UserProfileModel
+from user_app.models import UserProfileModel, ConfirmEmail
+from user_app.serializers import UserSerializer
+import os
+from dotenv import load_dotenv
+from django.conf import settings
+
+headers = {
+    "X-SERVICE-SECRET": settings.SECRET_KEY
+}
+
+load_dotenv()
+TOEKNSERVICE = os.environ.get('TOKEN_SERVICE')
 
 @pytest.fixture
 def api_client():
@@ -22,13 +33,29 @@ def user_data():
         'password': 'Test@123'
     }
 
+def admin_data():
+    return {
+        'id': 1,
+        'username': 'adminuser',
+        'email': 'adminuser@123.com',
+        'password': 'Admin@123'
+    }
+
 @pytest.fixture
 def user(db):
-    return UserProfileModel.objects.create_user(username='testuser', email='testuser@123.com', password='Test@123')
+    email_obj = ConfirmEmail.objects.create(user_email = 'testuser@123.com', verify_status = True)
+    user_serializer = UserSerializer(data = {"username":'testuser', "email":email_obj.pk, "password":'Test@123'})
+    user_serializer.is_valid(raise_exception=True)
+    user_serializer.save()
+    return UserProfileModel.objects.get(username='testuser')
 
 @pytest.fixture
 def admin_user(db):
-    return UserProfileModel.objects.create_superuser(username='admin', email='admin@123.com', password='Admin@123')
+    admin_email = ConfirmEmail.objects.create(user_email = 'admintest@123.com', verify_status = True)
+    user_obj = UserSerializer(data = {"username":'adminuser', "email":admin_email.pk, "password":'Admin@123'})
+    user_obj.is_valid(raise_exception=True)
+    user_obj.save()
+    return UserProfileModel.objects.get(username='adminuser')
 
 @pytest.fixture
 def user_token(user):
@@ -47,7 +74,9 @@ def mock_validate_token():
 
 @pytest.mark.django_db
 def test_user_register(api_client, user_data):
+    email_obj = ConfirmEmail.objects.create(user_email = 'testuser@123.com', verify_status = True)
     url = reverse('user-register')
+    user_data["email"] = email_obj.pk
     response = api_client.post(url, user_data, format='json')
     assert response.status_code == 201
     assert response.data['id'] == 1
@@ -55,12 +84,18 @@ def test_user_register(api_client, user_data):
     assert response.data['email'] == 'testuser@123.com'
 
 @pytest.mark.django_db
-def test_users_list(api_client, admin_user, admin_token, user_data):
+def test_users_list(api_client, admin_user, admin_token):
     # Mock the RabbitMQ interactions
-    user1 = UserProfileModel.objects.create_user(username='testuser1',email='testuser1@123.com',password='Test@123')
-    user2 = UserProfileModel.objects.create_user(username='testuser2',email='testuser2@123.com',password='Test@123')
+    email1_obj = ConfirmEmail.objects.create(user_email = 'testuser1@123.com', verify_status = True)
+    user1 = UserSerializer(data = {'username':'testuser1','email' : email1_obj.pk,'password':'Test@123'})
+    user1.is_valid(raise_exception=True)
+    user1.save()
+    email2_obj = ConfirmEmail.objects.create(user_email = 'testuser2@123.com', verify_status = True)
+    user2 = UserSerializer(data = {'username':'testuser2','email' : email2_obj.pk,'password':'Test@123'})
+    user2.is_valid(raise_exception=True)
+    user2.save()
 
-        # Authenticate the request
+    # Authenticate the request
     token = admin_token
     api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
 
@@ -75,7 +110,7 @@ def test_users_list(api_client, admin_user, admin_token, user_data):
 @pytest.mark.django_db
 def test_user_login(api_client, admin_user):
     data = {
-        "username":"admin",
+        "username":"adminuser",
         "password":"Admin@123"
     }
     url = reverse("user-login")
@@ -96,8 +131,8 @@ def test_user_logout(mock_post, api_client, admin_user, admin_token):
     assert response.status_code == 200
     assert response.data["detail"] == 'User logged out successfully'
     mock_post.assert_called_once_with(
-        "http://token-service:8000/auth/token/invalidate-tokens/",
-        data={"access": admin_token, 'id':admin_user.id}
+        f"{TOEKNSERVICE}/auth/token/invalidate-tokens/",
+        data={"access": admin_token, 'id':admin_user.id}, headers=headers
     )
     assert UserProfileModel.objects.filter(username=admin_user.username).exists()
 
@@ -112,13 +147,14 @@ def test_retrieve_user(api_client, user, user_token):
     assert response.status_code == status.HTTP_200_OK
     assert response.data['id'] == user.id
     assert response.data['username'] == user.username
-    assert response.data['email'] == user.email
+    assert response.data['email'] == user.email.user_email
 
 @pytest.mark.django_db
 def test_update_user(api_client, user, user_token):
+    email_obj = ConfirmEmail.objects.create(user_email = "newuser@123.com", verify_status=True)
     data = {
         "username": "newuser",
-        "email": "newuser@123.com"
+        "email": email_obj.pk
     }
     api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
 
@@ -145,7 +181,7 @@ def test_valid_data_friend_request_functions(api_client, admin_user, user, user_
     print("\ntestuser sends a friend request to admin user")
     api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
     url_request = reverse('send-request', kwargs={'user_pk': user.id})
-    response_request = api_client.post(url_request, data={'username': 'admin'}, format='json')
+    response_request = api_client.post(url_request, data={'username': 'adminuser'}, format='json')
     assert response_request.status_code == status.HTTP_201_CREATED
     assert response_request.data["detail"]=='Friend request sent'
 
@@ -154,7 +190,7 @@ def test_valid_data_friend_request_functions(api_client, admin_user, user, user_
     url_request = reverse('friend-request-list', kwargs={'user_pk': admin_user.id})
     response_request = api_client.get(url_request, format='json')
     assert response_request.data[0]["sender_username"] == 'testuser'
-    assert response_request.data[0]["receiver_username"] == 'admin'
+    assert response_request.data[0]["receiver_username"] == 'adminuser'
     assert response_request.data[0]["status"] == 'pending'
     assert response_request.status_code == status.HTTP_200_OK
 
@@ -173,7 +209,7 @@ def test_valid_data_friend_request_functions(api_client, admin_user, user, user_
     print("\ntest user has admin in its friends list")
     url_request = reverse('friends-list', kwargs={'user_pk': user.id})
     response_request = api_client.get(url_request, format='json')
-    assert response_request.data[0]["username"] == "admin"
+    assert response_request.data[0]["username"] == "adminuser"
     assert response_request.status_code == 200
 
     print("\ntestuser delete the admin user from its friends list")
@@ -196,7 +232,7 @@ def test_reject_friend_request(api_client, admin_user, user, user_token, admin_t
     print("\ntestuser sends a friend request to admin user")
     api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {user_token}')
     url_request = reverse('send-request', kwargs={'user_pk': user.id})
-    response_request = api_client.post(url_request, {'username': 'admin'}, format='json')
+    response_request = api_client.post(url_request, {'username': 'adminuser'}, format='json')
     assert response_request.status_code == status.HTTP_201_CREATED
     assert response_request.data["detail"]=='Friend request sent'
 
@@ -205,7 +241,7 @@ def test_reject_friend_request(api_client, admin_user, user, user_token, admin_t
     url_request = reverse('friend-request-list', kwargs={'user_pk': admin_user.id})
     response_request = api_client.get(url_request, format='json')
     assert response_request.data[0]["sender_username"] == 'testuser'
-    assert response_request.data[0]["receiver_username"] == 'admin'
+    assert response_request.data[0]["receiver_username"] == 'adminuser'
     assert response_request.data[0]["status"] == 'pending'
     assert response_request.status_code == status.HTTP_200_OK
 

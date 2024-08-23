@@ -11,6 +11,12 @@ def user_directory_path(instance, filename):
     filename = f'{uuid.uuid4()}.{ext}'
     return os.path.join(str(instance.id), filename)
 
+class ConfirmEmail(models.Model):
+    user_email = models.EmailField(unique=True, primary_key=True)
+    verify_status = models.BooleanField(default=False)
+    otp = models.CharField(null=True, blank=True)
+    otp_expiry_time = models.DateTimeField(blank=True, null=True)
+
 class UserProfileModel(AbstractUser):
     """
         User class to define the user model.
@@ -22,9 +28,13 @@ class UserProfileModel(AbstractUser):
 
         Email: The email field is required for the user model.
     """
+    email = models.OneToOneField(ConfirmEmail, related_name='user_profile_email', on_delete=models.CASCADE)
     avatar = models.ImageField(upload_to=user_directory_path, null=True, blank=True, default='default.jpg')
     friends = models.ManyToManyField("self", blank=True, symmetrical=True)
     online_status = models.BooleanField(default=False)
+    otp_status = models.BooleanField(default=False, blank=True, null=True)
+    otp = models.CharField(blank=True, null=True)
+    otp_expiry_time = models.DateTimeField(blank=True, null=True)
     REQUIRED_FIELDS = ["email"]
 
 class FriendRequest(models.Model):
@@ -43,23 +53,6 @@ class FriendRequest(models.Model):
 
     class Meta:
         unique_together = ('sender_user', 'receiver_user')
-
-class ChatModel(models.Model):
-    sender = models.CharField(max_length=100, default=None)
-    message = models.TextField(null=True, blank=True)
-    thread_name = models.CharField(null=True, blank=True, max_length=50)
-    timestamp = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self) -> str:
-        return self.message or ""
-
-class ChatNotification(models.Model):
-    chat = models.ForeignKey(to=ChatModel, on_delete=models.CASCADE)
-    user = models.ForeignKey(to=UserProfileModel, on_delete=models.CASCADE)
-    is_seen = models.BooleanField(default=False)
-
-    def __str__(self) -> str:
-        return self.user.username
 
 class GameRoom(models.Model):
     room_name = models.CharField(max_length=50, unique=True)
