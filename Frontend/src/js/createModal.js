@@ -28,7 +28,7 @@ export function createModal(modalId, modalTitle, content) {
     function showModal() {
         modalElement.show();
         if (window.location.hash !== `#${modalId}`) {
-            history.replaceState(null, null, `#${modalId}`);
+            history.pushState({ modalId: modalId }, null, `#${modalId}`);
         }
     }
 
@@ -36,7 +36,7 @@ export function createModal(modalId, modalTitle, content) {
     function hideModal() {
         modalElement.hide();
         if (window.location.hash === `#${modalId}`) {
-            history.replaceState(null, null, ' ');
+            history.pushState(null, null, ' ');
         }
     }
 
@@ -68,6 +68,7 @@ export function createModal(modalId, modalTitle, content) {
             modalElement.hide();
         }
     });
+
     // Optionally, handle the initial load if the URL contains the modal hash
     if (window.location.hash === `#${modalId}`) {
         modalElement.show();

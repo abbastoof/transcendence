@@ -62,6 +62,44 @@ document.addEventListener('DOMContentLoaded', async () => {
           });
     });
 
+    randomNamesButton.style.display = 'none';
+    startTournamentButton.style.display = 'none';
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === "Escape" || event.keyCode === 27) {
+            resetTournament();
+            console.log("ESC PRESSED!");
+        }
+    });
+
+    function resetTournament() {
+
+        sessionStorage.setItem('isGameOver', 'true');
+
+        randomNamesButton.style.display = 'none';
+        startTournamentButton.style.display = 'none';
+        playerForm.reset();
+        playerAliasInputs.innerHTML = '';
+
+        sessionStorage.setItem('infoScreen', 'false');
+        sessionStorage.setItem('tournamentPlayers', JSON.stringify([]));
+        sessionStorage.setItem('remainingIDs', JSON.stringify([]));
+        sessionStorage.setItem('roundWinners', JSON.stringify([]));
+        
+        tournamentModal.hide();
+        pongModal.hide();
+        gameInfoModal.hide();
+
+        console.log("TOURNAMENT RESET");                  // pois
+    }
+
+    closeButtons.forEach((closeButton) => {
+        closeButton.addEventListener('click', () => {
+            console.log("MODAL X PRESSED");                 // pois
+            resetTournament();
+          });
+    });
+
     gameInfoButton.addEventListener('click', function () {
         sessionStorage.setItem('infoScreen', 'false');
     })
@@ -253,6 +291,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function startNextGame() {
 
         let remainingIDs = JSON.parse(sessionStorage.getItem('remainingIDs'));
+        let players = JSON.parse(sessionStorage.getItem('tournamentPlayers'));
 
         if(remainingIDs.length === 0) { return ; }
 
@@ -262,12 +301,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             isRemote: false,
             playerIds: [remainingIDs[0], remainingIDs[1]],
             gameId: seed + currentGame,
-            isLocalTournament: true
+            isLocalTournament: true,
+            player1Alias: players[remainingIDs[0] - 1].name,
+            player2Alias: players[remainingIDs[1] - 1].name
         };
 
         currentGame++;
         const newRemainingIds = remainingIDs.slice(2);
         sessionStorage.setItem('remainingIDs', JSON.stringify(newRemainingIds));
+        sessionStorage.setItem('remainingIDs', JSON.stringify(newRemainingIds));
+
         pongModal.show();
         startGame('pongGameContainer', config, gameResultCallBack);
     }
