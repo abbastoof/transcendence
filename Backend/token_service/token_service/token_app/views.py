@@ -124,9 +124,19 @@ class CustomTokenRefreshView(TokenRefreshView):
                 {"error": "Refresh token is required"}, status=status.HTTP_400_BAD_REQUEST
             )
         try:
+            user_id = request.data.get("id")
+            if not user_id:
+                return Response({"error": "User id is required"}, status=status.HTTP_400_BAD_REQUEST)
+            user_object = UserTokens.objects.filter(id=user_id)
+            if not user_object:
+                return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+            token_data = user_object.token_data
             refresh_token = bearer.split(' ')[1]
             refresh = RefreshToken(refresh_token)
             access_token = str(refresh.access_token)
+            token_data["access"] = str(refresh.access_token)
+            user_object.token_data=token_data
+            user_object.save()
             return Response({"access": access_token}, status=status.HTTP_200_OK)
         except Exception as err:
             return Response({"error": "Could not generate access token", "details": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -157,9 +167,11 @@ class ValidateToken(viewsets.ViewSet):
 
     def validate_token_for_user(self, request, *args, **kwargs):
         response_message = {}
-        status_code = status.HTTP_201_CREATED
-        response_message, status_code = check_secret(request, response_message, status_code)
-        if "error" not in response_message and status_code == status.HTTP_201_CREATED:
+        status_code = status.HTTP_200_OK
+        isfrontend = request.data.get("is_frontend")
+        if isfrontend is None:
+            response_message, status_code = check_secret(request, response_message, status_code)
+        if "error" not in response_message and status_code == status.HTTP_200_OK:
             try:
                 status_code = status.HTTP_200_OK
                 response_message = {}
@@ -198,9 +210,9 @@ class ValidateToken(viewsets.ViewSet):
 class InvalidateToken(viewsets.ViewSet):
     def invalidate_token_for_user(self, request, *args, **kwargs) -> Response:
         response_message = {}
-        status_code = status.HTTP_201_CREATED
+        status_code = status.HTTP_200_OK
         response_message, status_code = check_secret(request, response_message, status_code)
-        if "error" not in response_message and status_code == status.HTTP_201_CREATED:
+        if "error" not in response_message and status_code == status.HTTP_200_OK:
             try:
                 access = request.data.get("access")
                 id = request.data.get("id")
