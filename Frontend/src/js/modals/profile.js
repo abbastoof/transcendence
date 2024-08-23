@@ -82,8 +82,8 @@ export function updateUserProfile() {
                     </div>
                     <button type="submit" class="submit">Submit</button>
                 </form>
-                <button type="button" class="submit" data-bs-toggle="modal" data-bs-target="#FriendsModal">Friends</button>
-                <button type="button" class="submit" data-bs-toggle="modal" data-bs-target="#HistoryModal">Match history</button>
+                <button type="button" id="friendsButton" class="submit" data-bs-toggle="modal" data-bs-target="#FriendsModal">Friends</button>
+                <button type="button" id="matchHistoryButton" class="submit" data-bs-toggle="modal" data-bs-target="#HistoryModal">Match history</button>
                 <!-- 2FA Toggle Switch -->
                 <div class="toggle-container">
                     <label class="toggle-label">Two-Factor Authentication:</label>
@@ -107,7 +107,9 @@ export function updateUserProfile() {
 
         document.getElementById('changeProfilePictureButton').addEventListener('click', toggleProfilePictureForm);
         handleProfilePictureUpdate(userData);
-
+           
+        document.getElementById('friendsButton').addEventListener('click', updateFriendsList);
+        document.getElementById('matchHistoryButton').addEventListener('click', updateMatchHistory);
         // Handle 2FA Toggle Switch
         document.getElementById('twoFactorAuthToggle').addEventListener('change', function() {
             toggleTwoFactorAuth(userData, this.checked, userData.token);
