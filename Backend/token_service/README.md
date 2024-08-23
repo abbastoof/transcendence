@@ -16,11 +16,24 @@ The API runs on port 8000 and exposed to 8001.
 ## Tutorial to use the token_service
 
 There are three endpoints in the token_service. The endpoints are:
-- `auth/token/refresh/` - This endpoint is used to refresh the access token.
+- `auth/token/refresh/` - This endpoint is used to refresh the access token. to refresh the access token you need to send a request to this endpoint with the refresh token in the request body. The request will be like this:
+```json
+{
+    "id": "user_id",
+    "refresh": "your refresh token"
+}
+```
+
 - `auth/token/gen-tokens/` - This endpoint is used to generate the refresh and access tokens.
 - `auth/token/invalidate-tokens/` - This endpoint is used by user-service logout or delete user to invalidate the refresh and access tokens.
-- `auth/token/validate-token/` - This endpoint is used to validate the access token.
-
+- `auth/token/validate-token/` - This endpoint is used to validate the access token. If you send a request from frontend to this API your request will be like this:
+```json
+{
+    "id": "user_id",
+    "access": "your access token",
+    "is_frontend": true
+}
+```
 ## The UserTokens model
 
 The UserTokens model is used to store the refresh and access tokens. The UserTokens model has the following fields:
