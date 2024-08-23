@@ -167,11 +167,11 @@ class ValidateToken(viewsets.ViewSet):
 
     def validate_token_for_user(self, request, *args, **kwargs):
         response_message = {}
-        status_code = status.HTTP_201_CREATED
+        status_code = status.HTTP_200_OK
         isfrontend = request.data.get("is_frontend")
         if isfrontend is None:
             response_message, status_code = check_secret(request, response_message, status_code)
-        if "error" not in response_message and status_code == status.HTTP_201_CREATED:
+        if "error" not in response_message and status_code == status.HTTP_200_OK:
             try:
                 status_code = status.HTTP_200_OK
                 response_message = {}
@@ -210,9 +210,9 @@ class ValidateToken(viewsets.ViewSet):
 class InvalidateToken(viewsets.ViewSet):
     def invalidate_token_for_user(self, request, *args, **kwargs) -> Response:
         response_message = {}
-        status_code = status.HTTP_201_CREATED
+        status_code = status.HTTP_200_OK
         response_message, status_code = check_secret(request, response_message, status_code)
-        if "error" not in response_message and status_code == status.HTTP_201_CREATED:
+        if "error" not in response_message and status_code == status.HTTP_200_OK:
             try:
                 access = request.data.get("access")
                 id = request.data.get("id")
