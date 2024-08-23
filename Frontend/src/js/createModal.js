@@ -1,5 +1,18 @@
 import * as bootstrap from 'bootstrap'
 
+window.addEventListener('beforeunload', function (event) {
+    event.preventDefault();
+    event.returnValue = 'Are you sure you want to refresh? Current data will be lost.';
+});
+
+window.addEventListener('load', function () {
+    if (window.location.pathname !== '/' || window.location.hash !== '') {
+        window.location.replace('https://localhost:3000');
+    } else {
+        clearPageHistory();
+    }
+});
+
 export function createModal(modalId, modalTitle, content) {
     const modalHTML = `
     <div class="modal fade" id="${modalId}Modal" tabindex="-1" role="dialog" data-bs-backdrop="static" aria-labelledby="${modalId}Label" aria-hidden="true">
@@ -28,7 +41,7 @@ export function createModal(modalId, modalTitle, content) {
     function showModal() {
         modalElement.show();
         if (window.location.hash !== `#${modalId}`) {
-            history.replaceState(null, null, `#${modalId}`);
+            history.pushState({ modalId: modalId }, null, `#${modalId}`);
         }
     }
 
@@ -36,7 +49,7 @@ export function createModal(modalId, modalTitle, content) {
     function hideModal() {
         modalElement.hide();
         if (window.location.hash === `#${modalId}`) {
-            history.replaceState(null, null, ' ');
+            history.pushState(null, null, ' ');
         }
     }
 
@@ -68,6 +81,7 @@ export function createModal(modalId, modalTitle, content) {
             modalElement.hide();
         }
     });
+
     // Optionally, handle the initial load if the URL contains the modal hash
     if (window.location.hash === `#${modalId}`) {
         modalElement.show();
@@ -78,5 +92,25 @@ export function createModal(modalId, modalTitle, content) {
         modalElement,
         showModal,
         hideModal
+    };
+}
+
+function clearPageHistory() {
+    // Push a new state to the history stack
+    history.pushState(null, null, window.location.href);
+    // Replace the current state with the same URL to effectively clear the stack
+    history.replaceState(null, null, window.location.href);
+    
+    // Add a popstate event listener to handle back/forward navigation
+    window.onpopstate = function (event) {
+        if (event.state && event.state.modalId) {
+            const modalElement = document.getElementById(`${event.state.modalId}Modal`);
+            if (modalElement) {
+                const modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+                modalInstance.show();
+            }
+        } else {
+            // Handle other state changes if necessary
+        }
     };
 }
