@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // }
 
     const bypassConfirmationModal = initializeConfirmationModal('pongModal', title, message);
-
+    globalState.bypassConfirmationModal = bypassConfirmationModal;
     // test bypassing the confirmation modal
     // document.addEventListener('keydown', function(event) {
     //     if (event.key === 'Backspace') {
@@ -295,7 +295,7 @@ export function endGame() {
 
     gameStarted = false;
     sessionStorage.setItem('isGameOver', 'true');
-
+    globalState.bypassConfirmationModal();
     console.log("EndGame complete, gameStarted:", gameStarted, "isGameOver:", sessionStorage.getItem('isGameOver'));
 
 
