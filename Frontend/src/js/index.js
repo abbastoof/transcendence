@@ -81,8 +81,8 @@ insert('.headerContainer', 'headerSVG.html');
 
 createModal('gameInfo', 'Game info', `
     <div class="d-flex flex-column">
-        <div class="mb-4 aboutText" style="font-size: 30px" id="winner"></div>
-        <div class="mb-4 aboutText" style="font-size: 30px" id="nextPlayers"></div>
+        <div class="mb-4 font" id="winner"></div>
+        <div class="mb-4 font" id="nextPlayers"></div>
         <button type="button" id="gameInfoButton" class="submit">OK</button>
     </div>`);
 
