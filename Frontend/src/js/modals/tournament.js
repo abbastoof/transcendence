@@ -255,6 +255,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function startNextGame() {
 
         let remainingIDs = JSON.parse(sessionStorage.getItem('remainingIDs'));
+        let players = JSON.parse(sessionStorage.getItem('tournamentPlayers'));
 
         if(remainingIDs.length === 0) { return ; }
 
@@ -264,7 +265,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             isRemote: false,
             playerIds: [remainingIDs[0], remainingIDs[1]],
             gameId: seed + currentGame,
-            isLocalTournament: true
+            isLocalTournament: true,
+            player1Alias: players[remainingIDs[0] - 1].name,
+            player2Alias: players[remainingIDs[1] - 1].name
         };
 
         currentGame++;
