@@ -2,7 +2,7 @@ import * as bootstrap from 'bootstrap'
 
 export function createModal(modalId, modalTitle, content) {
     const modalHTML = `
-    <div class="modal fade" id="${modalId}Modal" tabindex="-1" aria-labelledby="${modalId}Label" aria-hidden="true">
+    <div class="modal fade" id="${modalId}Modal" tabindex="-1" role="dialog" data-bs-backdrop="static" aria-labelledby="${modalId}Label" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">

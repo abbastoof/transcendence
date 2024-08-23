@@ -27,7 +27,7 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
         await self.accept()
-        await self.change_online_status(self.scope['user'], 'open')
+        # await self.change_online_status(self.scope['user'], 'open')
         self.user_channels[self.scope['user'].username] = self.channel_name
         # print(f'Connected to WebSocket: {self.room_group_name}')
         await self.add_player_to_lobby(self.scope['user'])
@@ -163,37 +163,36 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             print(f'Error in send_onlineStatus: {e}')
 
-
-    @database_sync_to_async
-    def change_online_status(self, username, c_type):
-        from .models import UserProfileModel as User
-
-        try:
-            userprofile = User.objects.get(username=username)
-            # print(f'User profile username: {userprofile.username}')
-            if c_type == 'open':
-                userprofile.online_status = True
-                userprofile.save()
-            else:
-                userprofile.online_status = False
-                userprofile.save()
-            # print(f'Changed status for {username} to {c_type}')
-        except User.DoesNotExist:
-            print(f'User {username} does not exist.')
-        except User.DoesNotExist:
-            print(f'User profile for {username} does not exist.')
-        except Exception as e:
-            print(f'Error changing status: {e}')
-
     async def disconnect(self, code):
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
-        await self.change_online_status(self.scope['user'], 'close')
+        # await self.change_online_status(self.scope['user'], 'close')
         print(f'Disconnected from WebSocket: {self.room_group_name} with code: {code}')
         # if self.scope['user'] in self.waiting_list:
         #     self.waiting_list.remove(self.scope['user'])
+
+    # @database_sync_to_async
+    # def change_online_status(self, username, c_type):
+    #     from .models import UserProfileModel as User
+
+    #     try:
+    #         userprofile = User.objects.get(username=username)
+    #         # print(f'User profile username: {userprofile.username}')
+    #         if c_type == 'open':
+    #             userprofile.online_status = True
+    #             userprofile.save()
+    #         else:
+    #             userprofile.online_status = False
+    #             userprofile.save()
+    #         # print(f'Changed status for {username} to {c_type}')
+    #     except User.DoesNotExist:
+    #         print(f'User {username} does not exist.')
+    #     except User.DoesNotExist:
+    #         print(f'User profile for {username} does not exist.')
+    #     except Exception as e:
+    #         print(f'Error changing status: {e}')
 
 
     # # Match two players
