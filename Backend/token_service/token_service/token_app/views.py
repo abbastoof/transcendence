@@ -168,7 +168,9 @@ class ValidateToken(viewsets.ViewSet):
     def validate_token_for_user(self, request, *args, **kwargs):
         response_message = {}
         status_code = status.HTTP_201_CREATED
-        response_message, status_code = check_secret(request, response_message, status_code)
+        isfrontend = request.data.get("is_frontend")
+        if isfrontend is None:
+            response_message, status_code = check_secret(request, response_message, status_code)
         if "error" not in response_message and status_code == status.HTTP_201_CREATED:
             try:
                 status_code = status.HTTP_200_OK
