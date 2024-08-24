@@ -146,6 +146,7 @@ createModal('signUp', 'Sign up', `
         </div>
     </form>`);
 
+
 createModal('login', 'Log in', `
     <form id="loginForm" class="form">
         <div class="form-group">
@@ -190,3 +191,5 @@ createModal('Friends', 'Friends', '<div id="Friends"> <h2 id="friendsList">Frien
 createModal('History', 'History', '<div id="History"></div>');
 
 insertModal('.about', 'aboutModal.html', 'about', 'About');
+
+

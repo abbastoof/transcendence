@@ -248,6 +248,7 @@ function setupModalListeners(isRemote, isLocalTournament) {
                 endGame();
             }
         }
+        
     });
 }
 

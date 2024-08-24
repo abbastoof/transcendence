@@ -238,7 +238,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         startNextGame();
         while (sessionStorage.getItem('isGameOver') === 'false')
             await new Promise(resolve => setTimeout(resolve, 100));
-        pongModal.hide();
         roundWinners = JSON.parse(sessionStorage.getItem('roundWinners'));
         winnerName = JSON.parse(sessionStorage.getItem('tournamentPlayers')).find((player) => (player.id === roundWinners[roundWinners.length - 1]));
 
@@ -288,9 +287,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Event listener for when the modal is closed
-    modalElement.addEventListener('hidden.bs.modal', function () {
-        // Reset the form and clear inputs
-        playerForm.reset();
-        playerAliasInputs.innerHTML = '';
-    });
+    // modalElement.addEventListener('hidden.bs.modal', function () {
+    //     // Reset the form and clear inputs
+    //     playerForm.reset();
+    //     playerAliasInputs.innerHTML = '';
+    // });
 });
