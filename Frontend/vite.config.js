@@ -13,6 +13,10 @@ export default defineConfig(({ mode }) => ({
     strictPort: true,  // Ensure the server will only listen on the specified port
     host: '0.0.0.0',  // Listen on all network interfaces for container access
     proxy: {
+      '/auth': {
+        target: 'http://token-service:8000',
+        changeOrigin: true,
+      },
       '/user': {
         target: 'http://user-service:8001',  // Proxy to user service
         changeOrigin: true,

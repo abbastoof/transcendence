@@ -27,7 +27,7 @@ class OnlineStatusConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
         await self.accept()
-        await self.change_online_status(self.scope['user'], 'open')
+        #await self.change_online_status(self.scope['user'], 'open')
         self.user_channels[self.scope['user'].username] = self.channel_name
         # print(f'Connected to WebSocket: {self.room_group_name}')
         await self.add_player_to_lobby(self.scope['user'])

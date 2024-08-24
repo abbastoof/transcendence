@@ -1,4 +1,5 @@
-import {showMessage} from './messages.js';
+import { showMessage } from './messages.js';
+import { handleTokenVerification } from '../tokenHandler.js';
 
 document.addEventListener('DOMContentLoaded', function () {
 	updateFriendsList();
@@ -15,26 +16,29 @@ export function updateFriendsList() {
 		console.error('UserData is missing or incomplete');
 		return;
 	}
-	fetch(`/user/${userData.id}/friends/`, {
-		method: 'GET',
-		headers: {
-			'Authorization': `Bearer ${userData.token}`
-		}
-	})
-		.then(response => {
-			if (!response.ok) {
-				throw new Error('Network response was not ok');
-			}
-			return response.json();
-		})
-		.then(data => {
-			const friendsContainer = document.getElementById('friendsList');
-			if (!friendsContainer) {
-				console.error('Friends container not found');
-				return;
-			}
 
-			let htmlContent = `
+	const fetchFriends = (userData) => {
+		fetch(`/user/${userData.id}/friends/`, {
+			method: 'GET',
+			headers: {
+				'Authorization': `Bearer ${userData.token}`
+			}
+		})
+			.then(response => {
+				if (!response.ok) {
+					console.log("friends.js: response not ok");
+					throw new Error('Network response was not ok');
+				}
+				return response.json();
+			})
+			.then(data => {
+				const friendsContainer = document.getElementById('friendsList');
+				if (!friendsContainer) {
+					console.error('Friends container not found');
+					return;
+				}
+
+				let htmlContent = `
 			<div class="container">
 			<form id="friendForm">
                 <div class="form-group">
@@ -46,36 +50,71 @@ export function updateFriendsList() {
 			<h2 class="font">Friends list</h2>
 			`;
 
-			data.forEach(friend => {
-				htmlContent += `
+				data.forEach(friend => {
+					htmlContent += `
 				<div class="friend-record">
 					<p class="font">${friend.username}: <span class="${friend.status ? 'online' : 'offline'}">&nbsp;${friend.status ? 'Online' : 'Offline'}</span>
 					<button class="remove-btn reject" data-friend-id="${friend.id}">Remove</button>
 					</p>
 				</div>
 				`;
-			});
-			htmlContent += '</div>';
-			friendsContainer.innerHTML = htmlContent;
-
-			document.querySelectorAll('.remove-btn').forEach(button => {
-				button.addEventListener('click', function () {
-					removeFriend(userData, this.getAttribute('data-friend-id'));
 				});
-			});
+				htmlContent += '</div>';
+				friendsContainer.innerHTML = htmlContent;
 
-			getPendingFriendRequests(userData);
-		})
-		.then(() => {
-			const form = document.getElementById('friendForm');
-			form.addEventListener('submit', function (event) {
-				event.preventDefault();
-				sendFriendRequest(userData);
+				document.querySelectorAll('.remove-btn').forEach(button => {
+					button.addEventListener('click', function () {
+						handleTokenVerification()
+						.then(validToken => {
+							userData.token = validToken;
+							removeFriend(userData, this.getAttribute('data-friend-id'));
+						})
+						.catch(error => {
+							console.error('Error verifying token:', error);
+						});
+					});
+				});
+
+				handleTokenVerification()
+					.then(validToken => {
+						userData.token = validToken;
+						getPendingFriendRequests(userData);
+					})
+					.catch(error => {
+						console.error('Error verifying token:', error);
+					});
+
+			})
+			.then(() => {
+				const form = document.getElementById('friendForm');
+				form.addEventListener('submit', function (event) {
+					event.preventDefault();
+
+					handleTokenVerification()
+						.then(validToken => {
+							userData.token = validToken;
+							sendFriendRequest(userData);
+						})
+						.catch(error => {
+							console.error('Error verifying token:', error);
+						});
+
+				});
+			})
+			.catch(error => {
+				console.error('Error fetching friends:', error);
 			});
+	};
+
+	handleTokenVerification()
+		.then(validToken => {
+			userData.token = validToken;
+			fetchFriends(userData);
 		})
 		.catch(error => {
-			console.error('Error fetching friends:', error);
+			console.error('Error verifying token:', error);
 		});
+
 };
 
 function sendFriendRequest(userData) {
@@ -147,12 +186,26 @@ function getPendingFriendRequests(userData) {
 			pendingContainer.innerHTML = htmlContent;
 			document.querySelectorAll('.accept-btn').forEach(button => {
 				button.addEventListener('click', function () {
-					acceptPendingFriendRequest(userData, this.getAttribute('data-pending-sender_user'));
+					handleTokenVerification()
+						.then(validToken => {
+							userData.token = validToken;
+							acceptPendingFriendRequest(userData, this.getAttribute('data-pending-sender_user'));
+						})
+						.catch(error => {
+							console.error('Error verifying token:', error);
+						});
 				});
 			});
 			document.querySelectorAll('.reject-btn').forEach(button => {
 				button.addEventListener('click', function () {
-					rejectPendingFriendRequest(userData, this.getAttribute('data-pending-sender_user'));
+					handleTokenVerification()
+						.then(validToken => {
+							userData.token = validToken;
+							rejectPendingFriendRequest(userData, this.getAttribute('data-pending-sender_user'));
+						})
+						.catch(error => {
+							console.error('Error verifying token:', error);
+						});
 				});
 			});
 		})
@@ -206,31 +259,31 @@ function rejectPendingFriendRequest(userData, requestID) {
 }
 
 function removeFriend(userData, friendID) {
-    fetch(`/user/${userData.id}/friends/${friendID}/remove/`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${userData.token}` }
-    })
-    .then(response => {
-        if (response.status === 204) {
-            showMessage('Friend removed successfully', '#FriendsModal', 'accept');
-            updateFriendsList();
-        } else if (!response.ok) {
-            return response.json().then(errData => {
-                throw new Error(errData.error || 'Network response was not ok');
-            });
-        } else {
-            return response.json();
-        }
-    })
-    .then(data => {
-        if (data) {
-            showMessage('Friend removed:', data, '#FriendsModal', 'accept');
-            updateFriendsList();
-        }
-    })
-    .catch(error => {
-        console.error('Error removing friend:', error);
-    });
+	fetch(`/user/${userData.id}/friends/${friendID}/remove/`, {
+		method: 'DELETE',
+		headers: { 'Authorization': `Bearer ${userData.token}` }
+	})
+		.then(response => {
+			if (response.status === 204) {
+				showMessage('Friend removed successfully', '#FriendsModal', 'accept');
+				updateFriendsList();
+			} else if (!response.ok) {
+				return response.json().then(errData => {
+					throw new Error(errData.error || 'Network response was not ok');
+				});
+			} else {
+				return response.json();
+			}
+		})
+		.then(data => {
+			if (data) {
+				showMessage('Friend removed:', data, '#FriendsModal', 'accept');
+				updateFriendsList();
+			}
+		})
+		.catch(error => {
+			console.error('Error removing friend:', error);
+		});
 };
 
 function clearAddFriendForm() {

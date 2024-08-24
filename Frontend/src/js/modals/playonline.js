@@ -1,5 +1,6 @@
 import * as bootstrap from 'bootstrap';
 import { startGame } from '../pong/pong';
+import { handleTokenVerification } from '../tokenHandler';
 
 const pongModalElement = document.getElementById('pongModal');
 const waitingLobbyModalElement = document.getElementById('waitingLobbyModal');
@@ -34,13 +35,13 @@ export function openWaitingLobby() {
 }
 
 function connectToWebSockets() {
-    const userData = JSON.parse(sessionStorage.getItem('userData'));
-    if (!userData || !userData.token) {
-        console.error('User data or token is missing');
-        return;
-    }
-
-    const onlineStatusSocket = new WebSocket(`/ws/online/?token=${userData.token}`);
+    // const userData = JSON.parse(sessionStorage.getItem('userData'));
+    // if (!userData || !userData.token) {
+    //     console.error('User data or token is missing');
+    //     return;
+    // }
+    const token = handleTokenVerification()
+    const onlineStatusSocket = new WebSocket(`/ws/online/?token=${token}`);
 
     let gameRoomSocket;
 
@@ -73,9 +74,10 @@ function connectToWebSockets() {
     onlineStatusSocket.onerror = function(error) {
         console.error('Error in online status WebSocket:', error);
     };
+    const anotherToken = handleTokenVerification()
 
     function connectToGameRoom(roomName) {
-        gameRoomSocket = new WebSocket(`/ws/game/room/${roomName}/?token=${userData.token}`);
+        gameRoomSocket = new WebSocket(`/ws/game/room/${roomName}/?token=${anotherToken}`);
 
         gameRoomSocket.onopen = function() {
             console.log(`Connected to game room ${roomName} WebSocket`);
@@ -84,6 +86,7 @@ function connectToWebSockets() {
 
         gameRoomSocket.onmessage = function(event) {
             const data = JSON.parse(event.data);
+            console.log(data)
             if (data.type === 'starting_game') {
                 // lobbyContent.innerHTML = 
                 // `<div class="d-flex justify-content-center">

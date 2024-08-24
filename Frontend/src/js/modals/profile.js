@@ -1,9 +1,21 @@
 import { updateFriendsList } from './friends.js';
 import { updateMatchHistory } from './history.js';
+import { handleTokenVerification } from '../tokenHandler.js';
 import { toggleEmailForm, handleEmailUpdate } from './changeEmail.js';
 import { togglePasswordForm, handlePasswordUpdate } from './changePassword.js';
 import { toggleProfilePictureForm, handleProfilePictureUpdate } from './changeProfilePicture.js';
 import { showMessage } from './messages.js';
+
+function resetProfileForms() {
+    document.getElementById('updateEmailForm').style.display = 'none';
+    document.getElementById('updatePasswordForm').style.display = 'none';
+    document.getElementById('imageUploadForm').style.display = 'none';
+
+    document.getElementById('newEmail').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('imageInput').value = '';
+    document.getElementById('fileName').textContent = 'No file chosen';
+}
 
 document.addEventListener('DOMContentLoaded', function () {
     updateUserProfile();
@@ -23,25 +35,26 @@ export function updateUserProfile() {
         return;
     }
 
-    fetch(`/user/${userData.id}/`, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${userData.token}`
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then(data => {
-        const userProfileContainer = document.getElementById('userProfile');
-        if (!userProfileContainer) {
-            console.error('UserProfile container not found');
-            return;
-        }
-        const htmlContent = `
+    const fetchProfile = (userData) => {
+        fetch(`/user/${userData.id}/`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${userData.token}`
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const userProfileContainer = document.getElementById('userProfile');
+                if (!userProfileContainer) {
+                    console.error('UserProfile container not found');
+                    return;
+                }
+                const htmlContent = `
             <div class="container">
                 <div class="profile-header">
                     <img id="avatar" src="${data.avatar || '/media/default.jpg'}" alt="User Profile Image" style="height: auto;" width="80" height="80">
@@ -94,32 +107,72 @@ export function updateUserProfile() {
                     </label>
                 </div>
             </div>`;
-        userProfileContainer.innerHTML = htmlContent;
+                userProfileContainer.innerHTML = htmlContent;
 
-        updateFriendsList();
-        updateMatchHistory();
+                updateFriendsList();
+                updateMatchHistory();
 
-        // Initialize event handlers
-        document.getElementById('changeEmailButton').addEventListener('click', toggleEmailForm);
-        handleEmailUpdate(userData);
+                // Initialize event handlers
+                document.getElementById('changeEmailButton').addEventListener('click', toggleEmailForm);
+                handleTokenVerification()
+                    .then(validToken => {
+                        userData.token = validToken;
+                        handleEmailUpdate(userData);
 
-        document.getElementById('changePasswordButton').addEventListener('click', togglePasswordForm);
-        handlePasswordUpdate(userData);
+                    })
+                    .catch(error => {
+                        console.error('Error verifying token:', error);
+                    });
 
-        document.getElementById('changeProfilePictureButton').addEventListener('click', toggleProfilePictureForm);
-        handleProfilePictureUpdate(userData);
-           
-        document.getElementById('friendsButton').addEventListener('click', updateFriendsList);
-        document.getElementById('matchHistoryButton').addEventListener('click', updateMatchHistory);
-        // Handle 2FA Toggle Switch
-        document.getElementById('twoFactorAuthToggle').addEventListener('change', function() {
-            toggleTwoFactorAuth(userData, this.checked, userData.token);
+                document.getElementById('changePasswordButton').addEventListener('click', togglePasswordForm);
+
+                handleTokenVerification()
+                    .then(validToken => {
+                        userData.token = validToken;
+                        handlePasswordUpdate(userData);
+                    })
+                    .catch(error => {
+                        console.error('Error verifying token:', error);
+                    });
+
+                document.getElementById('changeProfilePictureButton').addEventListener('click', toggleProfilePictureForm);
+
+                handleTokenVerification()
+                    .then(validToken => {
+                        userData.token = validToken;
+                        handleProfilePictureUpdate(userData);
+                    })
+                    .catch(error => {
+                        console.error('Error verifying token:', error);
+                    });
+
+                // Handle 2FA Toggle Switch
+                document.getElementById('twoFactorAuthToggle').addEventListener('change', function () {
+
+                    handleTokenVerification()
+                        .then(validToken => {
+                            userData.token = validToken;
+                            toggleTwoFactorAuth(userData, this.checked, userData.token);
+                        })
+                        .catch(error => {
+                            console.error('Error verifying token:', error);
+                        });
+                });
+
+            })
+            .catch(error => {
+                console.error('Error fetching user data:', error);
+            });
+    }
+    handleTokenVerification()
+        .then(validToken => {
+            userData.token = validToken;
+            fetchProfile(userData);
+
+        })
+        .catch(error => {
+            console.error('Error verifying token:', error);
         });
-    })
-    .catch(error => {
-        console.error('Error fetching user data:', error);
-    });
-}
 
 // Function to toggle 2FA status on the server
 function toggleTwoFactorAuth(userData, isEnabled, token) {
@@ -145,16 +198,7 @@ function toggleTwoFactorAuth(userData, isEnabled, token) {
     .catch(error => {
         console.error('Error updating 2FA status:', error);
     });
-}
+}}
 
 
-function resetProfileForms() {
-    document.getElementById('updateEmailForm').style.display = 'none';
-    document.getElementById('updatePasswordForm').style.display = 'none';
-    document.getElementById('imageUploadForm').style.display = 'none';
 
-    document.getElementById('newEmail').value = '';
-    document.getElementById('newPassword').value = '';
-    document.getElementById('imageInput').value = '';
-    document.getElementById('fileName').textContent = 'No file chosen';
-}
