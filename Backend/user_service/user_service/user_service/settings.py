@@ -14,7 +14,6 @@ import os
 from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
-import re
 
 load_dotenv()
 TOKEN_SERVICE_URL = os.environ.get('TOKEN_SERVICE')
@@ -22,6 +21,7 @@ GAME_HISTORY_URL = os.environ.get('GAME_HISTORY')
 PGSQL_HOST = os.environ.get('PGSQL_HOST')
 DB_USER = os.environ.get('DB_USER')
 DB_PASS = os.environ.get('DB_PASS')
+
 LOG_DIR = Path('/var/log/')
 
 LOGGING = {

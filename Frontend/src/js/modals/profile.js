@@ -144,7 +144,17 @@ export function updateUserProfile() {
                     .catch(error => {
                         console.error('Error verifying token:', error);
                     });
+                document.getElementById('friendsButton').addEventListener('click', updateFriendsList);
+                handleTokenVerification()
+                    .then(validToken => {
+                        userData.token = validToken;
+                        updateFriendsList(userData);
+                    })
+                    .catch(error => {
+                        console.error('Error verifying token:', error);
+                    });
 
+                document.getElementById('matchHistoryButton').addEventListener('click', updateMatchHistory);
                 // Handle 2FA Toggle Switch
                 document.getElementById('twoFactorAuthToggle').addEventListener('change', function () {
 

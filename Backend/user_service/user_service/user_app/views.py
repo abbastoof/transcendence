@@ -20,13 +20,12 @@ from dotenv import load_dotenv
 from .user_session_views import generate_secret
 import logging
 import requests
-import os
+from django.conf import settings
 
-load_dotenv()
-
-TOEKNSERVICE = os.environ.get('TOKEN_SERVICE')
+TOEKNSERVICE = settings.TOKEN_SERVICE_URL
 
 logger = logging.getLogger(__name__)
+
 headers = {
     "X-SERVICE-SECRET": settings.SECRET_KEY  # Replace with your actual secret key
 }

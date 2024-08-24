@@ -4,7 +4,7 @@ function refreshTokenRequest(userData) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${userData.refreshToken}`
+            'Authorization': `Bearer ${userData.refresh}`
         },
         body: JSON.stringify({ id: userData.id })
     })
@@ -16,10 +16,9 @@ function refreshTokenRequest(userData) {
     })
     .then(data => {
         // Update userData with new tokens
-        userData.token = data.token;
-        userData.refreshToken = data.refreshToken;
+        userData.token = data.access;
         sessionStorage.setItem('userData', JSON.stringify(userData));
-        return data.token;
+        return userData.token;
     });
 }
 
