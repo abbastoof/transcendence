@@ -20,11 +20,10 @@ export function initializeConfirmationModal(modalId, title, message) {
 	let bypassConfirmation = false;
 
     document.getElementById(modalId).addEventListener('hide.bs.modal', function(event){
-        // console.log("in ", modalId, ".hide with isConfirmed:", isConfirmed);
         console.log("isconfirmed " + isConfirmed)
         console.log("bypassconfirmation ", bypassConfirmation)
         if (!isConfirmed && !bypassConfirmation) {
-            // console.log("no confirmation.. preventing default");
+            console.log("no confirmation.. preventing default");
             console.log("isnotconfirmed no bypass")
             console.log("isconfirmed " + isConfirmed)
             console.log("bypassconfirmation ", bypassConfirmation)
@@ -33,10 +32,11 @@ export function initializeConfirmationModal(modalId, title, message) {
 			document.getElementById('confirmationModalTitle').innerText = title;
             document.getElementById('confirmationModalMessage').innerText = message;
             confirmationModal.show();
-        } else {
-            isConfirmed = false;
-			bypassConfirmation = false
-        }
+        } 
+        // else {
+        //     isConfirmed = false;
+		// 	bypassConfirmation = false
+        // }
      });
 
     // Handle confirmation modal buttons
@@ -55,8 +55,9 @@ export function initializeConfirmationModal(modalId, title, message) {
 	// function to bypass the confirmation modal
 	return function bypassConfirmationModal() {
 		bypassConfirmation = true;
+        console.log("bypassconfirmationmodal changed to true")
 		const modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
 		modal.hide();
-        bypassConfirmation = false;
+        //bypassConfirmation = false;
 	};
 }

@@ -11,6 +11,8 @@ import { initializeConfirmationModal } from '../modals/quitConfirmation.js';
 
 let gameStarted = false;
 let gameSession, renderer, scene, camera, composer, animationId;
+let pongDomContentLoadedHandler = null;
+let pongModalHiddenHandler = null;
 
 /**
  * validateConfig
@@ -63,6 +65,7 @@ function validateConfig(config) {
  */
 export function startGame(containerId, config = {}, onGameEnd = null) {
     console.log('Config object:', config);  // Debugging line
+    
     const {
         isRemote = false,
         gameId = null,
@@ -76,6 +79,10 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
 
     if (!validateConfig(config)) return;
     if (gameStarted) return;
+    createModalEventListeners(isRemote, isLocalTournament);
+    const pongModal = new bootstrap.Modal(document.getElementById('pongModal'));
+    pongModal.show()
+    
     let player1Id, player2Id, finalGameId, localPlayerId;
 
     if (isLocalTournament === true) {
@@ -184,56 +191,76 @@ function updateITimes() {
     }
 }
 
-// Event listener for the Pong modal
-// This event listener is added to the button for starting the local game
-// opens themodal and starts the game
-document.addEventListener('DOMContentLoaded', () => {
-    const pongModal = new bootstrap.Modal(document.getElementById('pongModal'));
+const localGameButton = document.getElementById('localGameButton');
 
-    document.querySelector('button[data-bs-target="#pongModal"]').addEventListener('click', () => {
-        setTimeout(() => {
-            startGame('pongGameContainer', {
-                isRemote: false,  // Set to true for remote multiplayer
-                playerIds: [],    // Specify player IDs if needed
-                gameId: null,     // Specify game ID if needed
-                isLocalTournament: false,  // Set to true for local tournaments
-            }, localGameCallBack);
-        }, 500); // Ensure the modal is fully visible
-    });
+localGameButton.addEventListener('click', () => {
+        startGame('pongGameContainer', {
+            isRemote: false,  // Set to true for remote multiplayer
+            playerIds: [],    // Specify player IDs if needed
+            gameId: null,     // Specify game ID if needed
+            isLocalTournament: false,  // Set to true for local tournaments
+        }, localGameCallBack);
+});
 
-    let title = "Quit Game";
+function createModalEventListeners(isRemote, isLocalTournament) {
+    // Check if DOM is fully loaded
+    if (document.readyState === "loading") {
+        document.addEventListener('DOMContentLoaded', setupModalListeners);
+    } else {
+        setupModalListeners(isRemote, isLocalTournament);
+    }
+}
+
+function setupModalListeners(isRemote, isLocalTournament) {
+    const pongModalElement = document.getElementById('pongModal');
+    
+    // Ensure the modal element exists before continuing
+    if (!pongModalElement) {
+        console.error("Pong modal element not found.");
+        return;
+    }
+    
+    // Initialize the Bootstrap modal
+    const pongModal = new bootstrap.Modal(pongModalElement);
+    console.log("pong dom event listener thingy");
+    
+    let title = "Quit game";
     let message = "Are you sure you want to quit the game?";
-
-    // if (gameSession.isRemote === true) {
-    //     title = "Forfeit Game";
-    //     message = "Are you sure you want to forfeit?\nyou will lose!";
-    // } else if (gameSession.isLocalTournament === true) {
-    //     title = "End Tournament";
-    //     message = "Are you sure you want to end the tournament?";
-    // }
-
+    
+    if (isRemote === true) {
+        title = "Forfeit Game";
+        message = "Are you sure you want to forfeit?\nyou will lose!";
+    } else if (isLocalTournament === true) {
+        title = "End Tournament";
+        message = "Are you sure you want to end the tournament?";
+    }
+    
     const bypassConfirmationModal = initializeConfirmationModal('pongModal', title, message);
     globalState.bypassConfirmationModal = bypassConfirmationModal;
-    // test bypassing the confirmation modal
-    // document.addEventListener('keydown', function(event) {
-    //     if (event.key === 'Backspace') {
-    //         bypassConfirmationModal();
-    //     }
-    // });
-
-    document.getElementById('pongModal').addEventListener('hidden.bs.modal', function(event) {
-        // Thinking we should add a check here to see if the game was quit instead of it ending naturally and handle
-        // tournament ending, online game forfeiting etc here
-        // could be just a simple bool for isQuit or something
+    
+    // Add event listener for the modal's hidden event
+    pongModalElement.addEventListener('hidden.bs.modal', function(event) {
         if (gameStarted) {
             if (gameSession.isRemote === true && gameSession.inProgress === true) {
                 quitRemoteGame();
-            }
-            else
                 endGame();
+            } else {
+                endGame();
+            }
         }
     });
-});
+}
+
+// Function to remove modal event listeners
+function removeModalEventListeners() {
+    const pongModalElement = document.getElementById('pongModal');
+    
+    if (pongModalElement) {
+        // Remove hidden.bs.modal event listener
+        pongModalElement.removeEventListener('hidden.bs.modal', setupModalListeners);
+    }
+}
+
 
 /**
  * Function to clean up the game
@@ -295,7 +322,9 @@ export function endGame() {
 
     gameStarted = false;
     sessionStorage.setItem('isGameOver', 'true');
-    globalState.bypassConfirmationModal();
+    if (globalState.bypassConfirmationModal)
+        globalState.bypassConfirmationModal();
+    removeModalEventListeners();
     console.log("EndGame complete, gameStarted:", gameStarted, "isGameOver:", sessionStorage.getItem('isGameOver'));
 
 

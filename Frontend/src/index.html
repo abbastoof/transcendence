@@ -22,7 +22,7 @@
     <div class="headerContainer"></div>
     <!-- Buttons -->
     <div class="buttonContainer col-md-12">
-        <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#pongModal">Local Game</button>
+        <button type="button" class="buttons" data-bs-toggle="modal" id="localGameButton">Local Game</button>
         <button type="button" class="buttons" data-bs-toggle="modal" data-bs-target="#tournamentModal">Local
             Tournament</button>
         <button type="button" class="buttons" id="authButton" data-bs-toggle="modal" data-bs-target="#loginModal">Log
@@ -73,20 +73,20 @@
     </div>
 
     <!-- Game close confirmation modal -->
-    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalTitle" aria-hidden="true">
+    <div class="modal fade" id="confirmationModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="confirmationModalTitle" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="confirmationModalTitle">Confirm Action</h5>
+                    <h3 class="modal-title" id="confirmationModalTitle">Confirm Action</h3>
                     <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
                     <div class="confirm-text" style="margin-bottom: 1rem;">
-                        <p id="confirmationModalMessage">Are you sure?</p>
+                        <p id="confirmationModalMessage" class="font">Are you sure?</p>
                     </div>
                     <div class="confirm-buttons" style="display: flex; gap: 1rem;">
-                        <button type="button" class="btn btn-secondary" id="cancelClose">Cancel</button>
-                        <button type="button" class="btn btn-primary" id="confirmClose">Confirm</button>
+                        <button type="button" class="submit" id="cancelClose">Cancel</button>
+                        <button type="button" class="submit" id="confirmClose">Confirm</button>
                     </div>
                 </div>
             </div>

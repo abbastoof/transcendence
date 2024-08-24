@@ -27,12 +27,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     randomNamesButton.style.display = 'none';
     startTournamentButton.style.display = 'none';
 
-    document.addEventListener('keydown', function (event) {
-        if (event.key === "Escape" || event.keyCode === 27) {
-            resetTournament();
-            console.log("ESC PRESSED!");
-        }
-    });
+    // document.addEventListener('keydown', function (event) {
+    //     if (event.key === "Escape" || event.keyCode === 27) {
+    //         resetTournament();
+    //         console.log("ESC PRESSED!");
+    //     }
+    // });
 
     function resetTournament() {
 
@@ -64,41 +64,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     randomNamesButton.style.display = 'none';
     startTournamentButton.style.display = 'none';
-
-    document.addEventListener('keydown', function (event) {
-        if (event.key === "Escape" || event.keyCode === 27) {
-            resetTournament();
-            console.log("ESC PRESSED!");
-        }
-    });
-
-    function resetTournament() {
-
-        sessionStorage.setItem('isGameOver', 'true');
-
-        randomNamesButton.style.display = 'none';
-        startTournamentButton.style.display = 'none';
-        playerForm.reset();
-        playerAliasInputs.innerHTML = '';
-
-        sessionStorage.setItem('infoScreen', 'false');
-        sessionStorage.setItem('tournamentPlayers', JSON.stringify([]));
-        sessionStorage.setItem('remainingIDs', JSON.stringify([]));
-        sessionStorage.setItem('roundWinners', JSON.stringify([]));
-        
-        tournamentModal.hide();
-        pongModal.hide();
-        gameInfoModal.hide();
-
-        console.log("TOURNAMENT RESET");                  // pois
-    }
-
-    closeButtons.forEach((closeButton) => {
-        closeButton.addEventListener('click', () => {
-            console.log("MODAL X PRESSED");                 // pois
-            resetTournament();
-          });
-    });
 
     gameInfoButton.addEventListener('click', function () {
         sessionStorage.setItem('infoScreen', 'false');
@@ -311,7 +276,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         sessionStorage.setItem('remainingIDs', JSON.stringify(newRemainingIds));
         sessionStorage.setItem('remainingIDs', JSON.stringify(newRemainingIds));
 
-        pongModal.show();
+        //pongModal.show();
         startGame('pongGameContainer', config, gameResultCallBack);
     }
 

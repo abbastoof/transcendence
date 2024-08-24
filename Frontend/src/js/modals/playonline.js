@@ -13,7 +13,13 @@ const waitingLobbyModal = new bootstrap.Modal(waitingLobbyModalElement);
 // Function to open the waiting lobby
 export function openWaitingLobby() {
     waitingLobbyModal.show();
-
+    const cancelButton = document.getElementById('cancelOnlinePlay');
+    
+    // Check if the button exists before trying to update it
+    if (cancelButton) {
+        // Update the button's text
+        cancelButton.textContent = 'Cancel';
+    }
     lobbyContent.innerHTML = 
     `<div class="d-flex justify-content-center">
         <div class="spinner-border" style="width: 4rem; height: 4rem;" role="status">
@@ -79,12 +85,12 @@ function connectToWebSockets() {
         gameRoomSocket.onmessage = function(event) {
             const data = JSON.parse(event.data);
             if (data.type === 'starting_game') {
-                lobbyContent.innerHTML = 
-                `<div class="d-flex justify-content-center">
-                    <div class="spinner-border" style="width: 4rem; height: 4rem;" role="status">
-                        <span class="visually-hidden">Starting game..</span>
-                    </div>
-                </div>`;
+                // lobbyContent.innerHTML = 
+                // `<div class="d-flex justify-content-center">
+                //     <div class="spinner-border" style="width: 4rem; height: 4rem;" role="status">
+                //         <span class="visually-hidden">Starting game..</span>
+                //     </div>
+                // </div>`;
                 waitingLobbyModalLabel.textContent = "Starting game..";
 
                 let config = {
@@ -104,7 +110,7 @@ function connectToWebSockets() {
                     gameRoomSocket.close();
                 }
 
-                pongModal.show();
+              //  pongModal.show();
                 waitingLobbyModal.hide();
                 startGame('pongGameContainer', config, handleGameEnd);
             }
@@ -132,8 +138,15 @@ function connectToWebSockets() {
 }
 
 function handleGameEnd(data) {
-    pongModal.hide();
+    //pongModal.hide();
     waitingLobbyModal.show();
+    const cancelButton = document.getElementById('cancelOnlinePlay');
+    
+    // Check if the button exists before trying to update it
+    if (cancelButton) {
+        // Update the button's text
+        cancelButton.textContent = 'Close';
+    }
     const userData = JSON.parse(sessionStorage.getItem('userData'));
     if (!userData || !userData.token) {
         console.error('User data or token is missing');
