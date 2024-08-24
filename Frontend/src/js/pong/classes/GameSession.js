@@ -69,6 +69,7 @@ class GameSession {
             'player2_id': player2Id,
             'is_remote': isRemote,
             'is_local_tournament': isLocalTournament,
+            'token': null,
         }
         console.log('Game Session Initialized');
         console.log('Game Init Data:', gameInitData);
@@ -77,7 +78,9 @@ class GameSession {
             gameInitData['type'] = 'start_game';
             this.socket.emit('start_game', gameInitData);
         }
-        else {
+        else {    
+            const userData = JSON.parse(sessionStorage.getItem('userData'));
+            gameInitData['token'] = userData.token;
             gameInitData['type'] = 'join_game';
             this.socket.emit('join_game', gameInitData);
         }
