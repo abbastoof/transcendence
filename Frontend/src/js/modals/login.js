@@ -1,5 +1,6 @@
 import { updateUserProfile } from './profile.js';
 import { showMessage } from './messages.js';
+import { handleTokenVerification } from '../tokenHandler.js';
 import { updateAuthButton } from './buttons.js';
 
 // Main entry point for the authentication logic
@@ -125,7 +126,7 @@ export function confirmLogout() {
         console.error('No user data found in sessionStorage.');
         return;
     }
-
+    const sendLogoutRequest = (token) => {
     fetch(`/user/${userData.id}/logout/`, {
         method: 'POST',
         headers: {
@@ -148,6 +149,16 @@ export function confirmLogout() {
     .catch(error => {
         console.error('Logout failed:', error);
     });
+};
+        // Handle token verification and refreshing
+        handleTokenVerification()
+        .then(validToken => {
+            // Proceed with logout using the valid token
+            sendLogoutRequest(validToken);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
 }
 
 function clearPasswordField() {
