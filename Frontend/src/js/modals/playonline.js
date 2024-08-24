@@ -161,18 +161,15 @@ function handleGameEnd(data) {
     fetch(`/game-history/${data.game_id}/`)
         .then(response => response.json())
         .then(gameHistoryRecord => {
-            lobbyContent.innerHTML = `<p>Final Score:</p>
-            <p>${gameHistoryRecord.player1_username}: ${data.player1_score}</p>
-            <p>${gameHistoryRecord.player2_username}: ${data.player2_score}</p>
+            lobbyContent.innerHTML = `<p class="font">Final Score:</p>
+            <p class="font">${gameHistoryRecord.player1_username}: ${data.player1_score}</p>
+            <p class="font">${gameHistoryRecord.player2_username}: ${data.player2_score}</p>
             `
             if (Number(userData.id) === data.winner){
                 updateGameHistory(data, gameHistoryRecord);
             }
         });
-    setTimeout(() => {
-        waitingLobbyModal.hide()
-    }, 5000);
-}
+    }
 
 function updateGameHistory(data, gameHistoryRecord) {
     console.log('Updating game history record with winner_id:', data.winner);
