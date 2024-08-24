@@ -91,15 +91,18 @@ class ScoreBoard {
         this.createScoreBoard(player1Text, player2Text);
     }
 
+    placeTextMesh(mesh) {
+        mesh.position.set(0, 90.0, 300.0);
+        if (globalState.invertedView === true) {
+            mesh.rotation.y = THREE.MathUtils.degToRad(180);
+        } else {
+            mesh.position.z = -300.0;
+        }
+    }
     showGoalText() {
         this.clearScores();
         this.goalMesh = this.createText('GOAL !!!', 100, 0x00FF00, 0.3, 15.0); // green for GOAL text
-        this.goalMesh.position.set(0, 90.0, 300.0);
-        if (globalState.invertedView === true) {
-            this.goalMesh.rotation.y = THREE.MathUtils.degToRad(180);
-        } else {
-            this.goalMesh.position.z = -300.0;
-        }
+        this.placeTextMesh(this.goalMesh);
         this.scene.add(this.goalMesh);
     }
 
@@ -107,25 +110,21 @@ class ScoreBoard {
         this.clearScores();
         this.messageMesh = this.createText('GAME START', 80, 0x00FF00, 0.3, 15.0)
         this.messageMesh.position.set(0, 90.0, 300.0);
-        if (globalState.invertedView === true) {
-            this.messageMesh.rotation.y = THREE.MathUtils.degToRad(180);
-        }
-        else {
-            this.messageMesh.position.z = -300.0
-        }
+        this.placeTextMesh(this.messageMesh);
         this.scene.add(this.messageMesh);
     }
 
     showWaitText() {
         this.clearScores();
         this.messageMesh = this.createText('Waiting for your opponent..', 50, 0x4455FF, 1.4, 4.0);
-        this.messageMesh.position.set(0, 90.0, 300.0);
-        if (globalState.invertedView === true) {
-            this.messageMesh.rotation.y = THREE.MathUtils.degToRad(180);
-        }
-        else {
-            this.messageMesh.position.z = -300.0
-        }
+        this.placeTextMesh(this.messageMesh);
+        this.scene.add(this.messageMesh);
+    }
+
+    showLoadingText() {
+        this.clearScores();
+        this.messageMesh = this.createText('Loading..', 80, 0xAAFF00, 1.4, 4.0);
+        this.placeTextMesh(this.messageMesh);
         this.scene.add(this.messageMesh);
     }
 
@@ -137,13 +136,7 @@ class ScoreBoard {
         else {
             this.messageMesh = this.createText('Your opponent has quit the game', 50, 0x2222FF, 1.4, 4.0);
         }
-        this.messageMesh.position.set(0, 90.0, 300.0);
-        if (globalState.invertedView === true) {
-            this.messageMesh.rotation.y = THREE.MathUtils.degToRad(180);
-        }
-        else {
-            this.messageMesh.position.z = -300.0
-        }
+        this.placeTextMesh(this.messageMesh);
         this.scene.add(this.messageMesh);
     }
     

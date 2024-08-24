@@ -54,8 +54,9 @@ class GameSession {
         this.scoreBoard = new ScoreBoard(scene);
         if (isRemote === true)
             this.scoreBoard.showWaitText();
+        else
+            this.scoreBoard.showLoadingText();
         this.playingField.addToScene();
-        this.ball.addToScene();
 
         // Always connect to the server
         if (!this.socket.connected) {
@@ -97,6 +98,7 @@ class GameSession {
         this.inProgress = true;
         this.leftPaddle.addToScene();
         this.rightPaddle.addToScene();
+        this.ball.addToScene();
         setTimeout(() => {
             this.paused = false
             const player1Text = `${this.player1Alias} ${this.player1Score}`;
