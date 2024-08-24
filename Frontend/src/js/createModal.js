@@ -40,7 +40,7 @@ export function createModal(modalId, modalTitle, content) {
         }
     }
 
-    // Add event listener to hide modal and clear URL hash when modal is hidden
+    // Add event listener to hidden modal and clear URL hash when modal is hidden
     modalElement._element.addEventListener('hidden.bs.modal', function () {
         if (window.location.hash === `#${modalId}`) {
             history.back();

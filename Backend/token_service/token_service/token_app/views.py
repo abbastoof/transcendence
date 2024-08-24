@@ -15,6 +15,9 @@ from rest_framework.permissions import AllowAny
 from django.conf import settings
 
 SECRET = settings.SECRET_KEY
+from django.conf import settings
+
+SECRET = settings.SECRET_KEY
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

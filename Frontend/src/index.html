@@ -72,14 +72,33 @@
         </div>
     </div>
 
+    <!-- Game close confirmation modal -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationModalTitle">Confirm Action</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div class="confirm-text" style="margin-bottom: 1rem;">
+                        <p id="confirmationModalMessage">Are you sure?</p>
+                    </div>
+                    <div class="confirm-buttons" style="display: flex; gap: 1rem;">
+                        <button type="button" class="btn btn-secondary" id="cancelClose">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="confirmClose">Confirm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-
-      <!-- Tournament Modal -->
+    <!-- Tournament Modal -->
     <div class="tournament"></div>
 
     <!-- About Modal -->
     <div class="about"></div>
-<!-- 
+<!--
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
 </body>
 </html>

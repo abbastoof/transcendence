@@ -6,6 +6,7 @@ Also the token service is responsible for refreshing the access token.
 ## Docker container configuration
 
 Every single REST API endpoint has their own database. The database is a PostgreSQL database. The database name for this endpoints is `token_service`. The database user and password for all the endpoints is inside the env file. The database port for all the endpoints is `5432`.
+Every single REST API endpoint has their own database. The database is a PostgreSQL database. The database name for this endpoints is `token_service`. The database user and password for all the endpoints is inside the env file. The database port for all the endpoints is `5432`.
 
 The requirements package is inside the requirements.txt file.
 The tools.sh file is used to run the init_database.sh file and run the API.

@@ -9,4 +9,5 @@ export const globalState = {
     glitchPass: null,
     view2D: false,
     dataSent: false,
+    globalState: null,
 }

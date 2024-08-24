@@ -7,6 +7,7 @@ import { randFloat } from 'three/src/math/MathUtils.js';
 import { globalState } from './globalState.js';
 import { localGameControls, remoteGameControls } from './controls.js';
 import { cleanupEventHandlers } from './eventhandlers.js';
+import { initializeConfirmationModal } from '../modals/quitConfirmation.js';
 
 let gameStarted = false;
 let gameSession, renderer, scene, camera, composer, animationId;
@@ -28,7 +29,7 @@ function validateConfig(config) {
         isLocalTournament = false,
         isTest = false,
     } = config;
-    
+
     console.log('playerIds:', playerIds);  // Debugging line
     if (playerIds !== null && (!Array.isArray(playerIds) || !playerIds.every(item => item === null || Number.isInteger(item)) || (playerIds.length !== 0 && playerIds.length !== 2))) {
         console.error('Invalid player IDs:', playerIds[0], playerIds[1]);
@@ -41,7 +42,7 @@ function validateConfig(config) {
     if (typeof isRemote !== 'boolean' || typeof isLocalTournament !== 'boolean') {
         console.error('Invalid boolean value for isRemote or isLocalTournament:', isRemote, isLocalTournament);
         return false;
-    } 
+    }
     if (isLocalTournament === true && isRemote === true) {
         console.error('Local tournaments cannot be remote!');
         return false;
@@ -97,7 +98,7 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
         if (localPlayerId === playerIds[0] || localPlayerId === playerIds[1]) {
         player1Id = playerIds[0];
         player2Id = playerIds[1];
-        } 
+        }
         else {
             console.error('Local player ID does not match player IDs:', localPlayerId, playerIds[0], playerIds[1]);
             return;
@@ -200,7 +201,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 500); // Ensure the modal is fully visible
     });
 
-    document.getElementById('pongModal').addEventListener('hidden.bs.modal', () => {
+    let title = "Quit Game";
+    let message = "Are you sure you want to quit the game?";
+
+    // if (gameSession.isRemote === true) {
+    //     title = "Forfeit Game";
+    //     message = "Are you sure you want to forfeit?\nyou will lose!";
+    // } else if (gameSession.isLocalTournament === true) {
+    //     title = "End Tournament";
+    //     message = "Are you sure you want to end the tournament?";
+    // }
+
+    const bypassConfirmationModal = initializeConfirmationModal('pongModal', title, message);
+    globalState.bypassConfirmationModal = bypassConfirmationModal;
+    // test bypassing the confirmation modal
+    // document.addEventListener('keydown', function(event) {
+    //     if (event.key === 'Backspace') {
+    //         bypassConfirmationModal();
+    //     }
+    // });
+
+    document.getElementById('pongModal').addEventListener('hidden.bs.modal', function(event) {
+        // Thinking we should add a check here to see if the game was quit instead of it ending naturally and handle
+        // tournament ending, online game forfeiting etc here
+        // could be just a simple bool for isQuit or something
         if (gameStarted) {
             if (gameSession.isRemote === true && gameSession.inProgress === true) {
                 quitRemoteGame();
@@ -208,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
             else
                 endGame();
         }
-    });    
+    });
 });
 
 /**
@@ -249,7 +273,7 @@ function localGameCallBack(data) {
  * Cleans up the game and sets the game state to ended
  * @returns void
 **/
-export function endGame() {    
+export function endGame() {
     console.log("Starting endGame cleanup...");
 
     if (typeof cancelAnimationFrame !== 'undefined') {
@@ -271,7 +295,7 @@ export function endGame() {
 
     gameStarted = false;
     sessionStorage.setItem('isGameOver', 'true');
-
+    globalState.bypassConfirmationModal();
     console.log("EndGame complete, gameStarted:", gameStarted, "isGameOver:", sessionStorage.getItem('isGameOver'));
 
 

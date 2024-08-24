@@ -14,9 +14,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const closeButtons = document.querySelectorAll('button.close');
 
     const randomNames = [
-        "CookieLover", "JarJarBinks", "SillyGoose", "FuzzyWuzzy", 
-        "CaptainGiggles", "BumbleBee", "JollyJumper", "WackyWabbit", 
-        "SneakySquirrel", "CrazyCat", "FunkyMonkey", "NinjaNoodle", 
+        "CookieLover", "JarJarBinks", "SillyGoose", "FuzzyWuzzy",
+        "CaptainGiggles", "BumbleBee", "JollyJumper", "WackyWabbit",
+        "SneakySquirrel", "CrazyCat", "FunkyMonkey", "NinjaNoodle",
         "GiggleGuru", "HappyHippo", "ZanyZebra", "LaughingLion"
     ];
 
@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     existingAliases[`playerAlias${i}`] = input.value;
                 }
             }
-            
+
             // Clear previous inputs
             playerAliasInputs.innerHTML = '';
 
@@ -148,9 +148,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 inputGroup.appendChild(label);
                 inputGroup.appendChild(input);
                 playerAliasInputs.appendChild(inputGroup);
-   
+
             }
-            
+
             randomNamesButton.style.display = 'block';
             startTournamentButton.style.display = 'block';
             playerAliasInputs.style.display = 'block';
@@ -163,10 +163,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert("Choose player amount!");
             return;
         }
-        
+
         const inputs = playerAliasInputs.querySelectorAll('input[type="text"]');
         const shuffledNames = randomNames.sort(() => 0.5 - Math.random()).slice(0, playerCount);
-        
+
         // Check for identical names
         const usedNames = new Set();
 
@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     playerForm.addEventListener('submit', async (event) => {
-        
+
         event.preventDefault();
 
         if (playerForm.checkValidity()) {
@@ -321,4 +321,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         roundWinners.push(data.winner);
         sessionStorage.setItem('roundWinners', JSON.stringify(roundWinners));
     }
+
+    // Event listener for when the modal is closed
+    modalElement.addEventListener('hidden.bs.modal', function () {
+        // Reset the form and clear inputs
+        playerForm.reset();
+        playerAliasInputs.innerHTML = '';
+    });
 });
