@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
 export function updateUserProfile() {
     const userData = JSON.parse(sessionStorage.getItem('userData'));
     console.log('User data:', userData);
+    console.log('User data:', userData);
     if (!userData || !userData.id || !userData.token) {
         console.error('UserData is missing or incomplete');
         return;
@@ -145,6 +146,7 @@ function toggleTwoFactorAuth(userData, isEnabled, token) {
         console.error('Error updating 2FA status:', error);
     });
 }
+
 
 function resetProfileForms() {
     document.getElementById('updateEmailForm').style.display = 'none';

@@ -82,6 +82,7 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
     createModalEventListeners(isRemote, isLocalTournament);
     const pongModal = new bootstrap.Modal(document.getElementById('pongModal'));
     pongModal.show()
+    window.location.hash = "pong"
     
     let player1Id, player2Id, finalGameId, localPlayerId;
 
@@ -229,7 +230,7 @@ function setupModalListeners(isRemote, isLocalTournament) {
     
     if (isRemote === true) {
         title = "Forfeit Game";
-        message = "Are you sure you want to forfeit?\nyou will lose!";
+        message = "Are you sure you want to quit? This will result in an automatic loss.";
     } else if (isLocalTournament === true) {
         title = "End Tournament";
         message = "Are you sure you want to end the tournament?";
@@ -248,7 +249,6 @@ function setupModalListeners(isRemote, isLocalTournament) {
                 endGame();
             }
         }
-        
     });
 }
 

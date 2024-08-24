@@ -146,7 +146,6 @@ createModal('signUp', 'Sign up', `
         </div>
     </form>`);
 
-
 createModal('login', 'Log in', `
     <form id="loginForm" class="form">
         <div class="form-group">
@@ -156,7 +155,7 @@ createModal('login', 'Log in', `
         <div class="form-group">
             <label class="labelFont" for="loginPassword">Password</label>
             <input type="password" class="form-control" id="loginPassword" placeholder="Enter password" required></input>
-        </div>
+       </div>
         <button type="submit" class="submit">Log in</button>
         <div class="row mt-3">
             <p class="font text-center">
@@ -174,7 +173,6 @@ createModal('login', 'Log in', `
             <button type="button" id="cancelLoginVerificationButton" class="submit">Cancel</button>
         </div>
     </form>`);
-
 createModal('logout', 'Log out', `
     <div class="modal-body">
         <p class="ErrorMessage">Are you sure you want to log out?</p>
@@ -183,6 +181,7 @@ createModal('logout', 'Log out', `
         <button type="button" class="submit" data-bs-dismiss="modal">Cancel</button>
         <button type="button" class="submit" onclick="confirmLogout()">Yes, Log out</button>
     </div>`);
+
 
 createModal('Profile', 'Profile', '<div id="userProfile"></div>');
 
