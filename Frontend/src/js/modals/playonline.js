@@ -35,13 +35,15 @@ export function openWaitingLobby() {
 }
 
 function connectToWebSockets() {
-    // const userData = JSON.parse(sessionStorage.getItem('userData'));
-    // if (!userData || !userData.token) {
-    //     console.error('User data or token is missing');
-    //     return;
-    // }
-    const token = handleTokenVerification()
-    const onlineStatusSocket = new WebSocket(`/ws/online/?token=${token}`);
+    const userData = JSON.parse(sessionStorage.getItem('userData'));
+    if (!userData || !userData.token) {
+         console.error('User data or token is missing');
+         return;
+    }
+    handleTokenVerification()
+    .then(validToken => {
+        userData.token = validToken;
+        const onlineStatusSocket = new WebSocket(`/ws/online/?token=${userData.token}`);    
 
     let gameRoomSocket;
 
@@ -74,60 +76,62 @@ function connectToWebSockets() {
     onlineStatusSocket.onerror = function(error) {
         console.error('Error in online status WebSocket:', error);
     };
-    const anotherToken = handleTokenVerification()
 
     function connectToGameRoom(roomName) {
-        gameRoomSocket = new WebSocket(`/ws/game/room/${roomName}/?token=${anotherToken}`);
+        handleTokenVerification()
+        .then(validToken => {
+            userData.token = validToken;
+            gameRoomSocket = new WebSocket(`/ws/game/room/${roomName}/?token=${userData.token}`);
 
-        gameRoomSocket.onopen = function() {
-            console.log(`Connected to game room ${roomName} WebSocket`);
-            gameRoomSocket.send(JSON.stringify({ type: 'join', username: userData.username }));
-        };
-
-        gameRoomSocket.onmessage = function(event) {
-            const data = JSON.parse(event.data);
-            console.log(data)
-            if (data.type === 'starting_game') {
-                // lobbyContent.innerHTML = 
-                // `<div class="d-flex justify-content-center">
-                //     <div class="spinner-border" style="width: 4rem; height: 4rem;" role="status">
-                //         <span class="visually-hidden">Starting game..</span>
-                //     </div>
-                // </div>`;
-                waitingLobbyModalLabel.textContent = "Starting game..";
-
-                let config = {
-                    isRemote: true,
-                    gameId: data.message.game_id,
-                    playerIds: [data.message.player1_id, data.message.player2_id],
-                    player1Alias: data.message.player1_username,
-                    player2Alias: data.message.player2_username,
-                    isLocalTournament: false,
+                gameRoomSocket.onopen = function() {
+                    console.log(`Connected to game room ${roomName} WebSocket`);
+                    gameRoomSocket.send(JSON.stringify({ type: 'join', username: userData.username }));
                 };
 
-                if (onlineStatusSocket.readyState === WebSocket.OPEN) {
-                    onlineStatusSocket.close();
-                }
+                gameRoomSocket.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    console.log(data)
+                    if (data.type === 'starting_game') {
+                        // lobbyContent.innerHTML = 
+                        // `<div class="d-flex justify-content-center">
+                        //     <div class="spinner-border" style="width: 4rem; height: 4rem;" role="status">
+                        //         <span class="visually-hidden">Starting game..</span>
+                        //     </div>
+                        // </div>`;
+                        waitingLobbyModalLabel.textContent = "Starting game..";
 
-                if (gameRoomSocket && gameRoomSocket.readyState === WebSocket.OPEN) {
-                    gameRoomSocket.close();
-                }
+                        let config = {
+                            isRemote: true,
+                            gameId: data.message.game_id,
+                            playerIds: [data.message.player1_id, data.message.player2_id],
+                            player1Alias: data.message.player1_username,
+                            player2Alias: data.message.player2_username,
+                            isLocalTournament: false,
+                        };
 
-              //  pongModal.show();
-                waitingLobbyModal.hide();
-                startGame('pongGameContainer', config, handleGameEnd);
+                        if (onlineStatusSocket.readyState === WebSocket.OPEN) {
+                            onlineStatusSocket.close();
+                        }
+
+                        if (gameRoomSocket && gameRoomSocket.readyState === WebSocket.OPEN) {
+                            gameRoomSocket.close();
+                        }
+
+                    //  pongModal.show();
+                        waitingLobbyModal.hide();
+                        startGame('pongGameContainer', config, handleGameEnd);
+                    }
+                };
+
+                gameRoomSocket.onclose = function(event) {
+                    console.log(`Game room ${roomName} WebSocket closed:`, event);
+                };
+
+                gameRoomSocket.onerror = function(error) {
+                    console.error(`Error in game room ${roomName} WebSocket:`, error);
+                };
             }
-        };
-
-        gameRoomSocket.onclose = function(event) {
-            console.log(`Game room ${roomName} WebSocket closed:`, event);
-        };
-
-        gameRoomSocket.onerror = function(error) {
-            console.error(`Error in game room ${roomName} WebSocket:`, error);
-        };
-    }
-
+        )}
     waitingLobbyModalElement.addEventListener('hide.bs.modal', function () {
         console.log('Modal is closing. Disconnecting WebSockets.');
         if (onlineStatusSocket.readyState === WebSocket.OPEN) {
@@ -138,6 +142,11 @@ function connectToWebSockets() {
             gameRoomSocket.close();
         }
     });
+})
+.catch(error => {
+    console.error('Error verifying token:', error);
+});
+
 }
 
 function handleGameEnd(data) {

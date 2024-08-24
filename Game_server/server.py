@@ -143,7 +143,7 @@ class PongGame:
             },
             'bounce' : self.game_state.bounce,
             'hitpos' : self.game_state.hitpos,
-        },
+        }
         for sid in self.sids:
             await sio.emit('send_game_state', game_state_data, room=sid)
 
@@ -296,7 +296,8 @@ async def disconnect(sid):
                 if not game_instance.sids:
                     logging.info(f"No players left in game {game_id}, ending game session")
                     await game_instance.end_game()
-                    del active_games[game_id]  # Clean up properly
+                    # if active_games[game_id]:
+                    #     del active_games[game_id]  # Clean up properly
                     logging.info(f"Game {game_id} terminated and removed from active_games")
         else:
             logging.info(f"Game {game_id} not found in active_games during disconnect")
@@ -385,7 +386,10 @@ async def join_game(sid, data):
     player1_id = data.get('player1_id')
     player2_id = data.get('player2_id')
     is_remote = data.get('is_remote')
+    token = data.get('token')
 
+    if token:
+        logging.info(f"received a token {token}")
     couple = coupled_request(game_id, player1_id, player2_id)
     if couple is not None:
         if player1_id == local_player_id:

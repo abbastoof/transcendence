@@ -11,6 +11,7 @@ import { endGame } from '../pong.js';
 import { globalState } from '../globalState.js';
 import { sendQuit } from '../eventhandlers.js';
 import { cleanupEventHandlers } from '../eventhandlers.js';
+import { handleTokenVerification } from '../../tokenHandler.js';
 
 class GameSession {
     constructor() {
@@ -75,19 +76,31 @@ class GameSession {
         console.log('Game Session Initialized');
         console.log('Game Init Data:', gameInitData);
 
-        if (isRemote === false) {
+        if (isRemote === true) {
+            const userData = JSON.parse(sessionStorage.getItem('userData'));
+            if (!userData || !userData.token) {
+                console.error('User data or token is missing');
+                return;
+            }
+            handleTokenVerification()
+                .then(validToken => {
+                    userData.token = validToken;
+                    gameInitData['token'] = userData.token;
+                    gameInitData['type'] = 'join_game';
+                    this.socket.emit('join_game', gameInitData);
+                })
+                .catch(error => {
+                    console.error('Error verifying token:', error);
+                });
+        }
+        else {   
             gameInitData['type'] = 'start_game';
             this.socket.emit('start_game', gameInitData);
         }
-        else {    
-            const userData = JSON.parse(sessionStorage.getItem('userData'));
-            gameInitData['token'] = userData.token;
-            gameInitData['type'] = 'join_game';
-            this.socket.emit('join_game', gameInitData);
-        }
-        initializeEventHandlers(this);
+    
+    initializeEventHandlers(this);
+}
 
-    }
 
     sendMovement(data) {
         this.socket.emit('move_paddle', data);

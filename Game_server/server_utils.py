@@ -50,7 +50,9 @@ sio = socketio.AsyncServer(
     async_mode='asgi',
     cors_allowed_origins="*",  # Specify allowed origins
     logger=False,              # Disable Socket.IO logging
-    engineio_logger=False      # Disable engineio logging
+    engineio_logger=False,      # Disable engineio logging
+    ping_interval=10,
+    ping_timeout=5
 )
 # Create an ASGI application using the Socket.IO server
 # This application can be run using an ASGI server such as Uvicorn

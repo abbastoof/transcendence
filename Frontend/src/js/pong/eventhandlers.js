@@ -2,6 +2,7 @@ import socket from './socket';
 import GameSession from './classes/GameSession';
 import { cleanUpGame, endGame } from './pong.js';
 
+let isConnected = false
 // Initialize event handlers for the game
 // This function should be called once when the game is loaded
 // It sets up event listeners for the game
@@ -14,12 +15,14 @@ export const initializeEventHandlers = (gameSession) => {
     
     // Event handler for the socket connection
     socket.on('connect', () => {
+        isConnected = true
         console.log('Connected to server');
     });
 
     // Event handler for the socket disconnection
-    socket.on('disconnect', () => {
-        console.log('Disconnected from server');
+    socket.on('disconnect', (reason) => {
+        isConnected = false
+        console.log(`Disconnected from server: ${reason}`);
     });
 
     // Event handler for the game start message
@@ -35,7 +38,13 @@ export const initializeEventHandlers = (gameSession) => {
             }
         }
     });
-
+    socket.on('connect_error', (error) => {
+        console.error('Connection error:', error);
+    });
+    
+    socket.on('reconnect_error', (error) => {
+        console.error('Reconnection error:', error);
+    });
     // Event handler for the game state message
     // This message is sent by the server when the game state is updated
     // The game session object is responsible for updating the game state
@@ -103,7 +112,12 @@ export const initializeEventHandlers = (gameSession) => {
 
 // Emit events to the server
 export const sendMovement = (data) => {
-    socket.emit('move_paddle', data);
+    if (isConnected) {
+        socket.emit('move_paddle', data);
+    }
+    else {
+        console.log("cannot send anthing, not connected")
+    }
 };
 
 // Send quit game message to the server

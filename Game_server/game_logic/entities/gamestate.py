@@ -187,9 +187,9 @@ class GameState:
     # and gives it a random direction
     def reset_ball(self):
         if self.ball.x < 0:
-            self.ball.direction = random.randrange(140, 220)  #random direction towards player 1
-        elif self.ball.x > FIELD_DEPTH:
             self.ball.direction = random.randrange(-40, 40) #random direction towards player 2 
+        elif self.ball.x > FIELD_DEPTH:
+            self.ball.direction = random.randrange(140, 220)  #random direction towards player 1
         else:
             if random.random() >= .5:
                 self.ball.direction = random.randrange(-12, 12)
@@ -201,4 +201,4 @@ class GameState:
     # is_game_over method
     # returns True if the game is over, False otherwise
     def is_game_over(self) -> bool:
-        return self.time_remaining <= 0 or self.player1.score >= 10 or self.player2.score >= 10 
+        return self.time_remaining <= 0 or self.player1.score >= 10 or self.player2.score >= 10
