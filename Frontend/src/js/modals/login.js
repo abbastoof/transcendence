@@ -107,6 +107,8 @@ function completeLogin(data) {
     showMessage('Login successful', '#loginModal', 'accept');
     sessionStorage.setItem('userData', JSON.stringify({ id: data.id, token: data.access, refresh: data.refresh }));
     sessionStorage.setItem('isLoggedIn', 'true');
+    history.replaceState(null, null, window.location.pathname);
+    //history.location.replace('http://localhost:3000');
     setTimeout(() => {
         document.getElementById('loginModal').querySelector('.close').click();
         document.getElementById('loginForm').reset();
@@ -131,7 +133,7 @@ export function confirmLogout() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + userData.token
+            'Authorization': 'Bearer ' + token
         }
     })
     .then(response => {

@@ -6,8 +6,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 import logging
 import requests
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
+
+GAME_HISTORY_URL = settings.GAME_HISTORY_URL
 
 @method_decorator(csrf_exempt, name='dispatch')
 class GameRoomConsumer(AsyncWebsocketConsumer):
@@ -31,17 +34,14 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         )
         await self.accept()
         if room_obj is None:
-            logger.info('Room obj is None')
             await self.close(4001)
             return
         await self.send_notification("broadcast_message", 'entered room', self.scope['user'].username)
         asyncio.sleep(1)
         res = await self.check_room_players()
-        logger.info('res = %s', res)
         if res:
             asyncio.sleep(1)
             response = await self.create_and_send_game_history_record()
-            logger.info('Response = %s', response)
             await self.send_notification('starting_game', response, self.scope['user'].username)
 
     # Extract token from Query string
@@ -80,10 +80,6 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
             else:
                 return None
         gameroom_obj.save()
-        #TODO:remove it
-        from .serializers import GameRoomSerializer
-        serializer = GameRoomSerializer(gameroom_obj)
-        logger.info("data = %s", serializer.data)
         return gameroom_obj
 
     async def disconnect(self, code):
@@ -97,7 +93,6 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def remove_from_room(self):
-        from .serializers import GameRoomSerializer
         from .models import GameRoom
 
         room_obj = GameRoom.objects.get(room_name = self.room_name)
@@ -111,11 +106,7 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
             room_obj.save()
             if room_obj.player1 is None and room_obj.player2 is None:
                 room_obj.delete()
-                logger.info('Room got deleted')
                 return
-            serializer = GameRoomSerializer(room_obj)
-            if serializer is not None:
-                logger.info('Room = %s', serializer.data)
 
     async def send_notification(self, type, message, user):
         await self.channel_layer.group_send(
@@ -153,10 +144,10 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
         request = {}
         response = {}
         gameroom_obj = GameRoom.objects.get(room_name=self.room_name)
+        # Check if both players are present in the room and create a game history record if they are present
         if gameroom_obj is not None and gameroom_obj.player1 is not None and gameroom_obj.player2 is not None:
             serializer = GameRoomSerializer(gameroom_obj).data
             if serializer["player1_id"] and serializer["player2_id"]:
-                logger.info('serilizer = %s', serializer)
                 request = {
                     "player1_id":serializer["player1_id"],
                     "player1_username":serializer["player1_username"],
@@ -164,8 +155,7 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
                     "player2_username": serializer["player2_username"],
                     "start_time": now()
                 }
-                response = requests.post('http://game-history:8002/game-history/', data=request)
-                logger.info('Response = %s', response.json())
+                response = requests.post(f'${GAME_HISTORY_URL}/game-history/', data=request)
         return response.json()
 
     @database_sync_to_async

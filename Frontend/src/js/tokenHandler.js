@@ -1,25 +1,29 @@
+import { updateAuthButton } from "./modals/buttons";
+
 // Function to refresh the token
 function refreshTokenRequest(userData) {
     return fetch('/auth/token/refresh/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${userData.refreshToken}`
+            'Authorization': `Bearer ${userData.refresh}`
         },
         body: JSON.stringify({ id: userData.id })
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error('Token refresh failed');
+            alert('Session expired. Please login again.');
+            sessionStorage.clear();
+            updateAuthButton(false);
+            window.location.replace('https://localhost:80/#login');
         }
         return response.json();
     })
     .then(data => {
         // Update userData with new tokens
-        userData.token = data.token;
-        userData.refreshToken = data.refreshToken;
+        userData.token = data.access;
         sessionStorage.setItem('userData', JSON.stringify(userData));
-        return data.token;
+        return userData.token;
     });
 }
 

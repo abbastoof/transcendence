@@ -1,4 +1,5 @@
 import { showMessage } from './messages.js';
+import { handleTokenVerification } from '../tokenHandler.js'; // Import your token verification function
 
 // Function to toggle the password update form visibility
 export function togglePasswordForm() {
@@ -21,13 +22,15 @@ export function handlePasswordUpdate(userData) {
             return;
         }
 
-        fetch(`/user/${userData.id}/`, {
-            method: 'PATCH',
-            headers: {
-                'Authorization': `Bearer ${userData.token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ password: newPassword })
+        handleTokenVerification().then(token => {
+            return fetch(`/user/${userData.id}/`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ password: newPassword })
+            });
         })
         .then(response => {
             if (!response.ok) {

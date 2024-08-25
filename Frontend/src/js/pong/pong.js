@@ -122,7 +122,8 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
     createModalEventListeners(isRemote, isLocalTournament);
     const pongModal = new bootstrap.Modal(document.getElementById('pongModal'));
     pongModal.show()
-    window.location.hash = "pong";
+    history.replaceState(null, null, window.location.pathname);
+
     globalState.invertedView = player2Id === localPlayerId
     const container = document.getElementById(containerId);
     const canvas = document.createElement('canvas');

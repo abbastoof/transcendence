@@ -75,14 +75,12 @@ class GameRequest:
     async def has_timed_out(self):
         curr_time = time.time()
         if (curr_time - self.time_stamp) > 120.0:
-            logging.info("Request g ame has timed out, sending game_over!\n")
+            logging.info("Request game has timed out, sending cancel_game!\n")
             json_data = {
-                    "type": "game_over",
+                    "type": "cancel_game",
                     "game_id": self.game_id,
-                    "player1_id": self.player1_id,
-                    "player2_id": self.player2_id,
                     }
-            await sio.emit('game_over', json_data, room=self.sid)
+            await sio.emit('cancel_game', json_data, room=self.sid)
             return True
         return False
 

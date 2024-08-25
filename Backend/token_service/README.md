@@ -17,11 +17,18 @@ The API runs on port 8000 and exposed to 8001.
 ## Tutorial to use the token_service
 
 There are three endpoints in the token_service. The endpoints are:
-- `auth/token/refresh/` - This endpoint is used to refresh the access token. to refresh the access token you need to send a request to this endpoint with the refresh token in the request body. The request will be like this:
+- `auth/token/refresh/` - This endpoint is used to refresh the access token. to refresh the access token you need to send a request to this endpoint with the refresh token in the request body. 
+You should send the "user refresh token" in the header as brearer token and The request will be like this:
+
 ```json
 {
     "id": "user_id",
-    "refresh": "your refresh token"
+}
+```
+It will return the new access token as a response.
+```json
+{
+    "access": "new access token"
 }
 ```
 

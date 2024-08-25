@@ -1,7 +1,6 @@
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
 from .models import UserProfileModel, FriendRequest, GameRoom, ConfirmEmail
 from .validators import CustomPasswordValidator
 
@@ -122,15 +121,15 @@ class UserSerializer(serializers.ModelSerializer):
                 serializers.ValidationError: If the password is the same as the current password.
 
         """
-        for attr, value in validated_data.items():
-            if attr == "password" and value is not None:
-                if instance.check_password(value):
+        for attr, value in validated_data.items(): # Iterate over the validated data and update the user object
+            if attr == "password" and value is not None: # Check if the attribute is password and the value is not None (i.e., the password is being updated)
+                if instance.check_password(value): # Check if the new password is the same as the current password (i.e., the user is trying to set the same password)
                     raise serializers.ValidationError(detail="New password must be different from the current password.")
 
                 # Validate the new password using CustomPasswordValidator
                 try:
-                    validator = CustomPasswordValidator()
-                    validator.validate(value, user=instance)
+                    validator = CustomPasswordValidator() # Create an instance of CustomPasswordValidator
+                    validator.validate(value, user=instance) # Validate the new password using CustomPasswordValidator
                 except ValidationError as err:
                     raise serializers.ValidationError(detail=err.messages) from err
                 instance.set_password(value)

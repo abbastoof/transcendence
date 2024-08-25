@@ -43,7 +43,7 @@ function connectToWebSockets() {
     handleTokenVerification()
     .then(validToken => {
         userData.token = validToken;
-        const onlineStatusSocket = new WebSocket(`/ws/online/?token=${userData.token}`);    
+        const onlineStatusSocket = new WebSocket(`/ws/online/?token=${validToken}`);    
 
     let gameRoomSocket;
 
@@ -81,7 +81,7 @@ function connectToWebSockets() {
         handleTokenVerification()
         .then(validToken => {
             userData.token = validToken;
-            gameRoomSocket = new WebSocket(`/ws/game/room/${roomName}/?token=${userData.token}`);
+            gameRoomSocket = new WebSocket(`/ws/game/room/${roomName}/?token=${validToken}`);
 
                 gameRoomSocket.onopen = function() {
                     console.log(`Connected to game room ${roomName} WebSocket`);
@@ -92,12 +92,6 @@ function connectToWebSockets() {
                     const data = JSON.parse(event.data);
                     console.log(data)
                     if (data.type === 'starting_game') {
-                        // lobbyContent.innerHTML = 
-                        // `<div class="d-flex justify-content-center">
-                        //     <div class="spinner-border" style="width: 4rem; height: 4rem;" role="status">
-                        //         <span class="visually-hidden">Starting game..</span>
-                        //     </div>
-                        // </div>`;
                         waitingLobbyModalLabel.textContent = "Starting game..";
 
                         let config = {
