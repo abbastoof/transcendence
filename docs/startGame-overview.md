@@ -74,7 +74,8 @@ Example JSON data:
     "winner": 42,
     "player1_score": 10,
     "player2_score": 1,
-    "total_hits": 999,
+    "player1_hits": 100,
+    "player2_hits": 50,
     "longest_rally": 15,
     "game_duration": 300
 }

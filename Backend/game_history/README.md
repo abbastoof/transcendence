@@ -64,7 +64,8 @@ The `GameStat` model represents the statistics of a game, linked to a `GameHisto
 - `game_id`: OneToOneField, primary key linked to `GameHistory`.
 - `player1_score`: Integer, score of the first player.
 - `player2_score`: Integer, score of the second player.
-- `total_hits`: Integer, total number of hits in the game.
+- `player1_hits`: Integer, number of hits by the first player.
+- `player2_hits`: Integer, number of hits by the second player.
 - `longest_rally`: Integer, the longest rally in the game.
 
 ### Serializers
