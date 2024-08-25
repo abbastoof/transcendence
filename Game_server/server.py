@@ -378,8 +378,8 @@ async def start_online_game(p1_sid, p2_sid, game_id, player1_id, player2_id):
 TOEKNSERVICE = os.environ.get('TOKEN_SERVICE')
 def validate_token(id, token):
     if token:
-        data = {"id" : id, "access" : token}
-        response = requests.post(f"{TOEKNSERVICE}/auth/token/validate-token/", data=data, headers=headers)
+        data = {"id" : id, "access" : token, "is_frontend" : True}
+        response = requests.post(f"{TOEKNSERVICE}/auth/token/validate-token/", data=data)
         response_data = response.json()
         if "error" not in response_data:
             return True
