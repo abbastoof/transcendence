@@ -15,7 +15,7 @@ function refreshTokenRequest(userData) {
             alert('Session expired. Please login again.');
             sessionStorage.clear();
             updateAuthButton(false);
-            window.location.replace('https://localhost:80/#login');
+            window.location.replace('');
         }
         return response.json();
     })
