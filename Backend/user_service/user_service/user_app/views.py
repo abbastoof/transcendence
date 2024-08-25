@@ -112,7 +112,7 @@ class UserViewSet(viewsets.ViewSet):
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
-    @parser_classes([MultiPartParser, FormParser])
+    @parser_classes([MultiPartParser, FormParser]) # we need to add this decorator to handle file uploads 
     def update_user(self, request, pk=None) -> Response:
         """
             Method to update a user.
@@ -138,6 +138,9 @@ class UserViewSet(viewsets.ViewSet):
             if "email" in data:
                 response_message, status_code = self.handle_email(data, user_obj)
             if not response_message:
+                if "avatar" in data:
+                    if user_obj.avatar != "default.jpg":
+                        user_obj.avatar.delete(save=False)                        
                 serializer = UserSerializer(instance=user_obj, data=data, partial=True)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
