@@ -5,6 +5,9 @@ from game_logic.game_defaults import *
 from game_logic.entities.ball import Ball
 import asyncio
 import threading
+import json
+import os
+import requests
 import uvicorn 
 from server_utils import *
 
@@ -393,6 +396,16 @@ async def start_online_game(p1_sid, p2_sid, game_id, player1_id, player2_id):
         logging.error(f"Error starting game: {e}")
         await sio.emit('error', {'message': 'Error starting game'}, room=sid)
 
+TOEKNSERVICE = os.environ.get('TOKEN_SERVICE')
+def validate_token(id, token):
+    if token:
+        data = {"id" : id, "access" : token, "is_frontend" : True}
+        response = requests.post(f"{TOEKNSERVICE}/auth/token/validate-token/", data=data)
+        response_data = response.json()
+        if "error" not in response_data:
+            return True
+    return False
+
 @sio.event
 async def join_game(sid, data):
     # Log the received data
@@ -409,8 +422,10 @@ async def join_game(sid, data):
     is_remote = data.get('is_remote')
     token = data.get('token')
 
-    if token:
-        logging.info(f"received a token {token}")
+    if validate_token(local_player_id, token):
+        logging.info(f"token valid!\n\n")
+    else:
+        logging.info("token invalid!\n\n")
     couple = coupled_request(game_id, player1_id, player2_id)
     if couple is not None:
         if player1_id == local_player_id:
