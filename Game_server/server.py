@@ -143,6 +143,7 @@ class PongGame:
             },
             'bounce' : self.game_state.bounce,
             'hitpos' : self.game_state.hitpos,
+            'paused': self.game_state.paused,
         }
         for sid in self.sids:
             await sio.emit('send_game_state', game_state_data, room=sid)
@@ -208,6 +209,25 @@ class PongGame:
         }
         for sid in self.sids:
             await sio.emit('score', data, room=sid)
+ 
+    async def cancel_game(self):
+        self.game_state.in_progress = False
+        if self.game_loop_task and not self.game_loop_task.done():
+            self.game_loop_task.cancel()
+        try:
+            await self.game_loop_task  # Await to handle cancellation gracefully
+        except asyncio.CancelledError:
+            logging.info(f"Game loop for game {self.game_state.game_id} was cancelled.")
+        data = {
+            'type': 'cancel_game',
+            'gameId': self.game_state.game_id,
+            'message': 'Game has been cancelled',
+        }
+        for sid in self.sids:
+            await sio.emit('cancel_game', data, room=sid)
+        self.sids.clear()  # Clear all session IDs from the game instance
+        del active_games[self.game_id]  # Remove the game instance from the active games
+        del self.game_state  # If possible, clear the game state
 
     # handle_paddle_movement method
     # Handles paddle movement
@@ -278,6 +298,7 @@ def print_active_games():
 @sio.event
 async def connect(sid, environ):
     logging.info(f'Client connected: {sid}, Path: {environ.get("PATH_INFO")}')
+    
 
 # Event handler for disconnections
 # This function is called when a client disconnects from the server
@@ -293,9 +314,9 @@ async def disconnect(sid):
             game_instance = active_games[game_id]
             if sid in game_instance.sids:
                 game_instance.sids.remove(sid)
-                if not game_instance.sids:
-                    logging.info(f"No players left in game {game_id}, ending game session")
-                    await game_instance.end_game()
+                if game_instance.sids.__len__() == 1:
+                    logging.info(f"Only one player left in game {game_id}, ending game session")
+                    await game_instance.cancel_game()
                     # if active_games[game_id]:
                     #     del active_games[game_id]  # Clean up properly
                     logging.info(f"Game {game_id} terminated and removed from active_games")
@@ -419,6 +440,7 @@ async def move_paddle(sid, data):
         game_instance = active_games[game_id]
         await game_instance.handle_paddle_movement(sid, data)
     else:
+        await sio.emit('error', {'message': 'No active game instance'}, room=sid)
         logging.error(f"No active game instance for sid: {sid}")
 
 @sio.event

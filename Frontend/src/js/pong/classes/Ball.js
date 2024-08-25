@@ -38,6 +38,18 @@ class Ball {
                 }
             }});
     }
+
+    predictBallPosition(lastUpdateTime) {
+        // Calculate time elapsed since the last update
+        const currentTime = performance.now();
+        const timeElapsed = (currentTime - lastUpdateTime) / 1000; // Convert to seconds
+
+        // Predict future position based on velocity and time elapsed
+        const predictedX = this.mesh.position.x + this.dx * timeElapsed;
+        const predictedY = this.mesh.position.y + this.dy * timeElapsed;
+
+        return { x: predictedX, y: predictedY };
+    }
 }
 
 export default Ball;

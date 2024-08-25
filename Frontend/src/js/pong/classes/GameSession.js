@@ -36,6 +36,7 @@ class GameSession {
         this.paused = true;
         this.inProgress = false;
         this.quit = false;
+        this.lastUpdateTime = null;
     }
 
     initialize(gameId, localPlayerId, player1Id, player2Id, player1Alias, player2Alias, isRemote, isLocalTournament, scene, onGameEnd) {
@@ -125,6 +126,8 @@ class GameSession {
         this.leftPaddle.updatePosition(translatedData.player1Pos);
         this.rightPaddle.updatePosition(translatedData.player2Pos);
         this.ball.updatePosition(translatedData.ball);
+        this.ball.dx = data.ballDelta.dx;
+        this.ball.dy = data.ballDelta.dy;
         if (data.ballDelta.dx > 0  && globalState.playingFieldMaterial !==  null) {
             globalState.playingFieldMaterial.uniforms.ballDx.value = 1.0;
         }
@@ -144,8 +147,10 @@ class GameSession {
             globalState.glitchPass.enabled = false;
             globalState.rgbShift.uniforms.amount.value = 0.0015;
         }
+        this.lastUpdateTime = performance.now();
+        this.paused = data.paused
     }
-
+    
     handleScoreUpdate(data) {
         this.scoreBoard.showGoalText();
         this.player1Score = data.player1Score;
@@ -163,6 +168,7 @@ class GameSession {
     }
 
     handleGameOver(data) {
+        this.inProgress = false;
         this.leftPaddle.removeFromScene();
         this.rightPaddle.removeFromScene();
         setTimeout(() => {
@@ -183,8 +189,22 @@ class GameSession {
             }
             }, 3000);
         }
-    
-    
+
+    handleCancelGame(data) {
+        this.inProgress = false;
+        this.leftPaddle.removeFromScene();
+        this.rightPaddle.removeFromScene();
+        this.ball.removeFromScene();
+        this.scoreBoard.showCancelText();
+    }
+
+    predictMovement() {
+        if (this.paused === false && this.lastUpdateTime !== null) {
+            const predictedBallPosition = this.ball.predictBallPosition(this.lastUpdateTime);
+            this.ball.updatePosition(predictedBallPosition);
+        }
+    }
+
     disconnect() {
         if (this.socket.connected) {
             this.socket.disconnect();

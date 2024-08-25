@@ -38,8 +38,11 @@ export const initializeEventHandlers = (gameSession) => {
             }
         }
     });
-    socket.on('connect_error', (error) => {
-        console.error('Connection error:', error);
+    socket.on('error', (error) => {
+        gameSession.scoreBoard.showErrorText();
+        setTimeout(() => {
+            endGame();
+        }, 2000);
     });
     
     socket.on('reconnect_error', (error) => {
@@ -83,7 +86,8 @@ export const initializeEventHandlers = (gameSession) => {
     // The game session object is responsible for handling the quit
     socket.on('quit_game', (data) => {
         if (data && data.game_id) {
-            if (data.game_id === gameSession.gameId) {
+            if (data.game_id === gameSession.gameId && gameSession.inProgress) {
+                
                 console.log(`Player ${data.quitting_player_id} has quit the game.`);
                 gameSession.handleOpponentQuit(data);
             }
@@ -91,6 +95,23 @@ export const initializeEventHandlers = (gameSession) => {
                 console.log('Received quit game for different game, was ' + data.game_id + ', expected ' + gameSession.gameId);
             }
         }
+    });
+
+    socket.on('cancel_game', (data) => {
+        if (data && data.gameId) {
+            if (data.gameId === gameSession.gameId && gameSession.inProgress) {
+                gameSession.inProgress = false;
+                console.log(`Game ${data.gameId} has been cancelled.`);
+                gameSession.handleCancelGame(data);
+                setTimeout(() => {
+                    endGame();
+                }, 2000);
+            }
+            else {
+                console.log('Received cancel game for different game, was ' + data.game_id + ', expected ' + gameSession.gameId);
+            }
+        }
+        
     });
 
     // Event handler for the game over message
@@ -106,8 +127,20 @@ export const initializeEventHandlers = (gameSession) => {
         }
     });
 
+    // Set a flag to manage if the game is active
+
+    window.addEventListener('beforeunload', (event) => {
+    if (gameSession.inProgress === true) {
+        // Notify the server that the player is quitting
+        gameSession.quitGame();
+        // Optionally, show a confirmation dialog (may not work in all browsers)
+        event.preventDefault();
+        return "Are you sure you want to leave the game?";
+    }
+    });
     // Add other event handlers as needed
     console.log('Event handlers initialized');
+
 };
 
 // Emit events to the server
@@ -135,6 +168,6 @@ export const cleanupEventHandlers = () => {
     socket.off('score');
     socket.off('game_over');
     socket.off('quit_game');
-
+    socket.off('error');
     console.log('Event handlers removed');
 };

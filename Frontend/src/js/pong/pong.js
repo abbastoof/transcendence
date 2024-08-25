@@ -72,17 +72,11 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
         playerIds = [],
         player1Alias = "Player1",
         player2Alias = "Player2",
-    //  localPlayerId = null,
         isLocalTournament = false,
-        isTest = false,
     } = config;
 
     if (!validateConfig(config)) return;
     if (gameStarted) return;
-    createModalEventListeners(isRemote, isLocalTournament);
-    const pongModal = new bootstrap.Modal(document.getElementById('pongModal'));
-    pongModal.show()
-    window.location.hash = "pong"
     
     let player1Id, player2Id, finalGameId, localPlayerId;
 
@@ -125,6 +119,10 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
         player2Id = Math.round(randFloat(2000, 2999));
         finalGameId = Math.round(randFloat(5000, 9999));
     }
+    createModalEventListeners(isRemote, isLocalTournament);
+    const pongModal = new bootstrap.Modal(document.getElementById('pongModal'));
+    pongModal.show()
+    window.location.hash = "pong";
     globalState.invertedView = player2Id === localPlayerId
     const container = document.getElementById(containerId);
     const canvas = document.createElement('canvas');
@@ -161,7 +159,7 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
     function animate() {
         controlFunction(gameSession);
         updateITimes();
-
+        gameSession.predictMovement();
         camera.lookAt(0, 0, 0);
         composer.render();
         animationId = requestAnimationFrame(animate);
@@ -303,7 +301,6 @@ function localGameCallBack(data) {
 **/
 export function endGame() {
     console.log("Starting endGame cleanup...");
-
     if (typeof cancelAnimationFrame !== 'undefined') {
         cancelAnimationFrame(animationId);
         console.log("Animation frame cancelled.");

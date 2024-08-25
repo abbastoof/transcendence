@@ -128,6 +128,13 @@ class ScoreBoard {
         this.scene.add(this.messageMesh);
     }
 
+    showErrorText() {
+        this.clearScores();
+        this.messageMesh = this.createText('Error connecting to server', 50, 0xFF0000, 1.4, 9.0);
+        this.placeTextMesh(this.messageMesh);
+        this.scene.add(this.messageMesh);
+    }
+
     showQuitText(localPlayerQuit = false) {
         this.clearScores();
         if (localPlayerQuit) {
@@ -136,6 +143,13 @@ class ScoreBoard {
         else {
             this.messageMesh = this.createText('Your opponent has quit the game', 50, 0x2222FF, 1.4, 4.0);
         }
+        this.placeTextMesh(this.messageMesh);
+        this.scene.add(this.messageMesh);
+    }
+    
+    showCancelText() {
+        this.clearScores();
+        this.messageMesh = this.createText('This game has been cancelled', 50, 0xFF00FF, 1.4, 4.0);
         this.placeTextMesh(this.messageMesh);
         this.scene.add(this.messageMesh);
     }
