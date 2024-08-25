@@ -11,6 +11,8 @@ import requests
 import uvicorn 
 from server_utils import *
 
+TOEKNSERVICE = os.environ.get('TOKEN_SERVICE')
+
 # PongGame class
 # Represents a game of Pong
 # Properties:
@@ -375,7 +377,6 @@ async def start_online_game(p1_sid, p2_sid, game_id, player1_id, player2_id):
         logging.error(f"Error starting game: {e}")
         await sio.emit('error', {'message': 'Error starting game'}, room=sid)
 
-TOEKNSERVICE = os.environ.get('TOKEN_SERVICE')
 def validate_token(id, token):
     if token:
         data = {"id" : id, "access" : token, "is_frontend" : True}
@@ -401,10 +402,10 @@ async def join_game(sid, data):
     is_remote = data.get('is_remote')
     token = data.get('token')
 
-    if validate_token(local_player_id, token):
-        logging.info(f"token valid!\n\n")
-    else:
-        logging.info("token invalid!\n\n")
+    if validate_token(local_player_id, token) is False:
+        json_data {"token" : token}
+        await sio.emit('invalid_token', json_data, room=sid)
+        return
     couple = coupled_request(game_id, player1_id, player2_id)
     if couple is not None:
         if player1_id == local_player_id:
