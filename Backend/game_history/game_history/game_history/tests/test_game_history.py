@@ -142,7 +142,8 @@ def test_create_game_stat(api_client):
         'game_id': game.game_id,
         'player1_score': 10,
         'player2_score': 5,
-        'total_hits': 15,
+        'player1_hits': 0,
+        'player2_hits': 2,
         'longest_rally': 4
     }
     response = api_client.post(url, data, format='json')
@@ -151,16 +152,17 @@ def test_create_game_stat(api_client):
     game_stat = GameStat.objects.first()
     assert game_stat.player1_score == 10
     assert game_stat.player2_score == 5
-    assert game_stat.total_hits == 15
+    assert game_stat.player1_hits == 0
+    assert game_stat.player2_hits == 2
     assert game_stat.longest_rally == 4
 
 @pytest.mark.django_db
 def test_list_game_stat(api_client):
     game1 = GameHistory.objects.create(player1_id=1, player2_id=2, winner_id=1, start_time=now())
-    GameStat.objects.create(game_id=game1, player1_score=10, player2_score=5, total_hits=15, longest_rally=4)
+    GameStat.objects.create(game_id=game1, player1_score=10, player2_score=5, player1_hits=0, player2_hits=2, longest_rally=4)
 
     game2 = GameHistory.objects.create(player1_id=3, player2_id=4, winner_id=4, start_time=now())
-    GameStat.objects.create(game_id=game2, player1_score=8, player2_score=7, total_hits=20, longest_rally=5)
+    GameStat.objects.create(game_id=game2, player1_score=8, player2_score=7, player1_hits=20, player2_hits=0, longest_rally=5)
 
     url = reverse('gamestat-list')
     response = api_client.get(url, format='json')
@@ -168,37 +170,41 @@ def test_list_game_stat(api_client):
     assert len(response.data) == 2
     assert response.data[0]['player1_score'] == 10
     assert response.data[0]['player2_score'] == 5
-    assert response.data[0]['total_hits'] == 15
+    assert response.data[0]['player1_hits'] == 0
+    assert response.data[0]['player2_hits'] == 2
     assert response.data[0]['longest_rally'] == 4
     assert response.data[1]['player1_score'] == 8
     assert response.data[1]['player2_score'] == 7
-    assert response.data[1]['total_hits'] == 20
+    assert response.data[1]['player1_hits'] == 20
+    assert response.data[1]['player2_hits'] == 0
     assert response.data[1]['longest_rally'] == 5
 
 @pytest.mark.django_db
 def test_retrieve_game_stat(api_client):
     game = GameHistory.objects.create(player1_id=1, player2_id=2, winner_id=1, start_time=now())
-    game_stat = GameStat.objects.create(game_id=game, player1_score=10, player2_score=5, total_hits=15, longest_rally=4)
+    game_stat = GameStat.objects.create(game_id=game, player1_score=10, player2_score=5, player1_hits=15, player2_hits=2, longest_rally=4)
 
     url = reverse('gamestat-detail', args=[game_stat.pk])
     response = api_client.get(url, format='json')
     assert response.status_code == status.HTTP_200_OK
     assert response.data['player1_score'] == game_stat.player1_score
     assert response.data['player2_score'] == game_stat.player2_score
-    assert response.data['total_hits'] == game_stat.total_hits
+    assert response.data['player1_hits'] == game_stat.player1_hits
+    assert response.data['player2_hits'] == game_stat.player2_hits
     assert response.data['longest_rally'] == game_stat.longest_rally
 
 @pytest.mark.django_db
 def test_update_game_stat(api_client):
     game = GameHistory.objects.create(player1_id=1, player2_id=2, winner_id=1, start_time=now())
-    game_stat = GameStat.objects.create(game_id=game, player1_score=10, player2_score=5, total_hits=15, longest_rally=4)
+    game_stat = GameStat.objects.create(game_id=game, player1_score=10, player2_score=5, player1_hits=15, player2_hits=2, longest_rally=4)
 
     url = reverse('gamestat-detail', args=[game_stat.pk])
     data = {
         'game_id': game.game_id,
         'player1_score': 12,
         'player2_score': 6,
-        'total_hits': 18,
+        'player1_hits': 18,
+        'player2_hits': 0,
         'longest_rally': 5
     }
     response = api_client.put(url, data, format='json')
@@ -206,13 +212,14 @@ def test_update_game_stat(api_client):
     game_stat.refresh_from_db()
     assert game_stat.player1_score == 12
     assert game_stat.player2_score == 6
-    assert game_stat.total_hits == 18
+    assert game_stat.player1_hits == 18
+    assert game_stat.player2_hits == 0
     assert game_stat.longest_rally == 5
 
 @pytest.mark.django_db
 def test_delete_game_stat(api_client):
     game = GameHistory.objects.create(player1_id=1, player2_id=2, winner_id=1, start_time=now())
-    game_stat = GameStat.objects.create(game_id=game, player1_score=10, player2_score=5, total_hits=15, longest_rally=4)
+    game_stat = GameStat.objects.create(game_id=game, player1_score=10, player2_score=5, player1_hits=15, player2_hits=2, longest_rally=4)
 
     url = reverse('gamestat-detail', args=[game_stat.pk])
     response = api_client.delete(url)
