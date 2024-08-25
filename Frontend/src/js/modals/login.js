@@ -131,7 +131,7 @@ export function confirmLogout() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + userData.token
+            'Authorization': 'Bearer ' + token
         }
     })
     .then(response => {

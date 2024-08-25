@@ -1,4 +1,5 @@
- import { showMessage } from './messages.js';
+import { showMessage } from './messages.js';
+import { handleTokenVerification } from '../tokenHandler.js';// Import your token verification function
 
 // Function to toggle the profile picture update form visibility
 export function toggleProfilePictureForm() {
@@ -35,32 +36,39 @@ export function handleProfilePictureUpdate(userData) {
         const formData = new FormData();
         formData.append('avatar', file);
 
-        fetch(`/user/${userData.id}/`, {
-            method: 'PATCH',
-            headers: {
-                'Authorization': `Bearer ${userData.token}`
-            },
-            body: formData
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Image uploaded successfully:', data);
-            showMessage('Profile picture updated successfully', '#ProfileModal', 'accept');
-            document.getElementById('avatar').src = `${data.avatar}?t=${new Date().getTime()}`;
-            document.getElementById('imageUploadForm').style.display = 'none';
-            document.getElementById('imageInput').value = '';
-            document.getElementById('fileName').textContent = 'No file chosen';
+        // Verify token and update it if necessary
+        handleTokenVerification().then(token => {
+            fetch(`/user/${userData.id}/`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Image uploaded successfully:', data);
+                showMessage('Profile picture updated successfully', '#ProfileModal', 'accept');
+                document.getElementById('avatar').src = `${data.avatar}?t=${new Date().getTime()}`;
+                document.getElementById('imageUploadForm').style.display = 'none';
+                document.getElementById('imageInput').value = '';
+                document.getElementById('fileName').textContent = 'No file chosen';
+            })
+            .catch(error => {
+                console.error('Error uploading image:', error);
+                showMessage('Error uploading image', '#ProfileModal', 'error');
+                document.getElementById('imageInput').value = '';
+                document.getElementById('fileName').textContent = 'No file chosen';
+            });
         })
         .catch(error => {
-            console.error('Error uploading image:', error);
-            showMessage('Error uploading image', '#ProfileModal', 'error');
-            document.getElementById('imageInput').value = '';
-            document.getElementById('fileName').textContent = 'No file chosen';
+            console.error('Error handling token verification:', error);
+            showMessage('Session expired. Please log in again.', '#ProfileModal', 'error');
         });
     });
 }

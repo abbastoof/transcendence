@@ -1,3 +1,5 @@
+import { updateAuthButton } from "./modals/buttons";
+
 // Function to refresh the token
 function refreshTokenRequest(userData) {
     return fetch('/auth/token/refresh/', {
@@ -10,7 +12,10 @@ function refreshTokenRequest(userData) {
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error('Token refresh failed');
+            alert('Session expired. Please login again.');
+            sessionStorage.clear();
+            updateAuthButton(false);
+            window.location.replace('https://localhost:80/#login');
         }
         return response.json();
     })

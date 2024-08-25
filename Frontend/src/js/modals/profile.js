@@ -113,59 +113,20 @@ export function updateUserProfile() {
 
                 // Initialize event handlers
                 document.getElementById('changeEmailButton').addEventListener('click', toggleEmailForm);
-                handleTokenVerification()
-                    .then(validToken => {
-                        userData.token = validToken;
-                        handleEmailUpdate(userData);
-
-                    })
-                    .catch(error => {
-                        console.error('Error verifying token:', error);
-                    });
+                handleEmailUpdate(userData);
 
                 document.getElementById('changePasswordButton').addEventListener('click', togglePasswordForm);
-
-                handleTokenVerification()
-                    .then(validToken => {
-                        userData.token = validToken;
-                        handlePasswordUpdate(userData);
-                    })
-                    .catch(error => {
-                        console.error('Error verifying token:', error);
-                    });
+                handlePasswordUpdate(userData);
 
                 document.getElementById('changeProfilePictureButton').addEventListener('click', toggleProfilePictureForm);
-
-                handleTokenVerification()
-                    .then(validToken => {
-                        userData.token = validToken;
-                        handleProfilePictureUpdate(userData);
-                    })
-                    .catch(error => {
-                        console.error('Error verifying token:', error);
-                    });
+                handleProfilePictureUpdate(userData);
+                
                 document.getElementById('friendsButton').addEventListener('click', updateFriendsList);
-                handleTokenVerification()
-                    .then(validToken => {
-                        userData.token = validToken;
-                        updateFriendsList(userData);
-                    })
-                    .catch(error => {
-                        console.error('Error verifying token:', error);
-                    });
 
                 document.getElementById('matchHistoryButton').addEventListener('click', updateMatchHistory);
                 // Handle 2FA Toggle Switch
                 document.getElementById('twoFactorAuthToggle').addEventListener('change', function () {
-
-                    handleTokenVerification()
-                        .then(validToken => {
-                            userData.token = validToken;
-                            toggleTwoFactorAuth(userData, this.checked, userData.token);
-                        })
-                        .catch(error => {
-                            console.error('Error verifying token:', error);
-                        });
+                    toggleTwoFactorAuth(userData, this.checked);
                 });
 
             })
@@ -184,28 +145,31 @@ export function updateUserProfile() {
         });
 
     // Function to toggle 2FA status on the server
-    function toggleTwoFactorAuth(userData, isEnabled, token) {
-        fetch(`/user/${userData.id}/`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ otp_status: isEnabled ? "True" : "False" })
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to update 2FA status');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('2FA status updated successfully:', data.otp_status);
-                showMessage('2FA status updated successfully', '#ProfileModal', 'accept');
-                console.log('2FA status updated successfully:', data);
-            })
-            .catch(error => {
-                console.error('Error updating 2FA status:', error);
+    function toggleTwoFactorAuth(userData, isEnabled) {
+        handleTokenVerification()
+        .then(validToken => {
+            return fetch(`/user/${userData.id}/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${validToken}`
+                },
+                body: JSON.stringify({ otp_status: isEnabled ? "True" : "False" })
             });
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to update 2FA status');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('2FA status updated successfully:', data.otp_status);
+            showMessage('2FA status updated successfully', '#ProfileModal', 'accept');
+        })
+        .catch(error => {
+            console.error('Error updating 2FA status:', error);
+            showMessage('Error updating 2FA status', '#ProfileModal', 'error');
+        });
     }
 }
