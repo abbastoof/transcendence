@@ -1,7 +1,5 @@
-import json
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from django.http import Http404
-from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import ValidationError
 from rest_framework import status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -12,11 +10,10 @@ from .models import UserProfileModel, FriendRequest, ConfirmEmail
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.decorators import parser_classes
 from django.utils.timezone import now, timedelta
-from .serializers import UserSerializer, FriendSerializer, ConfirmEmailSerializer
+from .serializers import UserSerializer, FriendSerializer
 from django.core.mail import send_mail
 from django.conf import settings
 from django.db.models import Q
-from dotenv import load_dotenv
 from .user_session_views import generate_secret
 import logging
 import requests
@@ -27,7 +24,7 @@ TOEKNSERVICE = settings.TOKEN_SERVICE_URL
 logger = logging.getLogger(__name__)
 
 headers = {
-    "X-SERVICE-SECRET": settings.SECRET_KEY  # Replace with your actual secret key
+    "X-SERVICE-SECRET": settings.SECRET_KEY
 }
 
 def extract_token(request):
@@ -156,7 +153,7 @@ class UserViewSet(viewsets.ViewSet):
             return Response({'error': item_lists}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as err:
             return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def handle_email(self, data, user_obj):
         response_message = {}
         status_code = status.HTTP_200_OK

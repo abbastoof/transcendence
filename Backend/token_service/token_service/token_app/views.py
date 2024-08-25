@@ -37,8 +37,8 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             start_consumer: Method to start the RabbitMQ consumer.
     """
     permission_classes = [AllowAny]
-    serializer_class = CustomTokenObtainPairSerializer
-    def post(self, request, *args, **kwargs) -> Response:
+    serializer_class = CustomTokenObtainPairSerializer # this is the serializer class that is used to generate the token for the user
+    def post(self, request, *args, **kwargs) -> Response: # login endpoint will send the user id and username to generate a refresh token and access token for the user
         """
             Create a new token for the user.
 
@@ -99,7 +99,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         return Response(response_message, status=status_code)
 
 class CustomTokenRefreshView(TokenRefreshView):
-    def post(self, request, *args, **kwargs) -> Response:
+    def post(self, request, *args, **kwargs) -> Response: # Frontend will send the refresh token in the request header as Bearer token and the user id in the request body to generate a new access token
         """
             Post method to generate new access token using refresh token.
 
@@ -155,6 +155,11 @@ class ValidateToken(viewsets.ViewSet):
                 bool: True if the token is valid, False otherwise.
         """
         try:
+            ''' decode the token to check if it is expired
+            and if it is expired, it will raise an exception
+            and if it is invalid, it will raise an exception
+            jwt.decode() method is used to decode the token and check if it is expired or invalid
+            '''
             decoded_token = jwt.decode(access_token, settings.SECRET_KEY, algorithms=["HS256"], options={"verify_signature": True})
             return True
         except jwt.ExpiredSignatureError:
@@ -196,7 +201,7 @@ class ValidateToken(viewsets.ViewSet):
         return Response(response_message, status=status_code)
 
 class InvalidateToken(viewsets.ViewSet):
-    def invalidate_token_for_user(self, request, *args, **kwargs) -> Response:
+    def invalidate_token_for_user(self, request, *args, **kwargs) -> Response: # logout endpoint will send the user id and access token in the request body to delete the user token record from the database
         response_message = {}
         status_code = status.HTTP_200_OK
         isfrontend = request.data.get("is_frontend")
@@ -216,12 +221,9 @@ class InvalidateToken(viewsets.ViewSet):
                         if user is not None:
                             user.delete()
                             response_message = {"detail":"User logged out"}
-            except jwt.ExpiredSignatureError:
-                response_message = {"error": "Access token is expired"}
-                status_code = status.HTTP_401_UNAUTHORIZED
-            except jwt.InvalidTokenError:
-                response_message = {"error": "Invalid access token"}
-                status_code = status.HTTP_401_UNAUTHORIZED
+                    else:
+                        response_message = {"error": "Invalid or expired token"}
+                        status_code = status.HTTP_401_UNAUTHORIZED
             except Http404:
                 response_message = {"error": "User has not logged in yet"}
                 status_code = status.HTTP_401_UNAUTHORIZED

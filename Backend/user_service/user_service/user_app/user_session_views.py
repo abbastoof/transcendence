@@ -61,22 +61,22 @@ class UserLoginView(viewsets.ViewSet):
                 if user.is_active:
                     serializer = UserSerializer(user)
                     if user.otp_status:
+                        # 2FA is enabled
                         otp = generate_secret()
                         user.otp = make_password(str(otp))
                         user.otp_expiry_time = now() + timedelta(minutes=3)
                         user.save()
-                        logger.info('user email = %s', serializer.data["email"])
                         self.send_email(serializer.data["email"], otp)
                         response_message = {"detail":"Verification password sent to your email"}
                         status_code = status.HTTP_200_OK
                     else:
+                        # 2FA is disabled
                         data = {"id": serializer.data["id"], "username": serializer.data["username"]}
                         response = requests.post(f"{TOEKNSERVICE}/auth/token/gen-tokens/", data=data, headers=headers)
                         if response.status_code == 201:
                             user.online_status = True
                             user.save()
                             response_message = response.json()
-                        # logger.info('user_data = %s', response.json())
                         if "error" in response_message:
                             status_code = response_message.get("status_code")
                             response_message = response.json()
@@ -91,8 +91,7 @@ class UserLoginView(viewsets.ViewSet):
             status_code = status.HTTP_400_BAD_REQUEST
         return Response(response_message, status=status_code)
 
-    #TODO: use check password for verify
-    def verify_otp(self, request):
+    def verify_otp(self, request): # frontend will send username, password and otp to verify the otp and login the user if the otp is correct
         status_code = status.HTTP_200_OK
         response = {}
         response_message = {}
@@ -101,8 +100,8 @@ class UserLoginView(viewsets.ViewSet):
         otp = request.data.get("otp")
         if username and password and otp:
             user = self.authenticate_user(request, username, password)
-            if user is not None:
-                if user.otp_status:
+            if user is not None: # if the user is authenticated
+                if user.otp_status: # if the user has enabled 2FA
                     if check_password(str(otp), user.otp):
                         if user.otp_expiry_time > now():
                             data = {"id": user.id, "username": username}
@@ -113,7 +112,7 @@ class UserLoginView(viewsets.ViewSet):
                                 user.otp_expiry_time = None
                                 user.online_status = True
                                 user.save()
-                            # logger.info('user_data = %s', response_message)
+
                             if "error" in response_message:
                                 status_code = response_message.get("status_code")
                             else:
