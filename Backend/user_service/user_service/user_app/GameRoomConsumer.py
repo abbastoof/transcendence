@@ -155,7 +155,7 @@ class GameRoomConsumer(AsyncWebsocketConsumer):
                     "player2_username": serializer["player2_username"],
                     "start_time": now()
                 }
-                response = requests.post(f'${GAME_HISTORY_URL}/game-history/', data=request)
+                response = requests.post(f'{GAME_HISTORY_URL}/game-history/', data=request)
         return response.json()
 
     @database_sync_to_async

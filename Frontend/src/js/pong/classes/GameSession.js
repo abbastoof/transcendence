@@ -1,7 +1,8 @@
 // GameSession.js
 import socket from '../socket.js';
-import { initializeEventHandlers } from '../eventhandlers.js';
+import { initializeEventHandlers, cleanupEventHandlers } from '../eventhandlers.js';
 import { translateCoordinates } from '../utils.js';
+import { clearControls } from '../controls.js';
 import Paddle from './Paddle.js';
 import Ball from './Ball.js';
 import PlayingField from './PlayingField.js';
@@ -10,7 +11,6 @@ import { LEFT_PADDLE_START, RIGHT_PADDLE_START } from '../constants.js';
 import { endGame } from '../pong.js';
 import { globalState } from '../globalState.js';
 import { sendQuit } from '../eventhandlers.js';
-import { cleanupEventHandlers } from '../eventhandlers.js';
 import { handleTokenVerification } from '../../tokenHandler.js';
 
 class GameSession {
@@ -86,7 +86,7 @@ class GameSession {
             handleTokenVerification()
                 .then(validToken => {
                     userData.token = validToken;
-                    gameInitData['token'] = userData.token;
+                    gameInitData['token'] = validToken;
                     gameInitData['type'] = 'join_game';
                     this.socket.emit('join_game', gameInitData);
                 })
@@ -107,14 +107,24 @@ class GameSession {
         this.socket.emit('move_paddle', data);
     }
 
+    handleError(errorMessage) {
+        this.leftPaddle.removeFromScene();
+        this.rightPaddle.removeFromScene();
+        this.ball.removeFromScene();
+        this.scoreBoard.showErrorText(errorMessage);
+        setTimeout(() => {
+            endGame();
+        }, 3000);
+    }
+
     handleGameStart() {
         this.scoreBoard.showGameStartText()
-        this.inProgress = true;
         this.leftPaddle.addToScene();
         this.rightPaddle.addToScene();
         this.ball.addToScene();
         setTimeout(() => {
-            this.paused = false
+            this.paused = false;
+            this.inProgress = true;
             const player1Text = `${this.player1Alias} ${this.player1Score}`;
             const player2Text = `${this.player2Alias} ${this.player2Score}`;
             this.scoreBoard.createScoreBoard(player1Text, player2Text);
@@ -221,6 +231,7 @@ class GameSession {
         this.disconnect();
         this.gameId = null
         cleanupEventHandlers();
+        clearControls();
     }
 
     quitGame() {

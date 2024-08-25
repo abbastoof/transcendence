@@ -123,14 +123,14 @@ class ScoreBoard {
 
     showLoadingText() {
         this.clearScores();
-        this.messageMesh = this.createText('Loading..', 80, 0xAAFF00, 1.4, 4.0);
+        this.messageMesh = this.createText('Connecting to server..', 80, 0xAAFF00, 1.4, 4.0);
         this.placeTextMesh(this.messageMesh);
         this.scene.add(this.messageMesh);
     }
 
-    showErrorText() {
+    showErrorText(message) {
         this.clearScores();
-        this.messageMesh = this.createText('Error connecting to server', 50, 0xFF0000, 1.4, 9.0);
+        this.messageMesh = this.createText(message, 50, 0xDD22222, 1.9, 5.0);
         this.placeTextMesh(this.messageMesh);
         this.scene.add(this.messageMesh);
     }

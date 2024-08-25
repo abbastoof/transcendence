@@ -5,7 +5,7 @@ import GameSession from './classes/GameSession.js';
 import { init } from './init.js';
 import { randFloat } from 'three/src/math/MathUtils.js';
 import { globalState } from './globalState.js';
-import { localGameControls, remoteGameControls } from './controls.js';
+import { initializeControls, localGameControls, remoteGameControls } from './controls.js';
 import { cleanupEventHandlers } from './eventhandlers.js';
 import { initializeConfirmationModal } from '../modals/quitConfirmation.js';
 
@@ -32,7 +32,6 @@ function validateConfig(config) {
         isTest = false,
     } = config;
 
-    console.log('playerIds:', playerIds);  // Debugging line
     if (playerIds !== null && (!Array.isArray(playerIds) || !playerIds.every(item => item === null || Number.isInteger(item)) || (playerIds.length !== 0 && playerIds.length !== 2))) {
         console.error('Invalid player IDs:', playerIds[0], playerIds[1]);
         return false;
@@ -64,7 +63,6 @@ function validateConfig(config) {
  * @returns if config is invalid, otherwise runs the game
  */
 export function startGame(containerId, config = {}, onGameEnd = null) {
-    console.log('Config object:', config);  // Debugging line
     
     const {
         isRemote = false,
@@ -143,6 +141,7 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
     // This section defines which function is used for player controls
     // If the game is remote, the remoteGameControls function is used
     // Otherwise, the localGameControls function is used
+    initializeControls();
     let controlFunction;
     if (isRemote === true)
         controlFunction = remoteGameControls;
@@ -275,7 +274,6 @@ function removeModalEventListeners() {
  */
 export function cleanUpGame() {
     if (gameSession) gameSession = null;
-    console.log(gameSession)
     if (scene) scene = null;
     if (camera) camera = null;
     if (composer) composer = null;
@@ -301,20 +299,16 @@ function localGameCallBack(data) {
  * @returns void
 **/
 export function endGame() {
-    console.log("Starting endGame cleanup...");
     if (typeof cancelAnimationFrame !== 'undefined') {
         cancelAnimationFrame(animationId);
-        console.log("Animation frame cancelled.");
     }
 
     if (renderer) {
         renderer.dispose();
-        console.log("Renderer disposed.");
     }
 
     if (gameSession) {
         gameSession.clearResources();
-        console.log("Game session resources cleared.");
     }
 
     cleanUpGame();
@@ -324,8 +318,4 @@ export function endGame() {
     if (globalState.bypassConfirmationModal)
         globalState.bypassConfirmationModal();
     removeModalEventListeners();
-    console.log("EndGame complete, gameStarted:", gameStarted, "isGameOver:", sessionStorage.getItem('isGameOver'));
-
-
-    console.log("Modal hide attempted at endGame.");
 }

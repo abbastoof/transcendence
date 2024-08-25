@@ -64,7 +64,7 @@ sid_to_game = {}
 
 
 class GameRequest:
-    def __init__(self, sid, game_id, player1_id, player2_id, is_remote):
+    def __init__(self, sid, game_id: int, player1_id, player2_id, is_remote):
         self.time_stamp = time.time()
         self.game_id = game_id
         self.sid = sid
@@ -74,11 +74,11 @@ class GameRequest:
 
     async def has_timed_out(self):
         curr_time = time.time()
-        if (curr_time - self.time_stamp) > 120.0:
+        if (curr_time - self.time_stamp) > 10.0:
             logging.info("Request game has timed out, sending cancel_game!\n")
             json_data = {
                     "type": "cancel_game",
-                    "game_id": self.game_id,
+                    "gameId": self.game_id,
                     }
             await sio.emit('cancel_game', json_data, room=self.sid)
             return True

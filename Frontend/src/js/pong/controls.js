@@ -4,20 +4,41 @@ import { globalState } from './globalState.js';
 
 // keys object to store the state of the keys
 const keys = {};
+let keydownHandler;
+let keyupHandler;
 
-// event listeners for keydown and keyup events
-document.addEventListener('keydown', (event) => {
-    keys[event.key] = true;
-});
-document.addEventListener('keyup', (event) => {
-    keys[event.key] = false;
-});
+export function initializeControls(){
+
+    keydownHandler = (event) => {
+        keys[event.key] = true;
+    };
+
+    keyupHandler = (event) => {
+        keys[event.key] = false;
+    };
+
+    document.addEventListener('keydown', keydownHandler);
+    document.addEventListener('keyup', keyupHandler);
+}
+
+export function clearControls(){
+    // Remove keydown and keyup event listeners
+    if (keydownHandler) {
+        document.removeEventListener('keydown', keydownHandler);
+        keydownHandler = null;
+    }
+
+    if (keyupHandler) {
+        document.removeEventListener('keyup', keyupHandler);
+        keyupHandler = null;
+    }
+}
 
 // Function to handle the game controls
 export function localGameControls(gameSession) {
     let leftDeltaZ = 0;
     let rightDeltaZ = 0;
-    if (gameSession.paused === true) {
+    if (gameSession.inProgress === false) {
         return;
     }
     if ((keys['w'] || keys['W']) && !gameSession.leftPaddle.intersectsWall(gameSession.playingField.upperWall.boundingBox)) {
@@ -52,7 +73,7 @@ export function localGameControls(gameSession) {
 export function remoteGameControls(gameSession) {
     let deltaZ = 0;
     
-    if (gameSession.paused === true) {
+    if (gameSession.inProgress === false) {
         return;
     }
     if ((keys['q'])) {

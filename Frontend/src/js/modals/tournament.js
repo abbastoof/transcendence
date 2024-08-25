@@ -342,9 +342,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function gameResultCallBack(data) {
-    
-        let roundWinners = JSON.parse(sessionStorage.getItem('roundWinners'));
-        roundWinners.push(data.winner);
-        sessionStorage.setItem('roundWinners', JSON.stringify(roundWinners));
+        if (data.winner) {
+            let roundWinners = JSON.parse(sessionStorage.getItem('roundWinners'));
+            roundWinners.push(data.winner);
+            sessionStorage.setItem('roundWinners', JSON.stringify(roundWinners));
+        }
+        else {
+            console.error('Game result missing winner:', data);
+            resetTournament();
+        }
     }
 });

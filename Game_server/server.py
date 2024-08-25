@@ -28,6 +28,7 @@ class PongGame:
         self.sid_to_player_id = {}
         self.game_loop_task = None
         self.is_remote = is_remote
+        self.is_quit = False
         logging.info("Pongstructor")
 
     # init_game method
@@ -84,6 +85,8 @@ class PongGame:
             while not self.game_state.paused:
                 await self.update_game_state()
                 await asyncio.sleep(0.016)  # Adjust this to control the speed of the animation
+            if self.game_state.current_rally > self.game_state.longest_rally:
+                self.game_state.longest_rally = self.game_state.current_rally
             await self.send_score()
             await self.post_rally_animation()
             if self.game_state.is_game_over():
@@ -112,6 +115,7 @@ class PongGame:
     # If a goal is scored, the game is paused
     # The updated game state is sent to the client
     async def update_game_state(self):
+        self.game_state.current_rally += 1
         self.game_state.ball.update_position()
         self.game_state.handle_collisions()
         self.game_state.current_rally += 1
@@ -319,11 +323,12 @@ async def disconnect(sid):
             game_instance = active_games[game_id]
             if sid in game_instance.sids:
                 game_instance.sids.remove(sid)
-                if game_instance.sids.__len__() == 1:
-                    logging.info(f"Only one player left in game {game_id}, ending game session")
+                if game_instance.is_remote and not game_instance.is_quit and game_instance.sids.__len__() == 1:
+                    logging.info(f"Only one player left in remote game {game_id}, ending game session")
                     await game_instance.cancel_game()
-                    # if active_games[game_id]:
-                    #     del active_games[game_id]  # Clean up properly
+                elif game_instance.sids.__len__() == 0:
+                    logging.info(f"No players left in game {game_id}, ending game session")
+                    await game_instance.end_game()
                     logging.info(f"Game {game_id} terminated and removed from active_games")
         else:
             logging.info(f"Game {game_id} not found in active_games during disconnect")
@@ -424,7 +429,7 @@ async def join_game(sid, data):
     token = data.get('token')
 
     if validate_token(local_player_id, token) is False:
-        json_data {"token" : token}
+        json_data = {"token" : token}
         await sio.emit('invalid_token', json_data, room=sid)
         return
     couple = coupled_request(game_id, player1_id, player2_id)
@@ -468,6 +473,7 @@ async def quit_game(sid, data):
 
     if game_id in active_games:
         game_instance = active_games[game_id]
+        game_instance.is_quit = True
 
         # Identify the quitting player and the remaining player
         if game_instance.game_state.player1.id == player_id:
@@ -487,11 +493,11 @@ async def quit_game(sid, data):
         # Notify all players in the session that the game has ended because a player quit
         json_data = {
             "type": "quit_game",
-            "game_id": game_id,
-            "quitting_player_id": quitting_player.id,
-            "remaining_player_id": remaining_player.id,
-            "quitting_player_score": quitting_player.score,
-            "remaining_player_score": remaining_player.score,
+            "gameId": game_id,
+            "quittingPlayerId": quitting_player.id,
+            "remainingPlayerId": remaining_player.id,
+            "quittingPlayerScore": quitting_player.score,
+            "remainingPlayerScore": remaining_player.score,
             "message": f"Player {quitting_player.id} has quit the game."
         }
 
@@ -528,7 +534,7 @@ async def main():
     uvicorn_thread = threading.Thread(target=start_uvicorn, daemon=True)
     uvicorn_thread.start()
     # while 1:
-    #     await check_timed_out_requests()
+    #      await check_timed_out_requests()
     uvicorn_thread.join()
 
 

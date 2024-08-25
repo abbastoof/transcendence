@@ -165,7 +165,9 @@ function handleGameEnd(data) {
             lobbyContent.innerHTML = `<p class="font">Final Score:</p>
             <p class="font">${gameHistoryRecord.player1_username}: ${data.player1_score}</p>
             <p class="font">${gameHistoryRecord.player2_username}: ${data.player2_score}</p>
-            `
+            <p class="font">Total hits:<br>
+            ${gameHistoryRecord.player1_username}: ${data.player1_hits}<br>${gameHistoryRecord.player2_username}: ${data.player2_hits}</p>
+            <p class="font">Longest rally: ${data.longest_rally * 0.016}</p>`;
             if (Number(userData.id) === data.winner){
                 updateGameHistory(data, gameHistoryRecord);
             }
@@ -199,7 +201,8 @@ function updateGameHistory(data, gameHistoryRecord) {
                 game_id: data.game_id,
                 player1_score: data.player1_score,
                 player2_score: data.player2_score,
-                total_hits: data.player1_hits + data.player2_hits,
+                player1_hits: data.player1_hits,
+                player2_hits: data.player2_hits,
                 longest_rally: data.longest_rally
             };
             console.log('Creating game stat record:', gameStatData);
