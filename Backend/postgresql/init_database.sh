@@ -29,7 +29,7 @@ chown -R postgres:postgres /var/lib/postgresql/data
 exec postgres -D /var/lib/postgresql/data &
 
 # Wait for PostgreSQL to start (you may need to adjust the sleep time)
-sleep 2
+sleep 5
 
 # Create a new PostgreSQL user and set the password
 psql -c "CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASS}';"
@@ -55,6 +55,6 @@ psql -c "GRANT ALL PRIVILEGES ON DATABASE postgres TO ${DB_USER};"
 # Stop the PostgreSQL server after setting the password
 pg_ctl stop -D /var/lib/postgresql/data
 
-sleep 2
+sleep 5
 # Start the PostgreSQL server as the postgres user, keeping it in the foreground
 exec postgres -D /var/lib/postgresql/data

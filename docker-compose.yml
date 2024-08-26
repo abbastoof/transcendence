@@ -18,9 +18,7 @@ volumes:
 services:
   redis:
     container_name: redis
-    image: "redis:alpine"
-    ports:
-      - "6379:6379"
+    image: redis:alpine
     networks:
       - transcendence_network
 
@@ -34,8 +32,6 @@ services:
       - .env
     networks:
       - transcendence_network
-    ports:
-      - 8001:8001
     volumes:
       - www_data:/app/www/avatars
       # - database:/var/lib/postgresql/
@@ -52,8 +48,6 @@ services:
       - .env
     networks:
       - transcendence_network
-    ports:
-      - 8000:8000
     depends_on:
       - postgresql
 
@@ -78,8 +72,6 @@ services:
       dockerfile: Game_server/Dockerfile
     env_file:
       - .env
-    ports:
-      - 8010:8010
     networks:
       - transcendence_network
     depends_on:
@@ -107,8 +99,8 @@ services:
     env_file:
       - .env
     ports:
-      - "3000:3000"  # Development port mapping for Vite
-      - "80:443"   # Production port mapping for Nginx
+      - "3001:3000"  # Development port mapping for Vite
+      - "3000:443"   # Production port mapping for Nginx
     volumes:
       - ./Frontend/src:/app/src  # Mount the source code directory for live reloading in dev mode
       - /app/node_modules  # Prevent overwriting node_modules
