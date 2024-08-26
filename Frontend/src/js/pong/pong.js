@@ -319,7 +319,7 @@ export function endGame() {
     cleanUpGame();
 
     gameStarted = false;
-    sessionStorage.setItem('isGameOver', 'true');
+    sessionStorage.setItem('isGameOver', true);
     if (globalState.bypassConfirmationModal)
         globalState.bypassConfirmationModal();
     removeModalEventListeners();

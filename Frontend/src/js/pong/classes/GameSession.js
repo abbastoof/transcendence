@@ -40,7 +40,6 @@ class GameSession {
     }
 
     initialize(gameId, localPlayerId, player1Id, player2Id, player1Alias, player2Alias, isRemote, isLocalTournament, scene, onGameEnd) {
-        initializeEventHandlers(this);
         this.gameId = gameId;
         this.localPlayerId = localPlayerId
         this.player1Id = player1Id;
@@ -60,6 +59,7 @@ class GameSession {
         else
             this.scoreBoard.showLoadingText();
         this.playingField.addToScene();
+        initializeEventHandlers(this);
 
         // Always connect to the server
         if (!this.socket.connected) {

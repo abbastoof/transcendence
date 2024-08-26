@@ -1,5 +1,5 @@
 import * as bootstrap from 'bootstrap';
-import { startGame, endGame } from '../pong/pong.js';
+import { startGame } from '../pong/pong.js';
 import GameSession from '../pong/classes/GameSession.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -65,10 +65,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log("TOURNAMENT RESET");                    // pois
     }
 
-    closeButtons.forEach((closeButton) => {
-        closeButton.addEventListener('click', () => {              // pois
-            sessionStorage.setItem('gameQuit', 'true');
-          });
+    document.getElementById('gameInfoClose').addEventListener('click', function(event){
+        resetTournament();
     });
 
     randomNamesButton.style.display = 'none';
@@ -285,7 +283,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     tmpPlayerTwo = JSON.parse(sessionStorage.getItem('tournamentPlayers')).find((player) => (player.id === roundWinners[1]));
                 }
 
-                if (!sessionStorage.getItem('gameQuit')) {
+                if (winnerName) {
                     document.getElementById('winner').textContent = ("Last game winner: " + winnerName.name);
                     document.getElementById('nextPlayers').textContent = ("Next Players: " + tmpPlayerOne.name + " and " + tmpPlayerTwo.name);
                 }
