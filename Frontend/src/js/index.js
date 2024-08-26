@@ -1,5 +1,4 @@
 import '../scss/styles.scss'
-import * as bootstrap from 'bootstrap'
 import { createModal } from './createModal.js'
 import { insert, insertModal } from './insert.js'
 import './pong/pong.js'
