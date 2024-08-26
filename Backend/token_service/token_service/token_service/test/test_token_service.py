@@ -1,65 +1,32 @@
+# conftest.py
 import pytest
-import json
-from unittest.mock import patch, MagicMock
+from rest_framework.test import APIClient
+from token_app.models import UserTokens
+from django.urls import reverse
 from rest_framework_simplejwt.tokens import RefreshToken
-from token_app.views import CustomTokenObtainPairView
 
 @pytest.fixture
 def api_client():
-    from rest_framework.test import APIClient
     return APIClient()
 
 @pytest.fixture
-def user_data():
-    return {
-        'username': 'testuser',
-    }
+def user_tokens_obj(db):
+    return UserTokens.objects.create(id=1, username='testuser', token_data={})
 
 @pytest.fixture
-def request_factory(): 
-    """
-    This is a fixture that returns a RequestFactory object.
-    This is a Django object that allows you to create mock requests.
-    This is useful for testing views.
-    """
-    from django.test import RequestFactory
-    return RequestFactory()
+def user_tokens_obj_with_token(user_tokens_obj):
+    refresh = RefreshToken.for_user(user_tokens_obj)
+    access = refresh.access_token
+    user_tokens_obj.token_data = {
+        'refresh': str(refresh),
+        'access': str(access)
+    }
 
-def test_handle_token_request(mocker, user_data):
-    # Mock the publish_message function
-    publish_message_mock = mocker.patch('token_app.views.publish_message')
-    
-    # Prepare the message body
-    message_body = json.dumps(user_data)
-    
-    # Mock RefreshToken to return a fixed value
-    with patch('rest_framework_simplejwt.tokens.RefreshToken.for_user') as mock_for_user:
-        mock_refresh_token = MagicMock()
-        mock_refresh_token.__str__.return_value = 'fixed-refresh-token'
-        mock_refresh_token.access_token = 'fixed-access-token'
-        mock_for_user.return_value = mock_refresh_token
-        
-        # Call the handle_token_request method directly
-        CustomTokenObtainPairView.handle_token_request(None, None, None, message_body)
-    
-    # Assert the publish_message was called with correct arguments
-    expected_refresh_token = 'fixed-refresh-token'
-    expected_access_token = 'fixed-access-token'
-    
-    publish_message_mock.assert_called_once_with(
-        "user_token_response_queue",
-        json.dumps({"refresh": expected_refresh_token, "access": expected_access_token})
-    )
+@pytest.mark.django_db
+def test_generate_tokens(api_client, user_tokens_obj, user_tokens_obj_with_token):
 
-def test_start_consumer(mocker):
-    # Mock the consume_message function
-    consume_message_mock = mocker.patch('token_app.views.consume_message')
-    
-    # Create a test instance of the view
-    view = CustomTokenObtainPairView()
-    
-    # Call the start_consumer method
-    view.start_consumer()
-    
-    # Assert the consume_message was called with correct arguments
-    consume_message_mock.assert_called_once_with("user_token_request_queue", view.handle_token_request)
+    url = reverse('generate_tokens')
+    response = api_client.post(url, {'id': user_tokens_obj.id, 'username': user_tokens_obj.username})
+    assert response.status_code == 201
+    assert response.data['refresh'] == user_tokens_obj.token_data['refresh']
+    assert response.data['access'] == user_tokens_obj.token_data['access']
