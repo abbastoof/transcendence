@@ -80,8 +80,8 @@ status:
 info:
 	docker ps -a
 
-.PHONY: bvenv
-bvenv:
+.PHONY: vbash
+vbash:
 	@if [ -z "$(filter-out $@,$(MAKECMDGOALS))" ]; then \
 		echo "Error: No container name provided."; \
 		exit 1; \

@@ -56,3 +56,4 @@ def test_generate_tokens(api_client, user_tokens_obj, headers):
     assert decoded_access['user_id'] == user_tokens_obj.id
     assert 'exp' in decoded_access
     assert 'token_type' in decoded_access and decoded_access['token_type'] == 'access'
+
