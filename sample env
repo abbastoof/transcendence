@@ -13,4 +13,4 @@ PGSQL_HOST = 'postgresql'
 
 USER_SERVICE_EMAIL = 'trancendance10@gmail.com'
 USER_SERVICE_PASS = 'prie kqkh dled hlme'
-HOSTNAME='c1r6p1.hive.fi'
+HOSTNAME='hostname_or_ip'

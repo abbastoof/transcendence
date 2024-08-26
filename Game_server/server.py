@@ -324,7 +324,14 @@ def print_active_games():
 @sio.event
 async def connect(sid, environ):
     logging.info(f'Client connected: {sid}, Path: {environ.get("PATH_INFO")}')
-    
+    json_data = {
+        "type": "game_defaults",
+        "PADDLE_WIDTH": PADDLE_WIDTH,
+        "PADDLE_DEPTH": PADDLE_DEPTH,
+        "BALL_RADIUS": BALL_RADIUS,
+        "PADDLE_SPEED": PADDLE_SPEED
+    }
+    await sio.emit('game_defaults', json_data, room=sid)
 
 # Event handler for disconnections
 # This function is called when a client disconnects from the server

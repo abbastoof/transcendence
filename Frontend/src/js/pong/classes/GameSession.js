@@ -40,6 +40,7 @@ class GameSession {
     }
 
     initialize(gameId, localPlayerId, player1Id, player2Id, player1Alias, player2Alias, isRemote, isLocalTournament, scene, onGameEnd) {
+        initializeEventHandlers(this);
         this.gameId = gameId;
         this.localPlayerId = localPlayerId
         this.player1Id = player1Id;
@@ -99,7 +100,6 @@ class GameSession {
             this.socket.emit('start_game', gameInitData);
         }
     
-    initializeEventHandlers(this);
 }
 
 
@@ -187,15 +187,8 @@ class GameSession {
                     
                     endGame();
                     this.onGameEndCallback(data);
-                    console.log("Game end callback executed, forwarded data: ", data);
                     this.dataSent = true;
                 }
-                else {
-                    console.log("Game end callback already executed.");
-                }
-            }
-            else {
-                console.log("No game end callback defined.");
             }
             }, 3000);
         }

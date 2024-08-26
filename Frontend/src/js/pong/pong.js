@@ -63,7 +63,6 @@ function validateConfig(config) {
  * @returns if config is invalid, otherwise runs the game
  */
 export function startGame(containerId, config = {}, onGameEnd = null) {
-    
     const {
         isRemote = false,
         gameId = null,
@@ -86,7 +85,6 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
     else if (isRemote === true) {
         finalGameId = gameId;
         const userData = JSON.parse(sessionStorage.getItem('userData'));
-        console.log('UserData:', userData); // Debugging line
         if (!userData || !userData.id || !userData.token) {
             console.error('UserData is missing or incomplete! Cannot start remote game!');
             endGame();
@@ -106,7 +104,6 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
     }
     else {
         const userData = JSON.parse(sessionStorage.getItem('userData'));
-        console.log('UserData:', userData); // Debugging line
         if (!userData || !userData.id || !userData.token) {
             console.error('UserData is missing or incomplete!');
         }
@@ -195,7 +192,6 @@ function updateITimes() {
 }
 
 document.getElementById('localGameButton').addEventListener('click', () => {
-    console.log('Local Game Button clicked');
     try {
         setTimeout(() => {
             startGame('pongGameContainer', {
