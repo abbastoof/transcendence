@@ -57,3 +57,30 @@ def test_generate_tokens(api_client, user_tokens_obj, headers):
     assert 'exp' in decoded_access
     assert 'token_type' in decoded_access and decoded_access['token_type'] == 'access'
 
+
+# Frontend will send the refresh token in the request header as Bearer token and the user id in the request body to generate a new access token
+@pytest.mark.django_db
+def test_refresh_token(api_client, user_tokens_obj_with_token):
+    url = reverse('token_refresh')
+    refresh_token = user_tokens_obj_with_token.token_data['refresh']
+    response = api_client.post(url, data={'id': user_tokens_obj_with_token.id}, headers={'Authorization': f'Bearer {refresh_token}'})
+    assert response.status_code == 200
+    assert 'access' in response.data
+
+    access_token = response.data['access']
+    decoded_access = jwt.decode(access_token, settings.SECRET_KEY, algorithms=["HS256"])
+    assert decoded_access['user_id'] == user_tokens_obj_with_token.id
+    assert 'exp' in decoded_access
+    assert 'token_type' in decoded_access and decoded_access['token_type'] == 'access'
+
+@pytest.mark.django_db
+def test_invalidate_token(api_client, user_tokens_obj_with_token, headers):
+    url = reverse('invalidate_tokens')
+    user_data = {'id': user_tokens_obj_with_token.id, 'access': user_tokens_obj_with_token.token_data['access']}
+    response = api_client.post(url, data=user_data, headers=headers)
+    assert response.status_code == 200
+    assert response.data == {'detail': 'User logged out'}
+    
+    # check if the user token record is deleted from the database
+    with pytest.raises(UserTokens.DoesNotExist):
+        user_tokens_obj_with_token.refresh_from_db()
