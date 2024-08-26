@@ -59,6 +59,7 @@ class GameSession {
         else
             this.scoreBoard.showLoadingText();
         this.playingField.addToScene();
+        initializeEventHandlers(this);
 
         // Always connect to the server
         if (!this.socket.connected) {
@@ -99,7 +100,6 @@ class GameSession {
             this.socket.emit('start_game', gameInitData);
         }
     
-    initializeEventHandlers(this);
 }
 
 
@@ -187,15 +187,8 @@ class GameSession {
                     
                     endGame();
                     this.onGameEndCallback(data);
-                    console.log("Game end callback executed, forwarded data: ", data);
                     this.dataSent = true;
                 }
-                else {
-                    console.log("Game end callback already executed.");
-                }
-            }
-            else {
-                console.log("No game end callback defined.");
             }
             }, 3000);
         }

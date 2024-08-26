@@ -1,11 +1,8 @@
 import * as bootstrap from 'bootstrap';
-import { startGame, endGame } from '../pong/pong.js';
+import { startGame } from '../pong/pong.js';
 import GameSession from '../pong/classes/GameSession.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-
-    console.log("ALKU");                                        // pois
-
     const playerForm = document.getElementById('playerForm');
     const playerAliasInputs = document.getElementById('playerAliasInputs');
     const tournamentModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('tournamentModal'));
@@ -17,9 +14,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const closeButtons = document.querySelectorAll('button.close');
 
     const randomNames = [
-        "CookieLover", "JarJarBinks", "SillyGoose", "FuzzyWuzzy", 
-        "CaptainGiggles", "BumbleBee", "JollyJumper", "WackyWabbit", 
-        "SneakySquirrel", "CrazyCat", "FunkyMonkey", "NinjaNoodle", 
+        "CookieLover", "JarJarBinks", "SillyGoose", "FuzzyWuzzy",
+        "CaptainGiggles", "BumbleBee", "JollyJumper", "WackyWabbit",
+        "SneakySquirrel", "CrazyCat", "FunkyMonkey", "NinjaNoodle",
         "GiggleGuru", "HappyHippo", "ZanyZebra", "LaughingLion"
     ];
 
@@ -29,13 +26,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     randomNamesButton.style.display = 'none';
     startTournamentButton.style.display = 'none';
-
-    document.addEventListener('keydown', function (event) {
-        if (event.key === "Escape" || event.keyCode === 27) {
-            resetTournament();
-            console.log("ESC PRESSED!");
-        }
-    });
 
     if (sessionStorage.getItem('pause') === 'true')
         gameInfoModal.hide();
@@ -49,10 +39,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         tournamentLogic();
     // else
     //     sessionStorage.setItem('tournamentStages', '0');
-    
-    function resetTournament() {
 
-        
+    function resetTournament() {
         sessionStorage.setItem('isGameOver', 'true');
 
         randomNamesButton.style.display = 'none';
@@ -68,30 +56,45 @@ document.addEventListener('DOMContentLoaded', async () => {
         sessionStorage.setItem('roundWinnersTmp', JSON.stringify([]));
 
         sessionStorage.setItem('tournamentStages', '0');
-        
+
         sessionStorage.setItem('pause', 'false');
         sessionStorage.setItem('pause2', 'false');
 
-        tournamentModal.hide();
         gameInfoModal.hide();
 
         console.log("TOURNAMENT RESET");                    // pois
     }
 
-    closeButtons.forEach((closeButton) => {
-        closeButton.addEventListener('click', () => {
-            console.log("MODAL X PRESSED");                 // pois
-            resetTournament();
-          });
+    document.getElementById('gameInfoClose').addEventListener('click', function(event){
+        resetTournament();
     });
 
     randomNamesButton.style.display = 'none';
     startTournamentButton.style.display = 'none';
 
-    document.addEventListener('keydown', function (event) {
+    document.getElementById('tournamentModal').addEventListener('keydown', function(event){
         if (event.key === "Escape" || event.keyCode === 27) {
+            sessionStorage.setItem('gameQuit', 'true');
+        }
+    });
+
+    document.getElementById('gameInfoModal').addEventListener('keydown', function(event){
+        if (event.key === "Escape" || event.keyCode === 27) {
+            sessionStorage.setItem('gameQuit', 'true');
+        }
+    });
+
+    document.getElementById('tournamentModal').addEventListener('hidden.bs.modal', function(event){
+        console.log("gameQuit: " + sessionStorage.getItem('gameQuit'));
+        if (sessionStorage.getItem('gameQuit') === 'true') {
             resetTournament();
-            console.log("ESC PRESSED!");                    // pois
+        }
+    });
+
+    document.getElementById('gameInfoModal').addEventListener('hidden.bs.modal', function(event){
+        console.log("gameQuit: " + sessionStorage.getItem('gameQuit'));
+        if (sessionStorage.getItem('gameQuit') === 'true') {
+            resetTournament();
         }
     });
 
@@ -113,7 +116,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     existingAliases[`playerAlias${i}`] = input.value;
                 }
             }
-            
+
             // Clear previous inputs
             playerAliasInputs.innerHTML = '';
 
@@ -143,9 +146,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 inputGroup.appendChild(label);
                 inputGroup.appendChild(input);
                 playerAliasInputs.appendChild(inputGroup);
-   
+
             }
-            
+
             randomNamesButton.style.display = 'block';
             startTournamentButton.style.display = 'block';
             playerAliasInputs.style.display = 'block';
@@ -158,10 +161,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert("Choose player amount!");
             return;
         }
-        
+
         const inputs = playerAliasInputs.querySelectorAll('input[type="text"]');
         const shuffledNames = randomNames.sort(() => 0.5 - Math.random()).slice(0, playerCount);
-        
+
         // Check for identical names
         const usedNames = new Set();
 
@@ -176,7 +179,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     playerForm.addEventListener('submit', async (event) => {
-        
+
         event.preventDefault();
 
         if (playerForm.checkValidity()) {
@@ -203,6 +206,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // start tournament
             sessionStorage.setItem('tournamentStages', '1');
             console.log("tournamentStage Set to 1");                // pois
+            sessionStorage.setItem('gameQuit', 'false');
             tournamentLogic();
         } else {
             playerForm.classList.add('was-validated');
@@ -217,6 +221,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         let winnerName = [];
         let tmpPlayerOne = [];
         let tmpPlayerTwo = [];
+
+        if (sessionStorage.getItem('gameQuit') === 'true') {
+            resetTournament();
+            return ;
+        }
 
         if(parseInt(sessionStorage.getItem('tournamentStages')) === 1) {
             tmpPlayerOne = JSON.parse(sessionStorage.getItem('tournamentPlayers')).find((player) => (player.id === remainingIDs[0]));
@@ -248,6 +257,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("Stage 2 alkaa");                                   // pois
             while(1)
             {
+                if (sessionStorage.getItem('gameQuit') === 'true') {
+                    resetTournament();
+                    return ;
+                }
                 remainingIDs = JSON.parse(sessionStorage.getItem('remainingIDs'));
                 roundWinners = JSON.parse(sessionStorage.getItem('roundWinners'));
 
@@ -255,7 +268,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     console.log("TESTI BREAK");
                     break ;
                 }
-                
+
                 if(roundWinners.length === 0)
                     winnerName = JSON.parse(sessionStorage.getItem('tournamentPlayers')).find((player) => (player.id === remainingIDs[remainingIDs.length - 1]));
                 else
@@ -270,8 +283,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     tmpPlayerTwo = JSON.parse(sessionStorage.getItem('tournamentPlayers')).find((player) => (player.id === roundWinners[1]));
                 }
 
-                document.getElementById('winner').textContent = ("Last game winner: " + winnerName.name);
-                document.getElementById('nextPlayers').textContent = ("Next Players: " + tmpPlayerOne.name + " and " + tmpPlayerTwo.name);
+                if (winnerName) {
+                    document.getElementById('winner').textContent = ("Last game winner: " + winnerName.name);
+                    document.getElementById('nextPlayers').textContent = ("Next Players: " + tmpPlayerOne.name + " and " + tmpPlayerTwo.name);
+                }
 
                 sessionStorage.setItem('infoScreen', 'true');
                 gameInfoModal.show();

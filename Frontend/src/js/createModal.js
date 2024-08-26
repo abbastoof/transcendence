@@ -7,7 +7,7 @@ export function createModal(modalId, modalTitle, content) {
             <div class="modal-content">
                 <div class="modal-header">
                     <h2 class="modal-title" id="${modalId}Label">${modalTitle}</h2>
-                    <button type="button" data-bs-dismiss="modal" class="close" aria-label="Close">
+                    <button type="button" id="${modalId}Close" data-bs-dismiss="modal" class="close" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>

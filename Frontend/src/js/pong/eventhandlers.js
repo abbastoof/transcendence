@@ -179,6 +179,7 @@ export const cleanupEventHandlers = () => {
     socket.off('cancel_game');
     socket.off('error');
     socket.off('invalid_token');
+    socket.off('game_defaults')
     if (beforeUnloadHandler) {
         window.removeEventListener('beforeunload', beforeUnloadHandler);
         beforeUnloadHandler = null; // Clear the handler reference

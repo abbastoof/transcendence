@@ -23,7 +23,6 @@ class PlayingField {
                 ballDx: { value: 0.5 },
             }
         });
-        //this.planeMaterial = new THREE.MeshToonMaterial({ color: 0x606060 });
         this.planeMesh = new THREE.Mesh(this.planeGeometry, globalState.playingFieldMaterial);
         this.planeMesh.rotateX(degreesToRads(-90));
         this.planeMesh.position.set(0, -5, 0);

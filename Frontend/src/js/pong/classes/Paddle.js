@@ -66,8 +66,6 @@ class Paddle {
                 }
             }
         });
-
-        console.log(`Paddle removed and resources disposed of`);
     }
         
     move(deltaZ){

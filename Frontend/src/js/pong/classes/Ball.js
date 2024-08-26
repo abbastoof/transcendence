@@ -1,8 +1,6 @@
 import * as THREE from 'three';
 
 import { BALL_SIZE } from '../constants.js';
-import { vertexShader } from '../shaders/vertexShader.js';
-import { scoreBoardShader } from '../shaders/scoreBoardShader.js';
 
 class Ball {
     constructor(scene){

@@ -220,23 +220,40 @@ class PongGame:
             await sio.emit('score', data, room=sid)
  
     async def cancel_game(self):
+        # Mark the game as not in progress
         self.game_state.in_progress = False
-        if self.game_loop_task and not self.game_loop_task.done():
+
+        # Cancel the game loop task if it's running
+        if self.game_loop_task is not None and not self.game_loop_task.done():
             self.game_loop_task.cancel()
-        try:
-            await self.game_loop_task  # Await to handle cancellation gracefully
-        except asyncio.CancelledError:
-            logging.info(f"Game loop for game {self.game_state.game_id} was cancelled.")
+            try:
+                await self.game_loop_task  # Await to handle cancellation gracefully
+            except asyncio.CancelledError:
+                logging.info(f"Game loop for game {self.game_state.game_id} was cancelled.")
+            except Exception as e:
+                logging.error(f"Error while awaiting game loop cancellation: {e}")
+
+        # Notify all connected clients about the cancellation
         data = {
             'type': 'cancel_game',
             'gameId': self.game_state.game_id,
             'message': 'Game has been cancelled',
         }
         for sid in self.sids:
-            await sio.emit('cancel_game', data, room=sid)
-        self.sids.clear()  # Clear all session IDs from the game instance
-        del active_games[self.game_id]  # Remove the game instance from the active games
-        del self.game_state  # If possible, clear the game state
+            try:
+                await sio.emit('cancel_game', data, room=sid)
+            except Exception as e:
+                logging.error(f"Error sending cancel_game message to {sid}: {e}")
+
+        # Clear all session IDs from the game instance
+        self.sids.clear()
+
+        # Remove the game instance from the active games
+        if self.game_id in active_games:
+            del active_games[self.game_id]
+
+        # Clear the game state if possible
+        self.game_state = None
 
     # handle_paddle_movement method
     # Handles paddle movement
@@ -307,7 +324,14 @@ def print_active_games():
 @sio.event
 async def connect(sid, environ):
     logging.info(f'Client connected: {sid}, Path: {environ.get("PATH_INFO")}')
-    
+    json_data = {
+        "type": "game_defaults",
+        "PADDLE_WIDTH": PADDLE_WIDTH,
+        "PADDLE_DEPTH": PADDLE_DEPTH,
+        "BALL_RADIUS": BALL_RADIUS,
+        "PADDLE_SPEED": PADDLE_SPEED
+    }
+    await sio.emit('game_defaults', json_data, room=sid)
 
 # Event handler for disconnections
 # This function is called when a client disconnects from the server
