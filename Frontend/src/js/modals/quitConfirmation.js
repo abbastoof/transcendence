@@ -32,7 +32,7 @@ export function initializeConfirmationModal(modalId, title, message) {
 			document.getElementById('confirmationModalTitle').innerText = title;
             document.getElementById('confirmationModalMessage').innerText = message;
             confirmationModal.show();
-        } 
+        }
         // else {
         //     isConfirmed = false;
 		// 	bypassConfirmation = false
@@ -50,6 +50,7 @@ export function initializeConfirmationModal(modalId, title, message) {
         // console.log("calling modalId.hide() with isConfirmed:", isConfirmed);
         const modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
         modal.hide(); // Use Bootstrap's native method to hide the modal
+        sessionStorage.setItem("gameQuit", "true");
     });
 
 	// function to bypass the confirmation modal
