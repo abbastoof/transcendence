@@ -1,3 +1,5 @@
+import { showMessage } from "./messages";
+
 document.addEventListener('DOMContentLoaded', function () {
     updateMatchHistory();
 });
@@ -5,7 +7,6 @@ document.addEventListener('DOMContentLoaded', function () {
 export function updateMatchHistory() {
     const userData = JSON.parse(sessionStorage.getItem('userData'));
     if (!userData || !userData.id || !userData.token) {
-        console.error('UserData is missing or incomplete');
         return;
     }
 
@@ -28,7 +29,6 @@ export function updateMatchHistory() {
     .then(data => {
         const gameHistoryContainer = document.getElementById('History');
         if (!gameHistoryContainer) {
-            console.error('GameHistory container not found');
             return;
         }
 
@@ -82,7 +82,7 @@ export function updateMatchHistory() {
         gameHistoryContainer.innerHTML = htmlContent;
     })
     .catch(error => {
-        console.error('Error fetching game history:', error.message);
+        showMessage('Error fetching game history: ' + error.message, '#gameHistoryModal', 'error');
         const gameHistoryContainer = document.getElementById('History');
         if (gameHistoryContainer) {
             gameHistoryContainer.innerHTML = `<p>Error fetching game history: ${error.message}</p>`;

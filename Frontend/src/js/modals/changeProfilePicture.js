@@ -29,7 +29,6 @@ export function handleProfilePictureUpdate(userData) {
         const imageInput = document.getElementById('imageInput');
         const file = imageInput.files[0];
         if (!file) {
-            console.error('No image selected');
             showMessage('No image selected', '#ProfileModal', 'error');
             return;
         }
@@ -52,7 +51,6 @@ export function handleProfilePictureUpdate(userData) {
                 return response.json();
             })
             .then(data => {
-                console.log('Image uploaded successfully:', data);
                 showMessage('Profile picture updated successfully', '#ProfileModal', 'accept');
                 document.getElementById('avatar').src = `${data.avatar}?t=${new Date().getTime()}`;
                 document.getElementById('imageUploadForm').style.display = 'none';
@@ -60,15 +58,13 @@ export function handleProfilePictureUpdate(userData) {
                 document.getElementById('fileName').textContent = 'No file chosen';
             })
             .catch(error => {
-                console.error('Error uploading image:', error);
-                showMessage('Error uploading image', '#ProfileModal', 'error');
+                showMessage('Error uploading image', error, '#ProfileModal', 'error');
                 document.getElementById('imageInput').value = '';
                 document.getElementById('fileName').textContent = 'No file chosen';
             });
         })
         .catch(error => {
-            console.error('Error handling token verification:', error);
-            showMessage('Session expired. Please log in again.', '#ProfileModal', 'error');
+            showMessage('Session expired. Please log in again.', error, '#ProfileModal', 'error');
         });
     });
 }

@@ -53,7 +53,6 @@ export function handleLogin(event) {
         return response.json();
     })
     .then(data => {
-        console.log('Login response:', data);
         if (data.detail && data.detail === 'Verification password sent to your email') {
             // Show OTP verification form
             document.getElementById('loginVerification').style.display = 'block';
@@ -67,7 +66,6 @@ export function handleLogin(event) {
         }
     })
     .catch(error => {
-        console.error('Login failed:', error);
         showMessage('Log in failed: ' + error.message, '#loginModal', 'error');
         clearPasswordField();
     });
@@ -77,7 +75,6 @@ function handleOtpVerification(event, username, password) {
     event.preventDefault();
 
     const otp = document.getElementById('loginVerificationCode').value;
-    console.log('Verifying OTP:', otp);
 
     fetch('/user/login/verifyotp/', {
         method: 'POST',
@@ -96,7 +93,6 @@ function handleOtpVerification(event, username, password) {
         completeLogin(data);
     })
     .catch(error => {
-        console.error('OTP verification failed:', error);
         showMessage('OTP verification failed: ' + error.message, '#loginModal', 'error');
         document.getElementById('loginVerificationCode').value = '';
     });
@@ -108,7 +104,6 @@ function completeLogin(data) {
     sessionStorage.setItem('userData', JSON.stringify({ id: data.id, token: data.access, refresh: data.refresh }));
     sessionStorage.setItem('isLoggedIn', 'true');
     history.replaceState(null, null, window.location.pathname);
-    //history.location.replace('http://localhost:3000');
     setTimeout(() => {
         document.getElementById('loginModal').querySelector('.close').click();
         document.getElementById('loginForm').reset();
@@ -140,7 +135,6 @@ export function confirmLogout() {
         if (!response.ok) {
             throw new Error('Logout failed');
         }
-        console.log('Logout successful');
 
         sessionStorage.clear();
 
@@ -149,7 +143,7 @@ export function confirmLogout() {
         document.getElementById('logoutModal').querySelector('.close').click();
     })
     .catch(error => {
-        console.error('Logout failed:', error);
+        showMessage('Logout failed: ' + error.message, '#logoutModal', 'error');
     });
 };
         // Handle token verification and refreshing
@@ -159,7 +153,7 @@ export function confirmLogout() {
             sendLogoutRequest(validToken);
         })
         .catch(error => {
-            console.error('Error:', error);
+            showMessage('Logout failed: ' + error.message, '#logoutModal', 'error');
         });
 }
 

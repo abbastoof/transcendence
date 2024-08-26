@@ -42,7 +42,6 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
-            console.log('test:', data);
             if (!data.error) {
                 return fetch('/user/register/sendemailotp/', {
                     method: 'POST',
@@ -65,7 +64,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => {
-            console.error('Error:', error);
             showMessage(error.message || 'Failed to send verification email: Something went wrong', '#signUpModal', 'error');
         });
     });
@@ -94,8 +92,6 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
-            console.log(username, email, password);
-            console.log('Success:', data);
             showMessage('Registration successful', '#signUpModal', 'accept');
             document.getElementById('verificationCode').value = '';
             setTimeout(() => {
@@ -103,7 +99,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 2500);
         })
         .catch(error => {
-            console.error('Error:', error);
             showMessage(error.message || 'Something went wrong', '#signUpModal', 'error');
             document.getElementById('verificationCode').value = '';
         });

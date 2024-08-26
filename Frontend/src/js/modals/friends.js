@@ -13,7 +13,6 @@ document.addEventListener('DOMContentLoaded', function () {
 export function updateFriendsList() {
 	const userData = JSON.parse(sessionStorage.getItem('userData'));
 	if (!userData || !userData.id || !userData.token) {
-		console.error('UserData is missing or incomplete');
 		return;
 	}
 
@@ -34,7 +33,7 @@ export function updateFriendsList() {
 			.then(data => {
 				const friendsContainer = document.getElementById('friendsList');
 				if (!friendsContainer) {
-					console.error('Friends container not found');
+					showMessage('Friends container not found', '#FriendsModal', 'error');
 					return;
 				}
 
@@ -70,7 +69,7 @@ export function updateFriendsList() {
 							removeFriend(userData, this.getAttribute('data-friend-id'));
 						})
 						.catch(error => {
-							console.error('Error verifying token:', error);
+							showMessage(`Error removing friend: ${error.message}`, '#FriendsModal', 'error');
 						});
 					});
 				});
@@ -81,7 +80,7 @@ export function updateFriendsList() {
 						getPendingFriendRequests(userData);
 					})
 					.catch(error => {
-						console.error('Error verifying token:', error);
+						showMessage(`Error verifying token: ${error.message}`, '#FriendsModal', 'error');
 					});
 
 			})
@@ -96,13 +95,13 @@ export function updateFriendsList() {
 							sendFriendRequest(userData);
 						})
 						.catch(error => {
-							console.error('Error verifying token:', error);
+							showMessage(`Error verifying token: ${error.message}`, '#FriendsModal', 'error');
 						});
 
 				});
 			})
 			.catch(error => {
-				console.error('Error fetching friends:', error);
+				showMessage(`Error fetching friends: ${error.message}`, '#FriendsModal', 'error');
 			});
 	};
 
@@ -112,7 +111,7 @@ export function updateFriendsList() {
 			fetchFriends(userData);
 		})
 		.catch(error => {
-			console.error('Error verifying token:', error);
+			showMessage(`Error verifying token: ${error.message}`, '#FriendsModal', 'error');
 		});
 
 };
@@ -192,7 +191,7 @@ function getPendingFriendRequests(userData) {
 							acceptPendingFriendRequest(userData, this.getAttribute('data-pending-sender_user'));
 						})
 						.catch(error => {
-							console.error('Error verifying token:', error);
+							showMessage(`Error verifying token: ${error.message}`, '#FriendsModal', 'error');
 						});
 				});
 			});
@@ -204,13 +203,13 @@ function getPendingFriendRequests(userData) {
 							rejectPendingFriendRequest(userData, this.getAttribute('data-pending-sender_user'));
 						})
 						.catch(error => {
-							console.error('Error verifying token:', error);
+							showMessage(`Error verifying token: ${error.message}`, '#FriendsModal', 'error');
 						});
 				});
 			});
 		})
 		.catch(error => {
-			console.error('Error fetching pending:', error);
+			showMessage(`Error fetching pending requests: ${error.message}`, '#FriendsModal', 'error');
 		});
 }
 
@@ -232,7 +231,7 @@ function acceptPendingFriendRequest(userData, requestID) {
 			updateFriendsList();
 		})
 		.catch(error => {
-			console.error('Error accepting friend request:', error);
+			showMessage('Error accepting friend request:', error, '#FriendsModal', 'error');
 		});
 }
 
@@ -254,7 +253,7 @@ function rejectPendingFriendRequest(userData, requestID) {
 			updateFriendsList();
 		})
 		.catch(error => {
-			console.error('Error rejecting friend request:', error);
+			showMessage('Error rejecting friend request:', error, '#FriendsModal', 'error');
 		});
 }
 
@@ -282,7 +281,7 @@ function removeFriend(userData, friendID) {
 			}
 		})
 		.catch(error => {
-			console.error('Error removing friend:', error);
+			showMessage('Error removing friend:', error, '#FriendsModal', 'error');
 		});
 };
 

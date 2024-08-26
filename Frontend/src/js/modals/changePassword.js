@@ -18,7 +18,7 @@ export function handlePasswordUpdate(userData) {
         event.preventDefault();
         const newPassword = document.getElementById('newPassword').value;
         if (!newPassword) {
-            console.error('Password cannot be empty');
+            showMessage('Password cannot be empty', '#ProfileModal', 'error');
             return;
         }
 
@@ -39,13 +39,11 @@ export function handlePasswordUpdate(userData) {
             return response.json();
         })
         .then(data => {
-            console.log('Password updated successfully:', data);
             showMessage('Password updated successfully', '#ProfileModal', 'accept');
             document.getElementById('newPassword').value = '';
             document.getElementById('updatePasswordForm').style.display = 'none';
         })
         .catch(error => {
-            console.error('Error updating password:', error);
             showMessage('Error updating password', '#ProfileModal', 'error');
             document.getElementById('newPassword').value = '';
         });

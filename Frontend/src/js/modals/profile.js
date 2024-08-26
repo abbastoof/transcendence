@@ -28,8 +28,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 export function updateUserProfile() {
     const userData = JSON.parse(sessionStorage.getItem('userData'));
-    console.log('User data:', userData);
-    console.log('User data:', userData);
     if (!userData || !userData.id || !userData.token) {
         console.error('UserData is missing or incomplete');
         return;
@@ -51,7 +49,6 @@ export function updateUserProfile() {
             .then(data => {
                 const userProfileContainer = document.getElementById('userProfile');
                 if (!userProfileContainer) {
-                    console.error('UserProfile container not found');
                     return;
                 }
                 const htmlContent = `
@@ -132,7 +129,7 @@ export function updateUserProfile() {
 
             })
             .catch(error => {
-                console.error('Error fetching user data:', error);
+                showMessage('Error fetching user profile', '#ProfileModal', 'error');
             });
     }
     handleTokenVerification()
@@ -142,7 +139,7 @@ export function updateUserProfile() {
 
         })
         .catch(error => {
-            console.error('Error verifying token:', error);
+            showMessage(`Error verifying token: ${error.message}`, '#ProfileModal', 'error');
         });
 
     // Function to toggle 2FA status on the server
@@ -165,12 +162,10 @@ export function updateUserProfile() {
             return response.json();
         })
         .then(data => {
-            console.log('2FA status updated successfully:', data.otp_status);
             showMessage('2FA status updated successfully', '#ProfileModal', 'accept');
         })
         .catch(error => {
-            console.error('Error updating 2FA status:', error);
-            showMessage('Error updating 2FA status', '#ProfileModal', 'error');
+            showMessage('Error updating 2FA status', error, '#ProfileModal', 'error');
         });
     }
 }

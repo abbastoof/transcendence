@@ -23,19 +23,6 @@ export function createModal(modalId, modalTitle, content) {
 
     // Correctly reference the modal by its full ID including "Modal" suffix
     const modalElement = new bootstrap.Modal(document.getElementById(`${modalId}Modal`));
-    // window.addEventListener('beforeunload', function (event) {
-    //     event.preventDefault();
-    //     event.returnValue = 'Are you sure you want to refresh? Current data will be lost.';
-    // });
-    
-    // Ensure the main page is loaded and clear the history on page load
-    // window.addEventListener('load', function () {
-    //     if (window.location.pathname !== '/') {
-    //         window.location.replace('https://localhost:3000');
-    //     } else {
-    //         history.replaceState(null, null, '/');
-    //     }
-    // });
 
     // Function to show the modal and set URL hash
     function showModal() {

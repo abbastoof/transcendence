@@ -8,7 +8,6 @@ export function toggleEmailForm() {
 
     // Block toggle if the verification form is open
     if (emailVerificationForm.style.display === 'block') {
-        console.log('Cannot toggle email form while verification form is open');
         return;
     }
     if (updateEmailForm.style.display === 'none' || updateEmailForm.style.display === '') {
@@ -25,7 +24,7 @@ export function handleEmailUpdate(userData) {
         event.preventDefault();
         const newEmail = document.getElementById('newEmail').value;
         if (!newEmail) {
-            console.error('Email cannot be empty');
+            showMessage('Email cannot be empty', '#ProfileModal', 'error');
             return;
         }
 
@@ -66,14 +65,12 @@ export function handleEmailUpdate(userData) {
             return response.json();
         })
         .then(() => {
-            console.log('OTP sent successfully');
             showMessage('OTP sent to your new email', '#ProfileModal', 'accept');
             document.getElementById('updateEmailForm').style.display = 'none';
             document.getElementById('emailVerificationForm').style.display = 'block';
         })
         .catch(error => {
-            console.error('Error:', error);
-            showMessage('Error sending verification code', '#ProfileModal', 'error');
+            showMessage('Error sending verification code', error, '#ProfileModal', 'error');
         });
     });
 
@@ -82,7 +79,7 @@ export function handleEmailUpdate(userData) {
         const newEmail = document.getElementById('newEmail').value;
         const otp = document.getElementById('emailVerificationCode').value;
         if (!otp) {
-            console.error('OTP cannot be empty');
+            showMessage('Verification code cannot be empty', '#ProfileModal', 'error');
             return;
         }
 
@@ -123,7 +120,6 @@ export function handleEmailUpdate(userData) {
             return response.json();
         })
         .then(data => {
-            console.log('Email updated successfully:', data);
             showMessage('Email updated successfully', '#ProfileModal', 'accept');
             document.getElementById('emailText').innerText = data.email;
             document.getElementById('newEmail').value = '';
@@ -131,8 +127,7 @@ export function handleEmailUpdate(userData) {
             document.getElementById('emailVerificationForm').style.display = 'none';
         })
         .catch(error => {
-            console.error('Error verifying OTP:', error);
-            showMessage('Error verifying OTP', '#ProfileModal', 'error');
+            showMessage('Error verifying OTP', error, '#ProfileModal', 'error');
         });
     });
 
