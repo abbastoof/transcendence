@@ -62,7 +62,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         gameInfoModal.hide();
 
-        console.log("TOURNAMENT RESET");                    // pois
     }
 
     document.getElementById('gameInfoClose').addEventListener('click', function(event){
@@ -85,14 +84,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     document.getElementById('tournamentModal').addEventListener('hidden.bs.modal', function(event){
-        console.log("gameQuit: " + sessionStorage.getItem('gameQuit'));
         if (sessionStorage.getItem('gameQuit') === 'true') {
             resetTournament();
         }
     });
 
     document.getElementById('gameInfoModal').addEventListener('hidden.bs.modal', function(event){
-        console.log("gameQuit: " + sessionStorage.getItem('gameQuit'));
         if (sessionStorage.getItem('gameQuit') === 'true') {
             resetTournament();
         }
@@ -205,7 +202,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // start tournament
             sessionStorage.setItem('tournamentStages', '1');
-            console.log("tournamentStage Set to 1");                // pois
             sessionStorage.setItem('gameQuit', 'false');
             tournamentLogic();
         } else {
@@ -250,11 +246,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 await new Promise(resolve => setTimeout(resolve, 100));
             sessionStorage.setItem('pause2', 'false');
             sessionStorage.setItem('tournamentStages', '2');
-            console.log("tournamentStage Set to 2");                        // pois
         }
 
         if(parseInt(sessionStorage.getItem('tournamentStages')) === 2) {
-            console.log("Stage 2 alkaa");                                   // pois
             while(1)
             {
                 if (sessionStorage.getItem('gameQuit') === 'true') {
@@ -265,7 +259,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 roundWinners = JSON.parse(sessionStorage.getItem('roundWinners'));
 
                 if(remainingIDs.length === 0 && roundWinners.length === 1) {
-                    console.log("TESTI BREAK");
                     break ;
                 }
 
@@ -312,7 +305,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 sessionStorage.setItem('pause2', 'false');
             }
             sessionStorage.setItem('tournamentStages', '3');
-            console.log("tournamentStage Set to 3");            // pois
         }
 
         if(parseInt(sessionStorage.getItem('tournamentStages'))) {
