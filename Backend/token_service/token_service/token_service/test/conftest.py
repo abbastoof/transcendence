@@ -9,16 +9,21 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'token_service.settings')
 if not settings.configured:
     settings.configure(
         DEBUG=True,
-        DATABASES={
+        DATABASES = {
             "default": {
                 "ENGINE": "django.db.backends.postgresql",
-                "NAME": "postgres",
-                "USER": "root",
-                "PASSWORD": "root",
+                "NAME": "token_service",
+                "HOST": PGSQL_HOST,
+                "USER": DB_USER,
+                "PASSWORD": DB_PASS,
                 "PORT": "5432",
-                "HOST": "localhost",
-                "ATOMIC_REQUESTS": True,
-            }
+                "ATOMIC_REQUESTS": True, # atomic is used to rollback the changes made to the database during testing after the test is done
+
+            "TEST": {
+                    "NAME": "mytestdatabase",
+                    "ATOMIC_REQUESTS": True,
+                },
+            },
         },
         INSTALLED_APPS=[
             'django.contrib.admin',
