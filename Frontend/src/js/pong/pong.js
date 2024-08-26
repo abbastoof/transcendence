@@ -117,11 +117,15 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
         player2Id = Math.round(randFloat(2000, 2999));
         finalGameId = Math.round(randFloat(5000, 9999));
     }
-    createModalEventListeners(isRemote, isLocalTournament);
-    const pongModal = new bootstrap.Modal(document.getElementById('pongModal'));
-    pongModal.show()
-    history.replaceState(null, null, window.location.pathname);
+    // Ensure DOM element for the modal exists
 
+    const pongModalElement = document.getElementById('pongModal');
+
+
+    // Set up event listeners
+    createModalEventListeners(isRemote, isLocalTournament);
+
+    
     globalState.invertedView = player2Id === localPlayerId
     const container = document.getElementById(containerId);
     const canvas = document.createElement('canvas');
@@ -190,23 +194,28 @@ function updateITimes() {
     }
 }
 
-const localGameButton = document.getElementById('localGameButton');
-
-localGameButton.addEventListener('click', () => {
-        startGame('pongGameContainer', {
-            isRemote: false,  // Set to true for remote multiplayer
-            playerIds: [],    // Specify player IDs if needed
-            gameId: null,     // Specify game ID if needed
-            isLocalTournament: false,  // Set to true for local tournaments
-        }, localGameCallBack);
+document.getElementById('localGameButton').addEventListener('click', () => {
+    console.log('Local Game Button clicked');
+    try {
+        setTimeout(() => {
+            startGame('pongGameContainer', {
+                isRemote: false,  // Set to true for remote multiplayer
+                playerIds: [],    // Specify player IDs if needed
+                gameId: null,     // Specify game ID if needed
+                isLocalTournament: false,  // Set to true for local tournaments
+            }, localGameCallBack);
+        }, 300);
+    } catch (error) {
+        console.error('Error during startGame execution:', error);
+    }
 });
-
 function createModalEventListeners(isRemote, isLocalTournament) {
-    // Check if DOM is fully loaded
+    const setupListeners = () => setupModalListeners(isRemote, isLocalTournament);
+
     if (document.readyState === "loading") {
-        document.addEventListener('DOMContentLoaded', setupModalListeners);
+        document.addEventListener('DOMContentLoaded', setupListeners);
     } else {
-        setupModalListeners(isRemote, isLocalTournament);
+        setupListeners();
     }
 }
 
@@ -221,7 +230,6 @@ function setupModalListeners(isRemote, isLocalTournament) {
     
     // Initialize the Bootstrap modal
     const pongModal = new bootstrap.Modal(pongModalElement);
-    console.log("pong dom event listener thingy");
     
     let title = "Quit game";
     let message = "Are you sure you want to quit the game?";
@@ -248,6 +256,7 @@ function setupModalListeners(isRemote, isLocalTournament) {
             }
         }
     });
+    pongModal.show();
 }
 
 // Function to remove modal event listeners
