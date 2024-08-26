@@ -293,8 +293,7 @@ async def connect(sid, environ):
         "PADDLE_SPEED": PADDLE_SPEED
     }
 
-    for sid in self.sids:
-            await sio.emit('game_defaults', json_data, room=sid)
+    await sio.emit('game_defaults', json_data, room=sid)
 
 # Event handler for disconnections
 # This function is called when a client disconnects from the server
