@@ -81,6 +81,17 @@ def test_invalidate_token(api_client, user_tokens_obj_with_token, headers):
     assert response.status_code == 200
     assert response.data == {'detail': 'User logged out'}
     
-    # check if the user token record is deleted from the database
+    # check if the user token record is deleted from the database after invalidating the token
     with pytest.raises(UserTokens.DoesNotExist):
-        user_tokens_obj_with_token.refresh_from_db()
+        user_tokens_obj_with_token.refresh_from_db() # .refresh_from_db() is used to refresh the object from the database to get the updated data
+
+@pytest.mark.django_db
+def test_validate_token(api_client, user_tokens_obj_with_token, headers):
+    url = reverse('validate_token')
+    user_data = {'id': user_tokens_obj_with_token.id, 'access': user_tokens_obj_with_token.token_data['access']}
+    response = api_client.post(url, data=user_data, headers=headers)
+    assert response.status_code == 200
+    assert response.data == {'access_token': 'Valid token'}
+    
+    user_tokens_obj_with_token.refresh_from_db() # .refresh_from_db() is used to refresh the object from the database to get the updated data
+    assert user_tokens_obj_with_token is not None # check if the user token record is still in the database
