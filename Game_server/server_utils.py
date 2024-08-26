@@ -3,6 +3,7 @@ import time
 import json
 import logging
 import socketio
+import os
 
 # Define a dictionary to store active game instances
 active_games = {}
@@ -43,12 +44,15 @@ logging_config = {
     },
 }
 
+HOSTNAME = os.environ.get("HOSTNAME")
+full_host_url = f"https://{HOSTNAME}:3000"
+
 # Create a new ASGI application using the Socket.IO server
 # The 'async_mode' parameter is set to 'asgi' to use the ASGI server
 # The 'cors_allowed_origins' parameter is set to '*' to allow all origins (this needs to be eventually restricted)
 sio = socketio.AsyncServer(
     async_mode='asgi',
-    cors_allowed_origins="*",  # Specify allowed origins
+    cors_allowed_origins= full_host_url,
     logger=False,              # Disable Socket.IO logging
     engineio_logger=False,      # Disable engineio logging
     ping_interval=10,
