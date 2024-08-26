@@ -174,8 +174,7 @@ class Ball:
         # adjustment: how much the direction of the ball should be adjusted
         adjustment = abs(MAX_BOUNCE_ANGLE_ADJUSTMENT - direction_mod) + 5 * abs(hitpos) + dz_factor
         adjustment = min(adjustment, MAX_BOUNCE_ANGLE_ADJUSTMENT)
-        # logging.info(f"before bounce, direction: {self.direction}, delta_x: {self.delta_x}, delta_z: {self.delta_z}")
-        # logging.info(f"hitpos: {hitpos}, dz_factor: {dz_factor}, direction_mod: {direction_mod}, adjustment: {adjustment}")
+
         # if ball hits the middle of the paddle, it bounces with wider angle
         if hitpos >= 0 and hitpos < 0.2 or hitpos < 0 and hitpos > -.2:
             if (abs(hitpos) < 0.1):
@@ -190,7 +189,6 @@ class Ball:
         else:
             speedboost = abs(hitpos) * 1.2
             self.speed_up(speedboost)
-            logging.info(speedboost)
             if self.delta_z < 0.0: # if ball is going down
                 if self.direction > 270: # if ball is going right
                     if hitpos > 0.0: # if ball hits the top area of the paddle
@@ -214,9 +212,9 @@ class Ball:
                     else: # if ball hits the bottom area of the paddle
                         self.direction = 190 + adjustment * 0.5 # bounce to bottom left
         self.direction = self.direction % 360 # make sure direction is between 0 and 360
-        #logging.info(f"after bounce, direction: {self.direction}, delta_x: {self.delta_x}, delta_z: {self.delta_z}")
-        # Reposition ball to avoid being stuck inside paddle
+
         return (abs(hitpos))
+
     # bounce_from_wall method
     # reflects the direction of the ball when it bounces from a wall
     def bounce_from_wall(self) -> None:

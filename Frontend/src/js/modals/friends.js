@@ -169,7 +169,6 @@ function getPendingFriendRequests(userData) {
 				console.error('Pending container not found');
 				return;
 			}
-			console.log(data);
 			let htmlContent = `<div class="container"><h2 class="font">Pending friend requests</h2>`;
 			data.forEach(pending => {
 				htmlContent += `

@@ -103,13 +103,6 @@ export function startGame(containerId, config = {}, onGameEnd = null) {
         }
     }
     else {
-        const userData = JSON.parse(sessionStorage.getItem('userData'));
-        if (!userData || !userData.id || !userData.token) {
-            console.error('UserData is missing or incomplete!');
-        }
-        else {
-            localPlayerId = userData.id;
-        }
         player1Id = Math.round(randFloat(1000, 1999));
         player2Id = Math.round(randFloat(2000, 2999));
         finalGameId = Math.round(randFloat(5000, 9999));

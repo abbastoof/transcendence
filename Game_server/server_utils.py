@@ -45,7 +45,7 @@ logging_config = {
 }
 
 HOSTNAME = os.environ.get("HOSTNAME")
-full_host_url = f"http://{HOSTNAME}:3001"
+full_host_url = f"https://{HOSTNAME}:3000"
 
 # Create a new ASGI application using the Socket.IO server
 # The 'async_mode' parameter is set to 'asgi' to use the ASGI server

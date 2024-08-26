@@ -75,8 +75,6 @@ class GameSession {
             'is_local_tournament': isLocalTournament,
             'token': null,
         }
-        console.log('Game Session Initialized');
-        console.log('Game Init Data:', gameInitData);
 
         if (isRemote === true) {
             const userData = JSON.parse(sessionStorage.getItem('userData'));
@@ -211,7 +209,6 @@ class GameSession {
     disconnect() {
         if (this.socket.connected) {
             this.socket.disconnect();
-            console.log('Disconnected from server');
         }
     }
 

@@ -29,7 +29,6 @@ class PongGame:
         self.game_loop_task = None
         self.is_remote = is_remote
         self.is_quit = False
-        logging.info("Pongstructor")
 
     # init_game method
     # Initializes the game state
@@ -57,7 +56,6 @@ class PongGame:
         self.sids.append(sid)
         if self.is_remote:
             self.sid_to_player_id[sid] = player_id
-        logging.info(f"Player {sid} added to game {self.game_id}")
 
     # remove_player method
     # Removes a player session from the game
@@ -65,7 +63,6 @@ class PongGame:
         if sid in self.sids:
             self.sids.remove(sid)
             player_id = self.sid_to_player_id.pop(sid, None)
-            logging.info(f"Player {player_id} (sid: {sid}) removed from game {self.game_id}")
      
     # game_loop method
     # Runs the game loop
@@ -78,7 +75,6 @@ class PongGame:
         while self.game_state.in_progress:
             self.game_state.current_rally = 0
             self.game_state.reset_ball()
-            logging.info(f"Rally started, game ID: {self.game_state.game_id}, sids: {self.sids}")
             await self.send_game_state_to_client()
             await asyncio.sleep(1.0) # Little break before start of the rally
             self.game_state.paused = False
@@ -194,7 +190,6 @@ class PongGame:
         del self.game_state  # If possible, clear the game state
         print_active_games()
         
-        #logging.info("Game over")
 
     # post_rally_animation method
     # Runs the post-rally animation (aka ball going through the goal)
@@ -259,12 +254,6 @@ class PongGame:
     # Handles paddle movement
     # The 'data' parameter is a dictionary containing the paddle movement data
     async def handle_paddle_movement(self, sid, data):
-        #if isinstance(data, str):
-        #    try:
-        #        data = json.loads(data)  # Parse the JSON string into a dictionary
-        #    except json.JSONDecodeError:
-        #        logging.error("Received data is not valid JSON")
-        #        return
 
         if not isinstance(data, dict):  # Ensure data is a dictionary
             logging.error("Received data is not a dictionary")
@@ -348,16 +337,9 @@ async def disconnect(sid):
             if sid in game_instance.sids:
                 game_instance.sids.remove(sid)
                 if game_instance.is_remote and not game_instance.is_quit and game_instance.sids.__len__() == 1:
-                    logging.info(f"Only one player left in remote game {game_id}, ending game session")
                     await game_instance.cancel_game()
                 elif game_instance.sids.__len__() == 0:
-                    logging.info(f"No players left in game {game_id}, ending game session")
                     await game_instance.end_game()
-                    logging.info(f"Game {game_id} terminated and removed from active_games")
-        else:
-            logging.info(f"Game {game_id} not found in active_games during disconnect")
-    else:
-        logging.info(f"SID {sid} not found in sid_to_game")
 
 
 # Event handler for messages
@@ -390,7 +372,6 @@ async def start_game(sid, data):
     player2_id = data.get('player2_id')
     is_remote = data.get('is_remote')
     if game_id in active_games:
-        logging.warning(f"Game {game_id} already active, terminating existing session.")
         await active_games[game_id].end_game()
         del active_games[game_id]
     # Create a new game instance
@@ -402,7 +383,6 @@ async def start_game(sid, data):
         
         # Start the game in a separate task
         asyncio.create_task(game_instance.run_game())
-        logging.info("Game started")
     except Exception as e:
         logging.error(f"Error starting game: {e}")
         await sio.emit('error', {'message': 'Error starting game'}, room=sid)
@@ -422,7 +402,6 @@ async def start_online_game(p1_sid, p2_sid, game_id, player1_id, player2_id):
         
         # Start the game in a separate task
         asyncio.create_task(game_instance.run_game())
-        logging.info("Game started")
     except Exception as e:
         logging.error(f"Error starting game: {e}")
         await sio.emit('error', {'message': 'Error starting game'}, room=sid)
@@ -439,7 +418,6 @@ def validate_token(id, token):
 @sio.event
 async def join_game(sid, data):
     # Log the received data
-    logging.info(f"Join game request from {sid}: {data}")
     
     if await validate_data(data) is False:
         return
@@ -453,8 +431,7 @@ async def join_game(sid, data):
     token = data.get('token')
 
     if validate_token(local_player_id, token) is False:
-        json_data = {"token" : token}
-        await sio.emit('invalid_token', json_data, room=sid)
+        await sio.emit('invalid_token', room=sid)
         return
     couple = coupled_request(game_id, player1_id, player2_id)
     if couple is not None:

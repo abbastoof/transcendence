@@ -144,8 +144,8 @@ export const initializeEventHandlers = (gameSession) => {
     // Define the beforeunload event handler
     beforeUnloadHandler = (event) => {
         if (gameSession.inProgress) {
-            gameSession.quitGame();
             event.preventDefault();
+            gameSession.quitGame();
             return 'Are you sure you want to leave the game?';
         }
     };

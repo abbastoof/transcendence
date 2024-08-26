@@ -55,6 +55,7 @@ export function updateMatchHistory() {
 
         // Build HTML content for game records
         let gameHistoryHtml = '';
+        let gameCounter = 1;
         data.forEach(game => {
             if (game.player1_id === userId || game.player2_id === userId) {
                 let winner_name;
@@ -66,12 +67,13 @@ export function updateMatchHistory() {
 
                 gameHistoryHtml += `
                     <div class="game-record">
-                        <h3 class="game-font">Game: ${game.game_id}</h3>
+                        <h3 class="game-font">Game ${gameCounter}</h3>
                         <p class="game-label">${new Date(game.start_time).toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                         <p class="game-label">${game.player1_username} - ${game.player2_username}</p>
-                        <p class="game-label">Winner: ${winner_name}</p>
+                        <p class="game-label">Winner: <i><u><b>${winner_name}</b></i></u></p>
                     </div>
                 `;
+                gameCounter++;
             }
         });
 

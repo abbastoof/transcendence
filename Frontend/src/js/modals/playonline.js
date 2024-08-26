@@ -48,7 +48,6 @@ function connectToWebSockets() {
     let gameRoomSocket;
 
     onlineStatusSocket.onopen = function() {
-        console.log('Connected to online status WebSocket');
     };
 
     onlineStatusSocket.onmessage = function(event) {
@@ -70,11 +69,10 @@ function connectToWebSockets() {
     };
 
     onlineStatusSocket.onclose = function(event) {
-        console.log('Online status WebSocket closed:', event);
     };
 
     onlineStatusSocket.onerror = function(error) {
-        console.error('Error in online status WebSocket:', error);
+        waitingLobbyModal.hide();
     };
 
     function connectToGameRoom(roomName) {
@@ -84,13 +82,11 @@ function connectToWebSockets() {
             gameRoomSocket = new WebSocket(`/ws/game/room/${roomName}/?token=${validToken}`);
 
                 gameRoomSocket.onopen = function() {
-                    console.log(`Connected to game room ${roomName} WebSocket`);
                     gameRoomSocket.send(JSON.stringify({ type: 'join', username: userData.username }));
                 };
 
                 gameRoomSocket.onmessage = function(event) {
                     const data = JSON.parse(event.data);
-                    console.log(data)
                     if (data.type === 'starting_game') {
                         waitingLobbyModalLabel.textContent = "Starting game..";
 
@@ -111,23 +107,21 @@ function connectToWebSockets() {
                             gameRoomSocket.close();
                         }
 
-                    //  pongModal.show();
                         waitingLobbyModal.hide();
                         startGame('pongGameContainer', config, handleGameEnd);
                     }
                 };
 
                 gameRoomSocket.onclose = function(event) {
-                    console.log(`Game room ${roomName} WebSocket closed:`, event);
+                    
                 };
 
                 gameRoomSocket.onerror = function(error) {
-                    console.error(`Error in game room ${roomName} WebSocket:`, error);
+                    waitingLobbyModal.hide();
                 };
             }
         )}
     waitingLobbyModalElement.addEventListener('hide.bs.modal', function () {
-        console.log('Modal is closing. Disconnecting WebSockets.');
         if (onlineStatusSocket.readyState === WebSocket.OPEN) {
             onlineStatusSocket.close();
         }
@@ -144,7 +138,7 @@ function connectToWebSockets() {
 }
 
 function handleGameEnd(data) {
-    //pongModal.hide();
+    
     waitingLobbyModal.show();
     const cancelButton = document.getElementById('cancelOnlinePlay');
     
@@ -165,8 +159,9 @@ function handleGameEnd(data) {
             lobbyContent.innerHTML = `<p class="font">Final Score:</p>
             <p class="font">${gameHistoryRecord.player1_username}: ${data.player1_score}</p>
             <p class="font">${gameHistoryRecord.player2_username}: ${data.player2_score}</p>
-            <p class="font">Total hits:<br>
-            ${gameHistoryRecord.player1_username}: ${data.player1_hits}<br>${gameHistoryRecord.player2_username}: ${data.player2_hits}</p>
+            <p class="font">Total hits:</p>
+            <p class="font">${gameHistoryRecord.player1_username}: ${data.player1_hits}</p>
+            <p class="font">${gameHistoryRecord.player2_username}: ${data.player2_hits}</p>
             <p class="font">Longest rally: ${data.longest_rally * 0.016}</p>`;
             if (Number(userData.id) === data.winner){
                 updateGameHistory(data, gameHistoryRecord);
@@ -175,7 +170,6 @@ function handleGameEnd(data) {
     }
 
 function updateGameHistory(data, gameHistoryRecord) {
-    console.log('Updating game history record with winner_id:', data.winner);
     fetch(`/game-history/${data.game_id}/`)
         .then(response => response.json())
         .then(gameHistoryRecord => {
@@ -205,7 +199,6 @@ function updateGameHistory(data, gameHistoryRecord) {
                 player2_hits: data.player2_hits,
                 longest_rally: data.longest_rally
             };
-            console.log('Creating game stat record:', gameStatData);
             return fetch('/game-stat/', {
                 method: 'POST',
                 headers: {
@@ -219,9 +212,6 @@ function updateGameHistory(data, gameHistoryRecord) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
-        })
-        .then(data => {
-            console.log('Game stat record created:', data);
         })
         .catch(error => {
             console.error('Error:', error);

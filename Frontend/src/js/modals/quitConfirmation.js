@@ -20,24 +20,13 @@ export function initializeConfirmationModal(modalId, title, message) {
 	let bypassConfirmation = false;
 
     document.getElementById(modalId).addEventListener('hide.bs.modal', function(event){
-        console.log("isconfirmed " + isConfirmed)
-        console.log("bypassconfirmation ", bypassConfirmation)
         if (!isConfirmed && !bypassConfirmation) {
-            console.log("no confirmation.. preventing default");
-            console.log("isnotconfirmed no bypass")
-            console.log("isconfirmed " + isConfirmed)
-            console.log("bypassconfirmation ", bypassConfirmation)
-
             event.preventDefault();
 			document.getElementById('confirmationModalTitle').innerText = title;
             document.getElementById('confirmationModalMessage').innerText = message;
             confirmationModal.show();
         }
-        // else {
-        //     isConfirmed = false;
-		// 	bypassConfirmation = false
-        // }
-     });
+    });
 
     // Handle confirmation modal buttons
     document.getElementById('cancelClose').addEventListener('click', function () {
@@ -47,7 +36,6 @@ export function initializeConfirmationModal(modalId, title, message) {
     document.getElementById('confirmClose').addEventListener('click', function () {
         isConfirmed = true;
         confirmationModal.hide();
-        // console.log("calling modalId.hide() with isConfirmed:", isConfirmed);
         const modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
         modal.hide(); // Use Bootstrap's native method to hide the modal
         sessionStorage.setItem("gameQuit", "true");
@@ -59,6 +47,5 @@ export function initializeConfirmationModal(modalId, title, message) {
         console.log("bypassconfirmationmodal changed to true")
 		const modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
 		modal.hide();
-        //bypassConfirmation = false;
 	};
 }

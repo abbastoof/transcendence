@@ -29,7 +29,6 @@ document.addEventListener('DOMContentLoaded', function () {
 export function updateUserProfile() {
     const userData = JSON.parse(sessionStorage.getItem('userData'));
     if (!userData || !userData.id || !userData.token) {
-        console.error('UserData is missing or incomplete');
         return;
     }
 

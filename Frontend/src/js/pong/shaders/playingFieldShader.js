@@ -41,7 +41,7 @@ export const playingFieldShader = `
         //uv.y -= iTime * 0.09;
         uv.x -= iTime * 0.1 * ballDx;
         float c = SmoothNoise2(uv);
-        vec3 col = vec3(cos(c * iTime)* .01, cos(c * iTime)*.05, sin(c * iTime) * .8);
+        vec3 col = vec3(cos(c * iTime + xRand)* .01, cos(c * iTime)*.05, sin(c * iTime - yRand) * .8);
 
         fragColor = vec4(col, 1.0);
     }

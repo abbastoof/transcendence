@@ -18,8 +18,8 @@ class PlayingField {
                 iTime: { value: 0.0 },
                 iResolution: { value: new THREE.Vector2(WIDTH, HEIGHT) },
                 xRand: { value: convertToRange(player1Id, 50, 690) },
-                yRand: { value: convertToRange(player2Id, 2124, 5291) },
-                multiRand: { value: convertToRange(gameId, 625, 90909) },
+                yRand: { value: convertToRange(player2Id, 2124, 5241) },
+                multiRand: { value: convertToRange(gameId, 625, 9049) },
                 ballDx: { value: 0.5 },
             }
         });
