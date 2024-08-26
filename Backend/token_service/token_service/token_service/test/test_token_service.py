@@ -4,6 +4,9 @@ from rest_framework.test import APIClient
 from token_app.models import UserTokens
 from django.urls import reverse
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.conf import settings
+import jwt
+
 
 @pytest.fixture
 def api_client():
@@ -21,12 +24,35 @@ def user_tokens_obj_with_token(user_tokens_obj):
         'refresh': str(refresh),
         'access': str(access)
     }
+    user_tokens_obj.save()
+    return user_tokens_obj
+
+@pytest.fixture
+def headers():
+    headers = {
+    "X-SERVICE-SECRET": settings.SECRET_KEY
+    }
+    return headers
+
 
 @pytest.mark.django_db
-def test_generate_tokens(api_client, user_tokens_obj, user_tokens_obj_with_token):
+def test_generate_tokens(api_client, user_tokens_obj, headers):
 
     url = reverse('generate_tokens')
-    response = api_client.post(url, {'id': user_tokens_obj.id, 'username': user_tokens_obj.username})
+    response = api_client.post(url, data={'id': user_tokens_obj.id, 'username': user_tokens_obj.username}, headers=headers)
     assert response.status_code == 201
-    assert response.data['refresh'] == user_tokens_obj.token_data['refresh']
-    assert response.data['access'] == user_tokens_obj.token_data['access']
+    assert 'refresh' in response.data
+    assert 'access' in response.data
+
+    refresh_token = response.data['refresh']
+    decoded_refresh = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=["HS256"])
+    
+    assert decoded_refresh['user_id'] == user_tokens_obj.id
+    assert 'exp' in decoded_refresh
+
+    access_token = response.data['access']
+    decoded_access = jwt.decode(access_token, settings.SECRET_KEY, algorithms=["HS256"])
+
+    assert decoded_access['user_id'] == user_tokens_obj.id
+    assert 'exp' in decoded_access
+    assert 'token_type' in decoded_access and decoded_access['token_type'] == 'access'
