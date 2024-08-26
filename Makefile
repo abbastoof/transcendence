@@ -31,10 +31,15 @@ down-all:
 .PHONY: re
 re: down-all clean up
 
-# Show logs for all services
+# Show logs for all services, or if soecified, for a specific service only, e.g. make logs user-service
 .PHONY: logs
 logs:
-	docker compose logs -f
+	@if [ -z "$(filter-out $@,$(MAKECMDGOALS))" ]; then \
+		docker compose logs -f; \
+	else \
+		docker compose logs -f $(filter-out $@,$(MAKECMDGOALS)); \
+	fi
+
 
 # Pull latest images for all services
 .PHONY: pull
