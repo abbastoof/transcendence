@@ -14,5 +14,5 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
     
 EXPOSE 8010
-
+HEALTHCHECK --interval=30s --timeout=2s --start-period=5s --retries=3 CMD curl -sSf http://localhost:8010 > /dev/null &&  echo "success" || echo "failure"
 CMD ["python3", "server.py"]

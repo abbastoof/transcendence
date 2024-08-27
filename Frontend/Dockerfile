@@ -71,4 +71,6 @@ EXPOSE 443
 
 # Set up the final command
 USER www
+HEALTHCHECK --interval=30s --timeout=2s --start-period=5s --retries=3 CMD curl -sSf https://localhost/ > /dev/null &&  echo "success" || echo "failure"
+
 CMD ["sh", "/app/tools.sh"]
