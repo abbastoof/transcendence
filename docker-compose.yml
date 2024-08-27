@@ -21,7 +21,7 @@ services:
     image: redis:alpine
     networks:
       - transcendence_network
-    command: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+    # command: ["CMD", "redis-cli", "--raw", "incr", "ping"]
 
   user-service:
     container_name: user-service
