@@ -58,7 +58,7 @@ export function handleProfilePictureUpdate(userData) {
                 document.getElementById('fileName').textContent = 'No file chosen';
             })
             .catch(error => {
-                showMessage('Error uploading image', error, '#ProfileModal', 'error');
+                showMessage('Error uploading image', '#ProfileModal', 'error');
                 document.getElementById('imageInput').value = '';
                 document.getElementById('fileName').textContent = 'No file chosen';
             });

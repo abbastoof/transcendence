@@ -43,7 +43,7 @@ def validate_token(request) -> None:
         response = requests.post(f"{TOEKNSERVICE}/auth/token/validate-token/", data=data, headers=headers)
         response_data = response.json()
         if "error" in response_data:
-            raise ValidationError(detail=response_data, code=response_data.get("status_code"))
+            raise ValidationError(detail=response_data["error"], code=response_data.get("status_code"))
 
 class UserViewSet(viewsets.ViewSet):
     """
@@ -132,30 +132,41 @@ class UserViewSet(viewsets.ViewSet):
             validate_token(request)
             user_obj = get_object_or_404(UserProfileModel, id=pk)
             if user_obj != request.user and not request.user.is_superuser:
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
-            data = request.data
-            current_email = user_obj.email
-            if "email" in data:
-                response_message, status_code = self.handle_email(data, user_obj)
-            if not response_message:
-                if "avatar" in data:
-                    if user_obj.avatar != "default.jpg":
-                        user_obj.avatar.delete(save=False)                        
-                serializer = UserSerializer(instance=user_obj, data=data, partial=True)
-                serializer.is_valid(raise_exception=True)
-                serializer.save()
-                if serializer.data["email"] != current_email.user_email:
-                    current_email.delete()
-                response_message = serializer.data
-                status_code = status.HTTP_202_ACCEPTED
-            return Response(response_message, status=status_code)
+                response_message = {"error": "You're not authorized"}
+                status_code = status.HTTP_401_UNAUTHORIZED
+            else:
+                data = request.data
+                current_email = user_obj.email
+                if "email" in data:
+                    response_message, status_code = self.handle_email(data, user_obj)
+                if not response_message:
+                    if "avatar" in data:
+                        filename = data["avatar"]
+                        logger.info(f"filename: {filename}")
+                        ext = str(filename).split('.')[-1]
+                        if ext and ext not in ['jpg', 'jpeg', 'png']:
+                            return Response({'error':'Unsupported file extension.'}, status= status.HTTP_400_BAD_REQUEST)
+                        elif ext is None:
+                            return Response({'error':'File extension required.'}, status= status.HTTP_400_BAD_REQUEST)
+                        if user_obj.avatar != "default.jpg":
+                            user_obj.avatar.delete(save=False)
+                    serializer = UserSerializer(instance=user_obj, data=data, partial=True)
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
+                    if serializer.data["email"] != current_email.user_email:
+                        current_email.delete()
+                    response_message = serializer.data
+                    status_code = status.HTTP_202_ACCEPTED
         except ValidationError as err:
             item_lists = []
             for item in err.detail:
                 item_lists.append(item)
-            return Response({'error': item_lists}, status=status.HTTP_400_BAD_REQUEST)
+            response_message = {'error': item_lists}
+            status_code = status.HTTP_400_BAD_REQUEST
         except Exception as err:
-            return Response({"error": str(err)}, status=status.HTTP_400_BAD_REQUEST)
+            response_message = {"error": str(err)}
+            status_code = status.HTTP_400_BAD_REQUEST
+        return Response(response_message, status=status_code)
 
     def handle_email(self, data, user_obj):
         response_message = {}
