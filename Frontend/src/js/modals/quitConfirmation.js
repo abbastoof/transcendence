@@ -44,7 +44,6 @@ export function initializeConfirmationModal(modalId, title, message) {
 	// function to bypass the confirmation modal
 	return function bypassConfirmationModal() {
 		bypassConfirmation = true;
-        console.log("bypassconfirmationmodal changed to true")
 		const modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
 		modal.hide();
 	};

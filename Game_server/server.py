@@ -159,13 +159,16 @@ class PongGame:
     # The game over message is sent to the clients with the game stats
     async def end_game(self):
         self.game_state.in_progress = False
-        if self.game_loop_task and not self.game_loop_task.done():
-            self.game_loop_task.cancel()
-        try:
-            await self.game_loop_task  # Await to handle cancellation gracefully
-        except asyncio.CancelledError:
-            logging.info(f"Game loop for game {self.game_state.game_id} was cancelled.")
-
+        if self.game_loop_task is not None:
+            if not self.game_loop_task.done():
+                self.game_loop_task.cancel()
+            try:
+                await self.game_loop_task  # Await to handle cancellation gracefully
+            except asyncio.CancelledError:
+                logging.info(f"Game loop for game {self.game_state.game_id} was cancelled.")
+        else:
+            logging.warning("Game loop task is None; cannot await a non-existent task.")
+        
         if self.game_state.player1.score > self.game_state.player2.score:
             winner = self.game_state.player1.id
         else:

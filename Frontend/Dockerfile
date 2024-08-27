@@ -24,7 +24,7 @@ COPY --chown=www:www ./Frontend/package-lock.json /app/package-lock.json
 COPY --chown=www:www ./Frontend/vite.config.js /app/vite.config.js
 COPY --chown=www:www ./Frontend/src /app/src
 COPY --chown=www:www ./Frontend/src /www/
-COPY --chown=www:www ./Frontend/default.jpg /www/avatars/
+COPY --chown=www:www ./Frontend/src/assets/images/default.jpg /www/avatars/
 COPY --chown=www:www ./Frontend/tools.sh /app/tools.sh
 
 # Install npm dependencies

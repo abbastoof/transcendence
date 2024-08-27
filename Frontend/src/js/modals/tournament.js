@@ -35,10 +35,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // tournamentStages || 0 = reset || 1 = before first game || 2 = all other games except final || 3 = final
-    if(parseInt(sessionStorage.getItem('tournamentStages')))              // TESTI
+    if(parseInt(sessionStorage.getItem('tournamentStages')))
         tournamentLogic();
-    // else
-    //     sessionStorage.setItem('tournamentStages', '0');
 
     function resetTournament() {
         sessionStorage.setItem('isGameOver', 'true');
@@ -72,13 +70,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     startTournamentButton.style.display = 'none';
 
     document.getElementById('tournamentModal').addEventListener('keydown', function(event){
-        if (event.key === "Escape" || event.keyCode === 27) {
+        if (event.key === "Escape") {
             sessionStorage.setItem('gameQuit', 'true');
         }
     });
 
     document.getElementById('gameInfoModal').addEventListener('keydown', function(event){
-        if (event.key === "Escape" || event.keyCode === 27) {
+        if (event.key === "Escape") {
             sessionStorage.setItem('gameQuit', 'true');
         }
     });
