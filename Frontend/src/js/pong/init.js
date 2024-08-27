@@ -40,7 +40,6 @@ export function init(canvas) {
     // Create composer for postprocessing
     const composer = new EffectComposer( renderer );
     // composer.addPass(new OutputPass());
-    console.log(scene)
     // Initialize the scene
     initializeScene(renderer, scene, camera, composer);
 
@@ -64,8 +63,6 @@ function initComposer (renderer, composer, scene, camera) {
     const scanlinePass = new ShaderPass(scanlineShader);
     scanlinePass.enabled = true;
     composer.addPass(scanlinePass);
-    // const filmPass = new FilmPass( 0.9, .2, 900, false );
-    // composer.addPass( filmPass );
 
     const outputPass = new OutputPass();
     composer.addPass( outputPass );

@@ -1,7 +1,7 @@
 import * as bootstrap from 'bootstrap';
 import { startGame } from '../pong/pong';
 import { handleTokenVerification } from '../tokenHandler';
-
+import { showMessage } from './messages';
 const pongModalElement = document.getElementById('pongModal');
 const waitingLobbyModalElement = document.getElementById('waitingLobbyModal');
 const waitingLobbyModalLabel = document.getElementById('waitingLobbyModalLabel');
@@ -72,7 +72,10 @@ function connectToWebSockets() {
     };
 
     onlineStatusSocket.onerror = function(error) {
-        waitingLobbyModal.hide();
+        showMessage("An error occured while connecting to matchmaking", waitingLobbyModal, error)
+        setTimeout(() => {
+            waitingLobbyModal.hide();
+        }, 2500);
     };
 
     function connectToGameRoom(roomName) {
@@ -117,7 +120,10 @@ function connectToWebSockets() {
                 };
 
                 gameRoomSocket.onerror = function(error) {
-                    waitingLobbyModal.hide();
+                    showMessage("An error occured while connecting to matchmaking", waitingLobbyModal, error)
+                    setTimeout(() => {
+                        waitingLobbyModal.hide();
+                    }, 2500);
                 };
             }
         )}
@@ -132,8 +138,10 @@ function connectToWebSockets() {
     });
 })
 .catch(error => {
-    console.error('Error verifying token:', error);
-});
+    showMessage("Error verifying token", waitingLobbyModal, error)
+    setTimeout(() => {
+        waitingLobbyModal.hide();
+    }, 2500);});
 
 }
 

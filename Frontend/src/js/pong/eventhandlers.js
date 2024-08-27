@@ -11,7 +11,6 @@ export const initializeEventHandlers = (gameSession) => {
     // Event handler for the socket connection
     socket.on('connect', () => {
         isConnected = true;
-        console.log('Connected to server');
     });
 
     // Event handler for the socket disconnection
@@ -28,11 +27,7 @@ export const initializeEventHandlers = (gameSession) => {
             if (data && data.gameId) {
                 if (data.gameId === gameSession.gameId) {
                     gameSession.handleGameStart();
-                } else {
-                    console.warn(`Received game start for different game, was ${data.gameId}, expected ${gameSession.gameId}`);
-                }
-            } else {
-                console.error('Received malformed game_start data:', data);
+                } 
             }
         } catch (error) {
             console.error('Error handling game_start:', error);
@@ -50,11 +45,7 @@ export const initializeEventHandlers = (gameSession) => {
             if (data && data.gameId) {
                 if (data.gameId === gameSession.gameId) {
                     gameSession.handleGameStateUpdate(data);
-                } else {
-                    console.warn(`Received game state for different game, was ${data.gameId}, expected ${gameSession.gameId}`);
                 }
-            } else {
-                console.error('Received malformed send_game_state data:', data);
             }
         } catch (error) {
             console.error('Error handling send_game_state:', error);
@@ -67,11 +58,7 @@ export const initializeEventHandlers = (gameSession) => {
             if (data && data.gameId) {
                 if (data.gameId === gameSession.gameId) {
                     gameSession.handleScoreUpdate(data);
-                } else {
-                    console.warn(`Received score update for different game, was ${data.gameId}, expected ${gameSession.gameId}`);
                 }
-            } else {
-                console.error('Received malformed score data:', data);
             }
         } catch (error) {
             console.error('Error handling score update:', error);
@@ -85,11 +72,7 @@ export const initializeEventHandlers = (gameSession) => {
                 if (data.gameId === gameSession.gameId && gameSession.inProgress) {
                     console.info(`Player ${data.quittingPlayerId} has quit the game.`);
                     gameSession.handleOpponentQuit(data);
-                } else {
-                    console.warn(`Received quit game for different game, was ${data.gameId}, expected ${gameSession.gameId}`);
-                }
-            } else {
-                console.error('Received malformed quit_game data:', data);
+                } 
             }
         } catch (error) {
             console.error('Error handling quit_game:', error);
@@ -102,16 +85,11 @@ export const initializeEventHandlers = (gameSession) => {
             if (data && data.gameId) {
                 if (data.gameId === gameSession.gameId) {
                     gameSession.inProgress = false;
-                    console.info(`Game ${data.gameId} has been cancelled.`);
                     gameSession.handleCancelGame(data);
                     setTimeout(() => {
                         endGame();
                     }, 2000);
-                } else {
-                    console.warn(`Received cancel game for different game, was ${data.gameId}, expected ${gameSession.gameId}`);
-                }
-            } else {
-                console.error('Received malformed cancel_game data:', data);
+                } 
             }
         } catch (error) {
             console.error('Error handling cancel_game:', error);
@@ -124,11 +102,7 @@ export const initializeEventHandlers = (gameSession) => {
             if (data && data.game_id) {
                 if (data.gameId === gameSession.game_id) {
                     gameSession.handleGameOver(data);
-                } else {
-                    console.warn(`Received game over for different game, was ${data.game_id}, expected ${gameSession.gameId}`);
-                }
-            } else {
-                console.error('Received malformed game_over data:', data);
+                } 
             }
         } catch (error) {
             console.error('Error handling game_over:', error);
@@ -179,7 +153,6 @@ export const cleanupEventHandlers = () => {
     socket.off('cancel_game');
     socket.off('error');
     socket.off('invalid_token');
-    socket.off('game_defaults')
     if (beforeUnloadHandler) {
         window.removeEventListener('beforeunload', beforeUnloadHandler);
         beforeUnloadHandler = null; // Clear the handler reference
