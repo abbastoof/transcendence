@@ -4,15 +4,15 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { WIDTH, HEIGHT } from './constants.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { scanlineShader } from './shaders/scanlineShader.js';
-import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass.js';
-import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader.js';
+//import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass.js';
+//import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { globalState } from './globalState.js';
-const glitchPass = new GlitchPass();
-globalState.glitchPass = glitchPass;
-const rgbShift = new ShaderPass( RGBShiftShader );
-globalState.rgbShift = rgbShift;
+//const glitchPass = new GlitchPass();
+//globalState.glitchPass = glitchPass;
+//const rgbShift = new ShaderPass( RGBShiftShader );
+//globalState.rgbShift = rgbShift;
 
 // init 
 export function init(canvas) {
@@ -52,13 +52,13 @@ function initComposer (renderer, composer, scene, camera) {
     const renderPass = new RenderPass( scene, camera );
     composer.addPass( renderPass );
     
-    glitchPass.enabled = false;
-    glitchPass.goWild = true;
-    composer.addPass( glitchPass );
+    // glitchPass.enabled = false;
+    //glitchPass.goWild = true;
+    //composer.addPass( glitchPass );
 
-    rgbShift.uniforms[ 'amount' ].value = 0.0015;
-    rgbShift.enabled = true;
-    composer.addPass( rgbShift );
+    //rgbShift.uniforms[ 'amount' ].value = 0.0015;
+    //rgbShift.enabled = true;
+    //composer.addPass( rgbShift );
     
     const scanlinePass = new ShaderPass(scanlineShader);
     scanlinePass.enabled = true;

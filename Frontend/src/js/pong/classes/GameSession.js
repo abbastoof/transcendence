@@ -142,19 +142,19 @@ class GameSession {
         else if (globalState.playingFieldMaterial !==  null) {
             globalState.playingFieldMaterial.uniforms.ballDx.value = -1.0;
         }
-        if (data.bounce === true) {
-            if (data.hitpos < 0.1) {
-                globalState.rgbShift.uniforms.amount.value = 0.3
-                globalState.glitchPass.enabled = true;
-            }
-            else {
-                globalState.rgbShift.uniforms.amount.value = 0.1 * data.hitpos
-            }
-        }
-        else {
-            globalState.glitchPass.enabled = false;
-            globalState.rgbShift.uniforms.amount.value = 0.0015;
-        }
+        // if (data.bounce === true) {
+        //     // if (data.hitpos < 0.1) {
+        //     //     globalState.rgbShift.uniforms.amount.value = 0.3
+        //     //     globalState.glitchPass.enabled = true;
+        //     // }
+        //     // else {
+        //         globalState.rgbShift.uniforms.amount.value = 0.1 * data.hitpos
+        //     //}
+        // }
+        // else {
+            //globalState.glitchPass.enabled = false;
+            //globalState.rgbShift.uniforms.amount.value = 0.0015;
+        //}
         this.lastUpdateTime = performance.now();
         this.paused = data.paused
     }

@@ -7,25 +7,25 @@ export const playingFieldShader = `
     uniform float ballDx;
     varying vec2 vUv;
 
-    float noise21(vec2 p){
-        return fract(sin(p.x * xRand + p.y * yRand) * multiRand);
-    }
+    // float noise21(vec2 p){
+    //     return fract(sin(p.x * xRand + p.y * yRand) * multiRand);
+    // }
 
-    float SmoothNoise(vec2 uv) {
-        vec2 lv = fract(uv);
-        vec2 id = floor(uv);
+    // float SmoothNoise(vec2 uv) {
+    //     vec2 lv = fract(uv);
+    //     vec2 id = floor(uv);
 
-        lv = lv * lv * (3.0 - 2. * lv);
-        float bl = noise21(id);
-        float br = noise21(id + vec2(1, 0));
-        float b = mix(bl, br, lv.x);
+    //     lv = lv * lv * (3.0 - 2. * lv);
+    //     float bl = noise21(id);
+    //     float br = noise21(id + vec2(1, 0));
+    //     float b = mix(bl, br, lv.x);
 
-        float tl = noise21(id + vec2(0, 1));
-        float tr = noise21(id + vec2(1, 1));
-        float t = mix(tl, tr, lv.x);
+    //     float tl = noise21(id + vec2(0, 1));
+    //     float tr = noise21(id + vec2(1, 1));
+    //     float t = mix(tl, tr, lv.x);
 
-        return mix(b, t, lv.y);
-    }
+    //     return mix(b, t, lv.y);
+    // }
 
     float SmoothNoise2(vec2 uv) {
         float c = SmoothNoise(uv * cos(iTime * 0.05));
