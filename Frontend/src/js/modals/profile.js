@@ -61,14 +61,14 @@ export function updateUserProfile() {
                 <form class="form" id="updateEmailForm" style="display:none;">
                     <div class="form-group">
                         <label class="labelFont" for="newEmail">New Email</label>
-                        <input type="email" id="newEmail" class="form-control" placeholder="Enter new email" required>
+                        <input type="email" maxlength="50" id="newEmail" class="form-control" placeholder="Enter new email" required>
                     </div>
                     <button type="submit" class="submit">Update Email</button>
                 </form>
                 <form id="emailVerificationForm" style="display: none;">
                     <div class="verification">
                         <label for="emailVerificationCode" class="labelFont">Verification Code</label>
-                        <input type="text" class="form-control" id="emailVerificationCode" placeholder="Enter code" required>
+                        <input type="text" maxlength="6" class="form-control" id="emailVerificationCode" placeholder="Enter code" required>
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="submit">Verify</button>
@@ -79,7 +79,7 @@ export function updateUserProfile() {
                 <form class="form" id="updatePasswordForm" style="display:none;">
                     <div class="form-group">
                         <label class="labelFont" for="newPassword">New Password</label>
-                        <input type="password" id="newPassword" class="form-control" placeholder="Enter new password" required>
+                        <input type="password" maxlength="50" id="newPassword" class="form-control" placeholder="Enter new password" required>
                     </div>
                     <button type="submit" class="submit">Update Password</button>
                 </form>
@@ -87,7 +87,7 @@ export function updateUserProfile() {
                 <form class="form" id="imageUploadForm" style="display:none;">
                     <div class="form-group-image">
                         <label for="imageInput" class="submit">Choose file</label>
-                        <input type="file" id="imageInput">
+                        <input type="file" id="imageInput" accept="image/*">
                         <span id="fileName" class="file-name">No file chosen</span>
                     </div>
                     <button type="submit" class="submit">Submit</button>

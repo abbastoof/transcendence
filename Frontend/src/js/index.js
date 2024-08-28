@@ -46,22 +46,22 @@ createModal('signUp', 'Sign up', `
     <form id="signUpForm" class="form">
         <div class="form-group">
         <label class="labelFont" for="signUpEmail">Email</label>
-            <input type="email" class="form-control" id="signUpEmail" placeholder="Enter email"
+            <input type="email" maxlength="50" class="form-control" id="signUpEmail" placeholder="Enter email"
                 required>
         </div>
         <div class="form-group">
             <label class="labelFont" for="signUpUsername">Username</label>
-            <input type="text" class="form-control" id="signUpUsername" placeholder="Enter username"
+            <input type="text" maxlength="50" class="form-control" id="signUpUsername" placeholder="Enter username"
                 required>
         </div>
         <div class="form-group">
             <label class="labelFont" for="signUpPassword">Password</label>
-            <input type="password" class="form-control" id="signUpPassword" placeholder="Enter password"
+            <input type="password" maxlength="50" class="form-control" id="signUpPassword" placeholder="Enter password"
                 required>
         </div>
         <div class="form-group">
             <label class="labelFont" for="signUpRePassword">Re-enter Password</label>
-            <input type="password" class="form-control" id="signUpRePassword"
+            <input type="password" maxlength="50" class="form-control" id="signUpRePassword"
                 placeholder="Re-enter password" required>
         </div>
         <button type="submit" class="submit">Sign up</button>
@@ -69,7 +69,7 @@ createModal('signUp', 'Sign up', `
     <form id="verificationForm" style="display: none;">
         <div class="verification">
             <label for="verificationCode" class="labelFont">Verification Code</label>
-            <input type="text" class="form-control" id="verificationCode" placeholder="Enter code" required>
+            <input type="text" maxlength="6" class="form-control" id="verificationCode" placeholder="Enter code" required>
         </div>
         <div class="modal-footer">
             <button type="submit" class="submit">Verify</button>
@@ -81,11 +81,11 @@ createModal('login', 'Log in', `
     <form id="loginForm" class="form">
         <div class="form-group">
             <label class="labelFont" for="loginUsername">Username</label>
-            <input type="text" class="form-control" id="loginUsername" placeholder="Enter username" required></input>
+            <input type="text" maxlength="50" class="form-control" id="loginUsername" placeholder="Enter username" required></input>
         </div>
         <div class="form-group">
             <label class="labelFont" for="loginPassword">Password</label>
-            <input type="password" class="form-control" id="loginPassword" placeholder="Enter password" required></input>
+            <input type="password" maxlength="50" class="form-control" id="loginPassword" placeholder="Enter password" required></input>
        </div>
         <button type="submit" class="submit">Log in</button>
         <div class="row mt-3">
@@ -97,7 +97,7 @@ createModal('login', 'Log in', `
     <form id="loginVerification" style="display: none;">
         <div class="verification">
             <label for="loginVerificationCode" class="labelFont">Verification Code</label>
-            <input type="text" class="form-control" id="loginVerificationCode" placeholder="Enter code" required>
+            <input type="text" maxlength="6" class="form-control" id="loginVerificationCode" placeholder="Enter code" required>
         </div>
         <div class="modal-footer">
             <button type="submit" class="submit">Verify</button>

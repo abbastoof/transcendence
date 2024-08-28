@@ -32,6 +32,15 @@ export function handleProfilePictureUpdate(userData) {
             showMessage('No image selected', '#ProfileModal', 'error');
             return;
         }
+        const fileType=file.type;
+        if (file) {
+            const fileType=file.type;
+            const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/jpg'];
+            if (!validImageTypes.includes(file.type)) {
+                showMessage('Please upload a valid image file.', '#ProfileModal', 'error');
+                return
+            }
+        }
         const formData = new FormData();
         formData.append('avatar', file);
 

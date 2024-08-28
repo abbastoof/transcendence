@@ -144,7 +144,7 @@ class UserViewSet(viewsets.ViewSet):
                         filename = data["avatar"]
                         logger.info(f"filename: {filename}")
                         ext = str(filename).split('.')[-1]
-                        if ext and ext not in ['jpg', 'jpeg', 'png']:
+                        if ext and ext not in ['jpg', 'jpeg', 'png', 'bmp', 'gif']:
                             return Response({'error':'Unsupported file extension.'}, status= status.HTTP_400_BAD_REQUEST)
                         elif ext is None:
                             return Response({'error':'File extension required.'}, status= status.HTTP_400_BAD_REQUEST)

@@ -41,7 +41,7 @@ export function updateFriendsList() {
 			<form id="friendForm">
                 <div class="form-group">
                     <label class="font" for="friendUsername">Add friend</label>
-                    <input type="text" class="form-control" id="friendUsername" placeholder="Enter username" required>
+                    <input type="text" maxlength="50" class="form-control" id="friendUsername" placeholder="Enter username" required>
 					<button type="submit" class="submit">Send request</button>
 				</div>
             </form>
