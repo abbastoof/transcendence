@@ -27,7 +27,7 @@ class ScoreBoard {
         const geometry = new TextGeometry(text, {
             font: this.font,
             size: size,
-            depth: 3,
+            depth: 7,
             curveSegments: 12,
         });
 
