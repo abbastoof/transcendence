@@ -36,7 +36,7 @@ export function init(canvas) {
         .1,
         2000
     );
-    
+
     // Create composer for postprocessing
     const composer = new EffectComposer( renderer );
     // composer.addPass(new OutputPass());
@@ -47,25 +47,19 @@ export function init(canvas) {
 }
 
 // Initializes the composer for post-processing effects
-function initComposer (renderer, composer, scene, camera) {
-    // Post-processing effects
-    const renderPass = new RenderPass( scene, camera );
-    composer.addPass( renderPass );
-    
-    // glitchPass.enabled = false;
-    //glitchPass.goWild = true;
-    //composer.addPass( glitchPass );
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
-    //rgbShift.uniforms[ 'amount' ].value = 0.0015;
-    //rgbShift.enabled = true;
-    //composer.addPass( rgbShift );
-    
-    const scanlinePass = new ShaderPass(scanlineShader);
-    scanlinePass.enabled = true;
-    composer.addPass(scanlinePass);
+function initComposer(renderer, composer, scene, camera) {
+    const renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
 
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(WIDTH, HEIGHT), 0.5, 0.1, 0.1);
+    bloomPass.threshold = 0.1;
+    bloomPass.strength = 0.1; // Adjust strength to increase vividness
+    bloomPass.radius = 0.1;
+    composer.addPass(bloomPass);
     const outputPass = new OutputPass();
-    composer.addPass( outputPass );
+    composer.addPass(outputPass);
 }
 
 // Initializes the camera
@@ -82,7 +76,7 @@ function initCamera(camera) {
         camera.position.set(-400, 400, 400); // Adjust these values for your desired isometric angle
     }
     camera.lookAt(0, 0, 0);
-    camera.zoom = 2.0;
+    camera.zoom = 2.5;
 }
 /**
  * Initializes the lights in the scene.
@@ -92,18 +86,18 @@ function initCamera(camera) {
 function initLights(scene) {
     // AmbientLight: This light globally illuminates all objects in the scene equally.
     // This can be used to provide a basic level of lighting to a scene.
-    const ambientLight = new THREE.AmbientLight(0x909090);
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.3); // Reduced ambient light to enhance contrast
     scene.add(ambientLight);
 
     // DirectionalLight1: This light gets emitted in a specific direction. It acts as though it is infinitely far away,
     // and the rays produced by it are parallel. It can be used to simulate sunlight; in this case, it's coming from the front right above.
-    const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.7);
+    const directionalLight1 = new THREE.DirectionalLight(0xffffff, 1.2); // Increased intensity for vividness
     directionalLight1.position.set(100, 100, 100);
     directionalLight1.castShadow = true;
     scene.add(directionalLight1);
 
     // DirectionalLight2: Another directional light, this one coming from the back left above.
-    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.8); // Adjust as needed
     directionalLight2.position.set(-100, 100, -100);
     scene.add(directionalLight2);
 
