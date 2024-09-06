@@ -11,6 +11,6 @@ PGPASSWORD='root'
 DJANGO_SECRET = "django-insecure-woftd2en2**zr(b%#*2vit2v%s@(k54gb^c(ots0abo7(wsmo%"
 PGSQL_HOST = 'postgresql'
 
-USER_SERVICE_EMAIL = 'trancendance10@gmail.com'
-USER_SERVICE_PASS = 'prie kqkh dled hlme'
+USER_SERVICE_EMAIL = 'xxx'
+USER_SERVICE_PASS = 'xxx'
 HOSTNAME='hostname_or_ip'
