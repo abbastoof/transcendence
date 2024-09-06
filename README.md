@@ -12,6 +12,8 @@ You should set the value of the `HOSTNAME` variable to the IP address or hostnam
 ```bash
 hostname -I | awk '{print "IP " $1}' # for linux users to get the IP address 
 hostname # for mac or linux users to get the hostname
+USER_SERVICE_EMAIL = 'add your email' # This email will be used by app to send otp to the user email
+USER_SERVICE_PASS = 'add your email password'
 ```
 You don't have to set the other values of the variables in the .env file. The default values should work fine. Once you have set the values of the variables in the .env file, you can run the following command in the root directory of the project:
 ```bash
