@@ -1,50 +1,31 @@
-# Tutorial to use the project
+### Ft_transcendence
+This project is our final project of core studies in Hive Helsinki coding school. It's a website that allows users to play the game of pong against each other. The game is played in real time, and the users can sucscribe to the website. The project is divided into two parts: the game server and the web server. The game server is responsible for managing the games and the web server is responsible for managing the users and user game history. The project is written in HTML, bootstrap, Javascript, Python, Django rest framework and uses a PostgreSQL database. The game server uses socket.io the real-time communication between the users.
+All the project is dockerized and uses docker-compose to run the project.
 
-Until we find a solution for environment variables, you can use "sample env" file. rename it to ".env".
+## Installation
+To run the project, you need to have docker and docker-compose installed on your machine. You can install docker and docker-compose by following the instructions on the official docker website. Once you have docker and docker-compose installed, you can clone the project and run the following command in the root directory of the project:
+```bash
+cp sample\ env .env
+```
+This command will create a .env file in the root directory of the project. You can change the values of the variables in the .env file to suit your needs.
+You should set the value of the `HOSTNAME` variable to the IP address or hostname of your machine. You can get the IP address of your machine by running the following command:
+```bash
+hostname -I | awk '{print "IP " $1}' # for linux users to get the IP address 
+hostname # for mac or linux users to get the hostname
+USER_SERVICE_EMAIL = 'add your email' # This email will be used by app to send otp to the user email
+USER_SERVICE_PASS = 'add your email password'
+```
+You don't have to set the other values of the variables in the .env file. The default values should work fine. Once you have set the values of the variables in the .env file, you can run the following command in the root directory of the project:
+```bash
+make
+```
+This command will build the docker images and run the project. 
+Now you can access the website by going to the following URL in your browser:
+```
+https://<HOSTNAME>:3000
+```
+You can replace `<HOSTNAME>` with the IP address or hostname of your machine that you got set earlier in the .env file. You should see the website now. You can create an account and start playing the game of pong.
+## Note
+For online play need to have two registered users and one of them should create a game and can join the game by clicking on online play.
 
-This project consists of two endpoints that allows users to view, add, update, and delete user records. The application is built using the Django framework in Python. Every endpoint is using Postgresql as a database and Django Rest Framework to serialize the data and return it in JSON format.
-
-The address of the first endpoint user_management API is
-`http://127.0.0.1:8000/user/register/` "create user record using POST method"
-`http://127.0.0.1:8000/user/` "retrieve all user records using GET method only super user or staff can access"
-`http://127.0.0.1:8000/user/<int:pk>/` "without angel brackets" "retrieve, update and delete user record using GET, PUT and DELETE methods respectively"
-
-The address of the second endpoint user_auth API is `http://127.0.0.1:8000/auth/api/token/`
-
-The first endpoint allows users to create a user, update, delete and retrieve. The token is valid for 60 minutes.
-
-User table consists of the following fields:
-You can find it in user_management/user_management/users/models.py
-
-| Field Name | Data Type | Description                        |
-| ---------- | --------- | ---------------------------------- |
-| id         | Integer   | Primary Key                        |
-| username   | String    | User Name                          |
-| email      | String    | User Email                         |
-| password   | String    | User Password (Password is hashed) |
-
-The user_auth table consists of the following fields:
-
-| Field Name | Data Type | Description |
-| ---------- | --------- | ----------- |
-| username   | String    | User Name   |
-| token_data | JSON      | Token Data  |
-
-token_data is a JSON object that consists of two dictionaries:
-
-1. refresh: Refresh Token
-
-| Field Name | Data Type | Description   |
-| ---------- | --------- | ------------- |
-| token      | String    | Refresh Token |
-| exp        | Integer   | Expiry Time   |
-
-2. access: Access Token
-
-| Field Name | Data Type | Description  |
-| ---------- | --------- | ------------ |
-| token      | String    | Access Token |
-| exp        | Integer   | Expiry Time  |
-
-For now I have routed the user_management API to port 8000 and user_auth API to port 8001. The Rabbitmq management is routed to port 15672. You can change the port number in the docker-compose.yml file.
-The address of all of them is `http://127.0.0.1` or `http://localhost`
+You can find more information about the project in the README.md file in the backend directory of the project. every microservice has its own README.md file in its directory.
