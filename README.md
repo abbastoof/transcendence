@@ -1,3 +1,6 @@
+
+https://github.com/user-attachments/assets/cc413cd9-c98d-40de-8e4b-3acb1945456c
+
 ### Ft_transcendence
 This project is our final project of core studies in Hive Helsinki coding school. It's a website that allows users to play the game of pong against each other. The game is played in real time, and the users can sucscribe to the website. The project is divided into two parts: the game server and the web server. The game server is responsible for managing the games and the web server is responsible for managing the users and user game history. The project is written in HTML, bootstrap, Javascript, Python, Django rest framework and uses a PostgreSQL database. The game server uses socket.io the real-time communication between the users.
 All the project is dockerized and uses docker-compose to run the project.
